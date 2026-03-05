@@ -27,12 +27,36 @@
 
     /* ─── Install Screen ─── */
     #installScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex;
-      flex-direction: column; align-items: center; justify-content: center; padding: 28px 20px; text-align: center; overflow-y: auto; }
+      flex-direction: column; align-items: center; padding: 28px 20px 80px; text-align: center; overflow-y: auto; }
     #installScreen .ic { width: 96px; height: 96px; background: var(--acc);
       border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 52px;
       margin-bottom: 20px; flex-shrink:0; }
     #installScreen h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px; color: var(--txt); }
-    #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 32px; }
+    #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 28px; }
+
+    /* Features grid */
+    .feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 420px; margin-bottom: 28px; text-align: left; }
+    .feat-card { background: var(--bg2); border-radius: var(--r); padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .feat-card .fi { font-size: 28px; line-height: 1; }
+    .feat-card .ft { font-size: 13px; font-weight: 700; color: var(--txt); }
+    .feat-card .fd { font-size: 11px; color: var(--dim); line-height: 1.4; }
+
+    /* Install options */
+    .inst-section { width: 100%; max-width: 420px; text-align: left; margin-bottom: 24px; }
+    .inst-section-title { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .inst-option { border-radius: var(--r); padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; cursor: default; }
+    .inst-option.disabled { background: var(--bg2); opacity: .45; pointer-events: none; }
+    .inst-option.available { background: var(--bg2); border: 2px solid var(--acc); cursor: pointer; }
+    .inst-option .io-icon { font-size: 32px; flex-shrink: 0; }
+    .inst-option .io-body { flex: 1; }
+    .inst-option .io-title { font-size: 15px; font-weight: 700; color: var(--txt); margin-bottom: 2px; }
+    .inst-option.disabled .io-title { text-decoration: line-through; color: var(--dim); }
+    .inst-option .io-sub { font-size: 12px; color: var(--dim); }
+    .inst-option .io-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+    .inst-option.disabled .io-badge { background: var(--btn); color: var(--dim); }
+    .inst-option.available .io-badge { background: var(--acc); color: white; }
+
+    /* Tutorial box */
     #installScreen .box { background: var(--bg2); border-radius: var(--r); padding: 18px; width: 100%;
       max-width: 420px; text-align: left; margin-bottom: 20px; }
     #installScreen .box h2 { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase;
@@ -47,6 +71,14 @@
       display: none; align-items: center; justify-content: center; gap: 8px; }
     #andBtn.show { display: flex; }
     .inote { font-size: 12px; color: var(--dim); margin-top: 14px; max-width: 420px; }
+
+    /* "Im Web nutzen" floating button */
+    #webUseBtn { position: fixed; bottom: 18px; right: 16px; z-index: 10000;
+      background: var(--btn); border: 1px solid var(--bdr); border-radius: 20px;
+      color: var(--dim); font-size: 12px; font-weight: 600; padding: 8px 14px;
+      cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,.12);
+      white-space: nowrap; }
+    #webUseBtn:active { opacity: .7; }
 
     /* ─── Warning Modal ─── */
     #warnOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 9998;
@@ -463,22 +495,95 @@
   <h1>Rechner by XTeam</h1>
   <p class="sub">Professioneller Taschenrechner &amp; Koordinatensystem</p>
 
-  <div class="box" id="iosInstr">
-    <h2>📱 Zum Startbildschirm hinzufügen (iOS Safari)</h2>
-    <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf das <strong>Teilen-Symbol</strong> <span style="font-size:16px">⬆️</span> in der Safari-Menüleiste unten</div></div>
-    <div class="istep"><div class="isn">2</div><div class="ist">Scrolle nach unten und tippe auf <strong>„Zum Home-Bildschirm"</strong> 📲</div></div>
-    <div class="istep"><div class="isn">3</div><div class="ist">Tippe oben rechts auf <strong>„Hinzufügen"</strong> – fertig!</div></div>
+  <!-- Features -->
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="fi">🧮</div>
+      <div class="ft">Grundrechner</div>
+      <div class="fd">Basis- &amp; Wissenschaftlicher Modus mit Verlauf</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">📷</div>
+      <div class="ft">Bild-Upload</div>
+      <div class="fd">Fragen &amp; Koordinaten aus Fotos erkennen</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">📐</div>
+      <div class="ft">Koordinatensystem</div>
+      <div class="fd">Funktionen zeichnen, Punkte setzen &amp; mehr</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">🔢</div>
+      <div class="ft">Gleichungslöser</div>
+      <div class="fd">Lineare &amp; quadratische Gleichungen lösen</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">½</div>
+      <div class="ft">Bruchrechnung</div>
+      <div class="fd">Brüche addieren, subtrahieren, multiplizieren</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">📏</div>
+      <div class="ft">Einheiten</div>
+      <div class="fd">Länge, Gewicht, Temperatur &amp; mehr umrechnen</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">📝</div>
+      <div class="ft">Notizen</div>
+      <div class="fd">Schnelle Notizen direkt in der App speichern</div>
+    </div>
+    <div class="feat-card">
+      <div class="fi">🎓</div>
+      <div class="ft">Klasse</div>
+      <div class="fd">Formeln, Geometrie &amp; Physik-Rechner</div>
+    </div>
   </div>
 
-  <div class="box" id="andInstr" style="display:none">
-    <h2>📱 App installieren (Android / Chrome)</h2>
-    <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf den <strong>„Installieren"</strong>-Button unten</div></div>
-    <div class="istep"><div class="isn">2</div><div class="ist">Bestätige die Installation – die App erscheint auf dem Startbildschirm</div></div>
+  <!-- Install options -->
+  <div class="inst-section">
+    <div class="inst-section-title">Installation</div>
+
+    <!-- App Store – not available, crossed out -->
+    <div class="inst-option disabled">
+      <div class="io-icon">🍎</div>
+      <div class="io-body">
+        <div class="io-title">Im App Store laden</div>
+        <div class="io-sub">Nicht verfügbar</div>
+      </div>
+      <div class="io-badge">Nicht verfügbar</div>
+    </div>
+
+    <!-- Web App – available -->
+    <div class="inst-option available" onclick="document.getElementById('webAppTutorial').scrollIntoView({behavior:'smooth'})">
+      <div class="io-icon">🌐</div>
+      <div class="io-body">
+        <div class="io-title">Web App Installierung</div>
+        <div class="io-sub">Kostenlos als Web-App installieren</div>
+      </div>
+      <div class="io-badge">Verfügbar</div>
+    </div>
+  </div>
+
+  <!-- Tutorial -->
+  <div class="box" id="webAppTutorial">
+    <h2 id="tutTitle">📲 Web App installieren</h2>
+    <div id="iosInstr">
+      <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf das <strong>Teilen-Symbol</strong> <span style="font-size:16px">⬆️</span> in der Safari-Menüleiste unten</div></div>
+      <div class="istep"><div class="isn">2</div><div class="ist">Scrolle nach unten und tippe auf <strong>„Zum Home-Bildschirm"</strong> 📲</div></div>
+      <div class="istep"><div class="isn">3</div><div class="ist">Tippe oben rechts auf <strong>„Hinzufügen"</strong> – fertig!</div></div>
+    </div>
+    <div id="andInstr" style="display:none">
+      <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf den <strong>„Installieren"</strong>-Button unten</div></div>
+      <div class="istep"><div class="isn">2</div><div class="ist">Bestätige die Installation – die App erscheint auf dem Startbildschirm</div></div>
+    </div>
   </div>
 
   <button id="andBtn" onclick="promptInstall()">📲 App installieren</button>
-  <p class="inote">Rechner by XTeam muss als App installiert werden, um alle Funktionen nutzen zu können.</p>
+  <p class="inote">Nach der Installation steht die App offline zur Verfügung.</p>
 </div>
+
+<!-- "Im Web nutzen" floating button (visible only on install screen) -->
+<button id="webUseBtn" onclick="launchApp()" title="Direkt im Browser verwenden ohne Installation">🌐 Im Web nutzen</button>
 
 <!-- ══════════════════════════════════════════
      WARNING MODAL
@@ -1080,6 +1185,7 @@ window.addEventListener('beforeinstallprompt', e => {
   deferredPrompt = e;
   document.getElementById('andInstr').style.display = 'block';
   document.getElementById('iosInstr').style.display = 'none';
+  document.getElementById('tutTitle').textContent = '📲 Web App installieren (Android / Chrome)';
   document.getElementById('andBtn').classList.add('show');
 });
 
@@ -1108,6 +1214,7 @@ function dismissWarning() {
 
 function launchApp() {
   document.getElementById('installScreen').style.display = 'none';
+  document.getElementById('webUseBtn').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   if (!sessionStorage.getItem('warned')) {
     document.getElementById('warnOverlay').style.display = 'flex';
@@ -1129,8 +1236,8 @@ window.addEventListener('load', () => {
     // Show iOS instructions by default; Android instructions shown on beforeinstallprompt
     document.getElementById('installScreen').style.display = 'flex';
     if (!isIOS() && !deferredPrompt) {
-      // Desktop or non-iOS non-Android – still show iOS-style instructions
-      document.getElementById('iosInstr').querySelector('h2').textContent = '🖥️ App installieren';
+      // Desktop or non-iOS non-Android – update tutorial title
+      document.getElementById('tutTitle').textContent = '🖥️ Web App installieren';
     }
   }
 
