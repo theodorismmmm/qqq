@@ -1,0 +1,2554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rechner">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="description" content="Professioneller Taschenrechner mit Koordinatensystem, Gleichungslöser und Bruchrechnung – Rechner by XTeam">
+  <title>Rechner by XTeam</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg: #0a0a1a; --bg2: #12122a; --card: #1a1a3e; --btn: #252545; --btn2: #2f2f60;
+      --acc: #6c63ff; --acc2: #ff6b6b; --acc3: #4ecdc4; --acc4: #ffd93d;
+      --txt: #e0e0ff; --dim: #8888aa; --bdr: #2a2a5a;
+      --nav: 64px; --hdr: 52px; --sb: env(safe-area-inset-bottom, 0px); --st: env(safe-area-inset-top, 0px);
+      --r: 12px;
+    }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--txt);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; -webkit-user-select: none; }
+
+    /* ─── Install Screen ─── */
+    #installScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; padding: 28px 20px; text-align: center; overflow-y: auto; }
+    #installScreen .ic { width: 96px; height: 96px; background: linear-gradient(135deg,var(--acc),var(--acc2));
+      border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 52px;
+      margin-bottom: 20px; box-shadow: 0 8px 32px rgba(108,99,255,.4); flex-shrink:0; }
+    #installScreen h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px;
+      background: linear-gradient(135deg,#fff,var(--acc)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 32px; }
+    #installScreen .box { background: var(--bg2); border-radius: var(--r); padding: 18px; width: 100%;
+      max-width: 420px; text-align: left; margin-bottom: 20px; }
+    #installScreen .box h2 { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 14px; }
+    .istep { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--bdr); font-size: 14px; }
+    .istep:last-child { border-bottom: none; }
+    .isn { width: 26px; height: 26px; background: var(--acc); border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; color: white; }
+    .ist { padding-top: 2px; line-height: 1.5; }
+    #andBtn { background: linear-gradient(135deg,var(--acc),var(--acc2)); border: none; border-radius: var(--r); color: white;
+      font-size: 16px; font-weight: 600; padding: 15px 28px; cursor: pointer; width: 100%; max-width: 420px;
+      display: none; align-items: center; justify-content: center; gap: 8px; }
+    #andBtn.show { display: flex; }
+    .inote { font-size: 12px; color: var(--dim); margin-top: 14px; max-width: 420px; }
+
+    /* ─── Warning Modal ─── */
+    #warnOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 9998;
+      display: flex; align-items: flex-end; padding: 16px; }
+    #warnModal { background: var(--card); border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 500px;
+      margin: 0 auto; margin-bottom: calc(var(--sb) + 8px); animation: suUp .3s ease; }
+    @keyframes suUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    #warnModal .wi { font-size: 36px; margin-bottom: 10px; }
+    #warnModal h2 { font-size: 19px; font-weight: 700; margin-bottom: 10px; color: var(--acc4); }
+    #warnModal p { font-size: 14px; line-height: 1.6; color: var(--dim); margin-bottom: 20px; }
+    #warnModal .wok { background: var(--acc); border: none; border-radius: var(--r); color: white;
+      font-size: 16px; font-weight: 600; padding: 13px; width: 100%; cursor: pointer; }
+
+    /* ─── App Shell ─── */
+    #app { display: flex; flex-direction: column; height: 100%; padding-top: var(--st); }
+    #appHdr { height: var(--hdr); background: var(--bg2); border-bottom: 1px solid var(--bdr);
+      display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; gap: 10px; }
+    #appHdr .logo { width: 32px; height: 32px; background: linear-gradient(135deg,var(--acc),var(--acc2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    #appHdr h1 { font-size: 19px; font-weight: 700;
+      background: linear-gradient(135deg,#fff,var(--acc)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    #content { flex: 1; overflow: hidden; position: relative; }
+
+    /* ─── Panels ─── */
+    .panel { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+    .panel.active { display: flex; }
+
+    /* ─── Bottom Nav ─── */
+    #nav { height: calc(var(--nav) + var(--sb)); background: var(--bg2); border-top: 1px solid var(--bdr);
+      display: flex; align-items: flex-start; padding-top: 6px; padding-bottom: var(--sb); flex-shrink: 0; }
+    .nb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none;
+      border: none; cursor: pointer; color: var(--dim); font-size: 11px; font-family: inherit; padding: 3px 0; transition: color .2s; }
+    .nb.active { color: var(--acc); }
+    .nb .ni { font-size: 22px; line-height: 1; }
+
+    /* ─── Sub-Tabs ─── */
+    .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
+    .stab { flex: 1; padding: 8px 4px; background: none; border: none; border-radius: 8px;
+      color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer; transition: all .2s; }
+    .stab.active { background: var(--acc); color: white; }
+    .spanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .spanel.active { display: flex; }
+
+    /* ─── Basic Calculator ─── */
+    #grundrechner { flex-direction: column; }
+    .cdisp { background: var(--bg2); padding: 12px 16px 10px; min-height: 90px; display: flex;
+      flex-direction: column; justify-content: flex-end; flex-shrink: 0; border-bottom: 1px solid var(--bdr); }
+    .chist { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+    .chistrow { font-size: 12px; color: var(--dim); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cexpr { font-size: 18px; color: var(--dim); text-align: right; min-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cres { font-size: 36px; font-weight: 300; color: white; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+    .cbtns { flex: 1; display: grid; grid-template-columns: repeat(4,1fr); grid-auto-rows: 1fr; gap: 6px; padding: 6px; }
+    .cb { background: var(--btn); border: none; border-radius: var(--r); color: white; font-size: 19px;
+      font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .1s; touch-action: manipulation; min-height: 0; }
+    .cb:active { transform: scale(.93); background: var(--btn2); }
+    .cb.op { background: var(--acc); font-size: 21px; }
+    .cb.op:active { background: #8a83ff; }
+    .cb.eq { background: var(--acc2); }
+    .cb.eq:active { background: #ff8a8a; }
+    .cb.cl { background: #ff4444; font-size: 15px; font-weight: 600; }
+    .cb.cl:active { background: #ff6666; }
+    .cb.sec { background: #2a2a5a; font-size: 15px; }
+    .cb.sp2 { grid-column: span 2; }
+
+    /* ─── Equation Solver ─── */
+    #gleichungen { overflow-y: auto; padding: 14px; gap: 12px; }
+    .sect { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .ig { background: var(--bg2); border-radius: var(--r); padding: 14px; }
+    .ig label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+    .mi { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: white; font-size: 17px; padding: 11px 13px; font-family: 'Courier New', monospace; outline: none;
+      -webkit-user-select: text; user-select: text; }
+    .mi:focus { border-color: var(--acc); }
+    .sbtn { background: linear-gradient(135deg,var(--acc),var(--acc2)); border: none; border-radius: var(--r);
+      color: white; font-size: 15px; font-weight: 600; padding: 13px; width: 100%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .sbtn:active { opacity: .8; }
+    .sol { background: var(--bg2); border-radius: var(--r); padding: 14px; display: none; }
+    .sol.vis { display: block; }
+    .solstep { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--bdr); align-items: flex-start; }
+    .solstep:last-child { border-bottom: none; }
+    .ssn { width: 22px; height: 22px; background: var(--acc); border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; color: white; }
+    .ssd { font-size: 12px; color: var(--dim); margin-bottom: 3px; }
+    .ssm { font-size: 15px; font-family: 'Courier New', monospace; color: white; }
+    .solres { margin-top: 14px; padding: 14px; background: var(--card); border-radius: var(--r); border-left: 4px solid var(--acc3); }
+    .solres .rl { font-size: 12px; color: var(--dim); margin-bottom: 3px; }
+    .solres .rv { font-size: 22px; font-weight: 700; color: var(--acc3); font-family: 'Courier New', monospace; }
+    .errmsg { color: var(--acc2); font-size: 13px; padding: 10px; text-align: center; }
+
+    /* ─── Fraction Calculator ─── */
+    #brueche { overflow-y: auto; padding: 14px; gap: 12px; }
+    .frow { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .fdisplay { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .fni { width: 72px; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: white; font-size: 20px; padding: 8px; text-align: center; font-family: 'Courier New', monospace;
+      outline: none; -webkit-user-select: text; user-select: text; }
+    .fni:focus { border-color: var(--acc); }
+    .fline { width: 72px; height: 2px; background: white; }
+    .opsel { display: flex; flex-direction: column; gap: 5px; }
+    .opb { width: 42px; height: 42px; background: var(--btn); border: 2px solid transparent;
+      border-radius: 8px; color: white; font-size: 19px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: all .2s; }
+    .opb.sel { border-color: var(--acc); background: rgba(108,99,255,.2); }
+
+    /* ─── Coordinate System ─── */
+    #tabKoord { overflow: hidden; }
+    #cvs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    #cvs.panning { cursor: grab; }
+    #cvs.panning.dragging { cursor: grabbing; }
+    #rtoolbar { position: absolute; top: 12px; right: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 10; }
+    #ltoolbar { position: absolute; top: 12px; left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 10; }
+    .tbtn { width: 42px; height: 42px; background: rgba(26,26,62,.92); backdrop-filter: blur(8px);
+      border: 1px solid var(--bdr); border-radius: 10px; color: white; font-size: 17px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    .tbtn.act { background: var(--acc); border-color: var(--acc); }
+    .tbtn:active { opacity: .7; }
+    #coordInfo { position: absolute; bottom: 60px; left: 10px; background: rgba(26,26,62,.85);
+      backdrop-filter: blur(8px); border-radius: 8px; padding: 5px 9px; font-size: 11px; color: var(--dim); z-index: 5; }
+
+    /* ─── Slide-Up Panel ─── */
+    #kpanel { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(14,14,36,.97);
+      backdrop-filter: blur(10px); border-top: 1px solid var(--bdr); z-index: 10;
+      transform: translateY(calc(100% - 50px)); transition: transform .3s ease;
+      border-radius: 16px 16px 0 0; max-height: 72%; display: flex; flex-direction: column; }
+    #kpanel.open { transform: translateY(0); }
+    #khandle { height: 50px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; position: relative; }
+    .hbar { width: 38px; height: 4px; background: var(--bdr); border-radius: 2px; }
+    #khandle span { position: absolute; left: 16px; font-size: 13px; font-weight: 600; color: var(--txt); }
+    .kcontent { overflow-y: auto; padding: 0 14px 16px; flex: 1; }
+    .ptabs { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; margin-bottom: 12px; gap: 3px; }
+    .ptab { flex: 1; padding: 7px 3px; background: none; border: none; border-radius: 8px; color: var(--dim);
+      font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; text-align: center; }
+    .ptab.active { background: var(--card); color: white; }
+    .psec { display: none; }
+    .psec.active { display: block; }
+    .psect { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .finput-row { display: flex; gap: 7px; margin-bottom: 7px; }
+    .finput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: white; font-size: 14px; padding: 9px 11px; font-family: 'Courier New', monospace;
+      outline: none; -webkit-user-select: text; user-select: text; }
+    .finput:focus { border-color: var(--acc); }
+    .addbtn { width: 38px; height: 38px; background: var(--acc); border: none; border-radius: 8px;
+      color: white; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .listitem { display: flex; align-items: center; gap: 7px; padding: 7px; background: var(--card);
+      border-radius: 8px; margin-bottom: 5px; }
+    .clrdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .lbl { flex: 1; font-size: 12px; font-family: 'Courier New', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .delbtn { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 15px; padding: 3px; }
+    .srow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .slbl { font-size: 12px; color: var(--dim); width: 85px; flex-shrink: 0; }
+    .sinput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 6px;
+      color: white; font-size: 13px; padding: 6px 9px; outline: none; -webkit-user-select: text; user-select: text; }
+    .sinput:focus { border-color: var(--acc); }
+    .modbtns { display: flex; gap: 6px; margin-bottom: 10px; }
+    .modbtn { flex: 1; padding: 9px 4px; background: var(--btn); border: 2px solid transparent;
+      border-radius: 8px; color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer;
+      text-align: center; transition: all .2s; }
+    .modbtn.active { border-color: var(--acc); color: var(--acc); background: rgba(108,99,255,.15); }
+    .colrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .colopt { width: 26px; height: 26px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border .2s; }
+    .colopt.sel { border-color: white; }
+    .togrow { display: flex; gap: 6px; margin-bottom: 8px; }
+    .togbtn { flex: 1; padding: 8px; background: var(--btn); border: 2px solid transparent; border-radius: 8px;
+      color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer; transition: all .2s; }
+    .togbtn.active { border-color: var(--acc3); color: var(--acc3); background: rgba(78,205,196,.15); }
+    .wslider { width: 100%; accent-color: var(--acc); }
+    .ptrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
+    .ptinput { flex: 1; min-width: 60px; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: white; font-size: 14px; padding: 9px 9px; text-align: center; font-family: 'Courier New', monospace;
+      outline: none; -webkit-user-select: text; user-select: text; }
+    .ptinput:focus { border-color: var(--acc); }
+    .iclr { color: var(--acc4); }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
+
+    /* ─── Sidebar ─── */
+    #sideOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 199; display: none; }
+    #sideOverlay.show { display: block; }
+    #sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; background: var(--bg2);
+      border-right: 1px solid var(--bdr); z-index: 200; transition: left .28s ease; display: flex;
+      flex-direction: column; padding-top: var(--st); }
+    #sidebar.open { left: 0; }
+    .sdhdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;
+      border-bottom: 1px solid var(--bdr); flex-shrink: 0; }
+    .sdhdr h2 { font-size: 15px; font-weight: 700; color: var(--txt); }
+    .sdhdr .sdclose { background: none; border: none; color: var(--dim); font-size: 20px; cursor: pointer; padding: 2px 6px; }
+    .sdtabs { display: flex; gap: 4px; padding: 8px 10px; flex-shrink: 0; }
+    .sdtab { flex: 1; padding: 7px 4px; background: var(--btn); border: none; border-radius: 8px;
+      color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; text-align: center; }
+    .sdtab.active { background: var(--acc); color: white; }
+    .sdpanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .sdpanel.active { display: flex; }
+
+    /* ─── Sidebar Toggle Button ─── */
+    #sidebarToggle { position: fixed; left: 10px; top: calc(var(--st) + 8px); z-index: 198;
+      width: 36px; height: 36px; background: var(--card); border: 1px solid var(--bdr);
+      border-radius: 9px; color: var(--txt); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    #sidebarToggle:active { opacity: .7; }
+
+    /* ─── Mini Calculator ─── */
+    .mcwrap { padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+    .mcdisp { background: var(--bg); border-radius: 10px; padding: 10px 12px; text-align: right; flex-shrink: 0; }
+    .mcexpr { font-size: 11px; color: var(--dim); min-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mcres { font-size: 26px; font-weight: 300; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+    .mcbtns { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; flex-shrink: 0; }
+    .mcb { background: var(--btn); border: none; border-radius: 9px; color: white; font-size: 15px;
+      font-family: inherit; cursor: pointer; padding: 11px 4px; transition: all .1s; touch-action: manipulation; }
+    .mcb:active { transform: scale(.92); background: var(--btn2); }
+    .mcb.op { background: var(--acc); }
+    .mcb.eq { background: var(--acc2); }
+    .mcb.cl { background: #ff4444; font-size: 13px; font-weight: 600; }
+    .mcb.sp2 { grid-column: span 2; }
+
+    /* ─── Sidebar Notes ─── */
+    .sdnotes { flex: 1; padding: 10px; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+    .sdnotes textarea { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 10px;
+      color: var(--txt); font-size: 13px; line-height: 1.5; padding: 10px; font-family: inherit;
+      outline: none; resize: none; -webkit-user-select: text; user-select: text; }
+    .sdnotes textarea:focus { border-color: var(--acc); }
+
+    /* ─── Hide UI Button ─── */
+    #hideUIBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 6px;
+      color: var(--dim); font-size: 11px; font-weight: 600; padding: 3px 9px; cursor: pointer;
+      font-family: inherit; line-height: 1.4; letter-spacing: .3px; margin-left: auto; }
+    #hideUIBtn:active { opacity: .7; }
+    body.hide-ui #nav { display: none !important; }
+    body.hide-ui #appHdr { display: none !important; }
+    body.hide-ui #content { height: 100%; }
+    body.hide-ui #sidebarToggle { display: none !important; }
+
+    /* ─── Ruler on canvas ─── */
+    #rulerH { position: absolute; top: 0; left: 20px; right: 0; height: 20px; pointer-events: none; z-index: 4; display: none; }
+    #rulerV { position: absolute; top: 20px; left: 0; width: 20px; bottom: 0; pointer-events: none; z-index: 4; display: none; }
+    #rulerCorner { position: absolute; top: 0; left: 0; width: 20px; height: 20px;
+      background: rgba(26,26,62,.95); z-index: 5; pointer-events: none;
+      border-bottom: 1px solid var(--bdr); border-right: 1px solid var(--bdr); display: none; }
+    .ruler-visible #rulerH, .ruler-visible #rulerV, .ruler-visible #rulerCorner { display: block; }
+
+    /* ─── Quadrant toolbar ─── */
+    #quadrantPanel { position: absolute; bottom: 60px; right: 10px; background: rgba(26,26,62,.92);
+      backdrop-filter: blur(8px); border-radius: 10px; border: 1px solid var(--bdr); padding: 6px;
+      z-index: 10; display: none; flex-direction: column; gap: 4px; }
+    #quadrantPanel.vis { display: flex; }
+    .qbtn { width: 38px; height: 38px; background: var(--btn); border: 2px solid transparent; border-radius: 8px;
+      color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; }
+    .qbtn.active { border-color: var(--acc); color: var(--acc); background: rgba(108,99,255,.15); }
+    .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+    /* ─── Textbox tool ─── */
+    .canvas-label { position: absolute; background: rgba(26,26,62,.88); border: 1px solid var(--bdr);
+      border-radius: 6px; padding: 4px 8px; color: var(--txt); font-size: 12px; cursor: move;
+      user-select: none; -webkit-user-select: none; z-index: 8; white-space: pre-wrap; max-width: 180px; word-break: break-word; }
+
+    /* ─── Notes Panel ─── */
+    #tabNotizen { overflow-y: auto; }
+    .notes-grid { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 14px; }
+    .note-card { background: var(--card); border-radius: var(--r); border-left: 4px solid var(--acc4);
+      padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .note-card .note-title { background: none; border: none; border-bottom: 1px solid var(--bdr);
+      color: var(--txt); font-size: 14px; font-weight: 600; padding-bottom: 4px; outline: none;
+      font-family: inherit; width: 100%; -webkit-user-select: text; user-select: text; }
+    .note-card textarea { background: none; border: none; color: var(--dim); font-size: 13px;
+      line-height: 1.5; padding: 0; outline: none; resize: none; font-family: inherit; min-height: 60px;
+      -webkit-user-select: text; user-select: text; width: 100%; }
+    .note-card .note-footer { display: flex; justify-content: flex-end; gap: 6px; }
+    .note-del { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 13px; padding: 2px 6px; }
+    .note-color-strip { display: flex; gap: 4px; }
+    .ncol { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+    .ncol.sel { border-color: white; }
+    .add-note-btn { position: sticky; bottom: 10px; margin: 0 14px 14px; }
+
+    /* ─── Klasse (Class) Panel ─── */
+    #tabKlasse { overflow-y: auto; }
+    .klasse-grid { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .klasse-card { background: var(--card); border-radius: var(--r); padding: 12px; border-left: 4px solid var(--acc3); }
+    .klasse-card h3 { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 6px; }
+    .klasse-card .kc-body { font-size: 13px; color: var(--dim); line-height: 1.5; }
+    .klasse-toolbar { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px 10px; }
+    .ktool { flex: 1; min-width: 80px; padding: 10px 6px; background: var(--btn); border: 2px solid transparent;
+      border-radius: 10px; color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer;
+      text-align: center; transition: all .2s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .ktool span { font-size: 20px; }
+    .ktool.active { border-color: var(--acc3); color: var(--acc3); background: rgba(78,205,196,.12); }
+    .kformula { background: var(--bg2); border-radius: var(--r); padding: 12px; margin: 0 14px 10px; }
+    .kformula .kf-title { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .kf-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0;
+      border-bottom: 1px solid var(--bdr); font-size: 13px; }
+    .kf-item:last-child { border-bottom: none; }
+    .kf-name { color: var(--dim); }
+    .kf-val { color: var(--txt); font-family: 'Courier New', monospace; }
+
+    /* ─── Value Table ─── */
+    .vt-wrap { overflow-x: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--bdr); }
+    .vt { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
+    .vt th { background: var(--card); color: var(--acc); padding: 7px 10px; text-align: center;
+      font-size: 11px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--bdr); white-space: nowrap; }
+    .vt td { padding: 6px 10px; text-align: center; border-bottom: 1px solid rgba(42,42,90,.6); color: var(--txt); white-space: nowrap; }
+    .vt tr:last-child td { border-bottom: none; }
+    .vt tr:nth-child(even) td { background: rgba(26,26,62,.4); }
+    .vt td.vt-x { color: var(--acc4); }
+    .vt td.vt-nan { color: var(--acc2); opacity: .6; }
+    /* ─── Scientific Rows ─── */
+    #sciRows { flex-shrink: 0; background: var(--bg2); border-bottom: 1px solid var(--bdr); }
+    #sciRows .cbtns { flex: none; height: 88px; padding: 5px 6px; }
+    .cb.sci { font-size: 13px; font-weight: 500; }
+    .cb.ang { font-size: 11px; font-weight: 700; background: rgba(78,205,196,.15); border: 1px solid var(--acc3); color: var(--acc3); }
+    .cb.ang:active { background: rgba(78,205,196,.35); }
+    .cb.ang.rad { background: rgba(255,217,61,.15); border-color: var(--acc4); color: var(--acc4); }
+    #sciToggleBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 6px;
+      color: var(--dim); font-size: 11px; font-weight: 700; padding: 3px 9px; cursor: pointer;
+      font-family: inherit; line-height: 1.4; letter-spacing: .5px; }
+    #sciToggleBtn.active { background: rgba(108,99,255,.2); border-color: var(--acc); color: var(--acc); }
+    /* ─── Unit Converter ─── */
+    .urow { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .usel { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: white; font-size: 15px; padding: 10px 12px; font-family: inherit; outline: none; cursor: pointer;
+      appearance: none; -webkit-appearance: none; }
+    .usel:focus { border-color: var(--acc); }
+    .uarrow { text-align: center; font-size: 22px; color: var(--dim); margin: 2px 0; }
+    .ures { background: var(--card); border-radius: var(--r); border-left: 4px solid var(--acc3);
+      padding: 14px; margin-top: 4px; display: none; }
+    .ures.vis { display: block; }
+    .ures .rl { font-size: 12px; color: var(--dim); margin-bottom: 3px; }
+    .ures .rv { font-size: 26px; font-weight: 700; color: var(--acc3); font-family: 'Courier New', monospace; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     INSTALL SCREEN
+══════════════════════════════════════════ -->
+<div id="installScreen">
+  <div class="ic">🧮</div>
+  <h1>Rechner by XTeam</h1>
+  <p class="sub">Professioneller Taschenrechner &amp; Koordinatensystem</p>
+
+  <div class="box" id="iosInstr">
+    <h2>📱 Zum Startbildschirm hinzufügen (iOS Safari)</h2>
+    <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf das <strong>Teilen-Symbol</strong> <span style="font-size:16px">⬆️</span> in der Safari-Menüleiste unten</div></div>
+    <div class="istep"><div class="isn">2</div><div class="ist">Scrolle nach unten und tippe auf <strong>„Zum Home-Bildschirm"</strong> 📲</div></div>
+    <div class="istep"><div class="isn">3</div><div class="ist">Tippe oben rechts auf <strong>„Hinzufügen"</strong> – fertig!</div></div>
+  </div>
+
+  <div class="box" id="andInstr" style="display:none">
+    <h2>📱 App installieren (Android / Chrome)</h2>
+    <div class="istep"><div class="isn">1</div><div class="ist">Tippe auf den <strong>„Installieren"</strong>-Button unten</div></div>
+    <div class="istep"><div class="isn">2</div><div class="ist">Bestätige die Installation – die App erscheint auf dem Startbildschirm</div></div>
+  </div>
+
+  <button id="andBtn" onclick="promptInstall()">📲 App installieren</button>
+  <p class="inote">Rechner by XTeam muss als App installiert werden, um alle Funktionen nutzen zu können.</p>
+</div>
+
+<!-- ══════════════════════════════════════════
+     WARNING MODAL
+══════════════════════════════════════════ -->
+<div id="warnOverlay" style="display:none">
+  <div id="warnModal">
+    <div class="wi">⚠️</div>
+    <h2>Hinweis: Keine Datenspeicherung</h2>
+    <p>Rechner by XTeam speichert <strong>keine Eingaben, Berechnungen oder Zeichnungen</strong>.
+      Alle Daten gehen beim Schließen der App verloren. Bitte notiere wichtige Ergebnisse
+      separat, bevor du die App beendest.</p>
+    <button class="wok" onclick="dismissWarning()">Verstanden – App starten</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════ -->
+<div id="sideOverlay" onclick="closeSidebar()"></div>
+<button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+<div id="sidebar">
+  <div class="sdhdr">
+    <h2>⚒️ Werkzeuge</h2>
+    <button class="sdclose" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="sdtabs">
+    <button class="sdtab active" onclick="switchSideTab('sdMiniCalc')">Mini-Rechner</button>
+    <button class="sdtab" onclick="switchSideTab('sdSideNotes')">Notizen</button>
+  </div>
+
+  <!-- Mini Calculator -->
+  <div id="sdMiniCalc" class="sdpanel active">
+    <div class="mcwrap">
+      <div class="mcdisp">
+        <div class="mcexpr" id="mcExpr"></div>
+        <div class="mcres" id="mcRes">0</div>
+      </div>
+      <div class="mcbtns">
+        <button class="mcb cl"    onclick="mcInput('AC')">AC</button>
+        <button class="mcb"       onclick="mcInput('⌫')">⌫</button>
+        <button class="mcb"       onclick="mcInput('%')">%</button>
+        <button class="mcb op"    onclick="mcInput('÷')">÷</button>
+
+        <button class="mcb"       onclick="mcInput('7')">7</button>
+        <button class="mcb"       onclick="mcInput('8')">8</button>
+        <button class="mcb"       onclick="mcInput('9')">9</button>
+        <button class="mcb op"    onclick="mcInput('×')">×</button>
+
+        <button class="mcb"       onclick="mcInput('4')">4</button>
+        <button class="mcb"       onclick="mcInput('5')">5</button>
+        <button class="mcb"       onclick="mcInput('6')">6</button>
+        <button class="mcb op"    onclick="mcInput('-')">−</button>
+
+        <button class="mcb"       onclick="mcInput('1')">1</button>
+        <button class="mcb"       onclick="mcInput('2')">2</button>
+        <button class="mcb"       onclick="mcInput('3')">3</button>
+        <button class="mcb op"    onclick="mcInput('+')">+</button>
+
+        <button class="mcb sp2"   onclick="mcInput('0')">0</button>
+        <button class="mcb"       onclick="mcInput('.')">.</button>
+        <button class="mcb eq"    onclick="mcInput('=')">= </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Quick Notes -->
+  <div id="sdSideNotes" class="sdpanel">
+    <div class="sdnotes">
+      <div class="psect" style="margin-bottom:4px">Schnellnotiz</div>
+      <textarea id="sideNoteArea" placeholder="Notizen hier eingeben…"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app" style="display:none">
+  <header id="appHdr">
+    <div class="logo">🧮</div>
+    <h1>Rechner by XTeam</h1>
+    <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
+  </header>
+
+  <div id="content">
+
+    <!-- ════════ TAB: RECHNER ════════ -->
+    <div id="tabRechner" class="panel active">
+      <div class="stabs">
+        <button class="stab active" onclick="switchSub('grundrechner')">Grundrechner</button>
+        <button class="stab" onclick="switchSub('gleichungen')">Gleichungen</button>
+        <button class="stab" onclick="switchSub('brueche')">Brüche</button>
+        <button class="stab" onclick="switchSub('einheiten')">Einheiten</button>
+      </div>
+
+      <!-- ── Grundrechner ── -->
+      <div id="grundrechner" class="spanel active">
+        <div class="cdisp">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
+            <button id="sciToggleBtn" onclick="toggleSciMode()">SCI</button>
+            <button id="angleBtn" class="cb ang" onclick="toggleAngle()" style="width:auto;padding:3px 10px;font-size:11px;border-radius:6px;display:none">DEG</button>
+          </div>
+          <div class="chist" id="calcHist"></div>
+          <div class="cexpr" id="calcExpr"></div>
+          <div class="cres" id="calcRes">0</div>
+        </div>
+        <!-- Scientific rows (hidden until SCI toggled) -->
+        <div id="sciRows" style="display:none">
+          <div class="cbtns">
+            <button class="cb sci" onclick="calcInput('sin(')">sin</button>
+            <button class="cb sci" onclick="calcInput('cos(')">cos</button>
+            <button class="cb sci" onclick="calcInput('tan(')">tan</button>
+            <button class="cb sci" onclick="calcInput('asin(')">sin⁻¹</button>
+            <button class="cb sci" onclick="calcInput('log(')">log</button>
+            <button class="cb sci" onclick="calcInput('ln(')">ln</button>
+            <button class="cb sci" onclick="calcInput('π')">π</button>
+            <button class="cb sci" onclick="calcInput('exp(')">eˣ</button>
+          </div>
+        </div>
+        <div class="cbtns">
+          <button class="cb cl" onclick="calcClear()">AC</button>
+          <button class="cb sec" onclick="calcBackspace()">⌫</button>
+          <button class="cb sec" onclick="calcInput('(')">( )</button>
+          <button class="cb op" onclick="calcInput('÷')">÷</button>
+
+          <button class="cb sec" onclick="calcInput('√')">√</button>
+          <button class="cb sec" onclick="calcInput('%')">%</button>
+          <button class="cb sec" onclick="calcInput('^')">xʸ</button>
+          <button class="cb op" onclick="calcInput('×')">×</button>
+
+          <button class="cb" onclick="calcInput('7')">7</button>
+          <button class="cb" onclick="calcInput('8')">8</button>
+          <button class="cb" onclick="calcInput('9')">9</button>
+          <button class="cb op" onclick="calcInput('-')">−</button>
+
+          <button class="cb" onclick="calcInput('4')">4</button>
+          <button class="cb" onclick="calcInput('5')">5</button>
+          <button class="cb" onclick="calcInput('6')">6</button>
+          <button class="cb op" onclick="calcInput('+')">+</button>
+
+          <button class="cb" onclick="calcInput('1')">1</button>
+          <button class="cb" onclick="calcInput('2')">2</button>
+          <button class="cb" onclick="calcInput('3')">3</button>
+          <button class="cb eq" style="grid-row:span 2" onclick="calcEval()">=</button>
+
+          <button class="cb sp2" onclick="calcInput('0')">0</button>
+          <button class="cb" onclick="calcInput('.')">.</button>
+        </div>
+      </div><!-- end grundrechner -->
+
+      <!-- ── Gleichungen ── -->
+      <div id="gleichungen" class="spanel">
+        <div class="ig" style="margin:14px 14px 0">
+          <div class="sect">Gleichung eingeben</div>
+          <label>Lineare oder quadratische Gleichung (z.B. 2x+3=7 oder x^2+5x+6=0)</label>
+          <input class="mi" id="eqInput" type="text" placeholder="z.B.  2x + 3 = 7" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div style="padding:0 14px 10px; margin-top:10px">
+          <button class="sbtn" onclick="solveEquation()">🔍 Gleichung lösen</button>
+        </div>
+        <div class="sol" id="eqSol" style="margin:0 14px 14px"></div>
+      </div><!-- end gleichungen -->
+
+      <!-- ── Brüche ── -->
+      <div id="brueche" class="spanel">
+        <div style="padding:14px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px">
+          <div class="ig">
+            <div class="sect">Bruchrechnung</div>
+            <div class="frow" style="margin-top:8px">
+              <div class="fdisplay">
+                <input class="fni" id="fn1" type="number" placeholder="Zähler" value="1">
+                <div class="fline"></div>
+                <input class="fni" id="fd1" type="number" placeholder="Nenner" value="2">
+              </div>
+              <div class="opsel">
+                <button class="opb sel" id="opAdd" onclick="setFracOp('+')">+</button>
+                <button class="opb" id="opSub" onclick="setFracOp('-')">−</button>
+                <button class="opb" id="opMul" onclick="setFracOp('*')">×</button>
+                <button class="opb" id="opDiv" onclick="setFracOp('/')">÷</button>
+              </div>
+              <div class="fdisplay">
+                <input class="fni" id="fn2" type="number" placeholder="Zähler" value="1">
+                <div class="fline"></div>
+                <input class="fni" id="fd2" type="number" placeholder="Nenner" value="3">
+              </div>
+            </div>
+          </div>
+          <button class="sbtn" onclick="solveFraction()">📐 Berechnen</button>
+          <div class="sol" id="fracSol"></div>
+        </div>
+      </div><!-- end brueche -->
+
+      <!-- ── Einheiten (Unit Converter) ── -->
+      <div id="einheiten" class="spanel">
+        <div style="padding:14px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px">
+          <div class="ig">
+            <div class="sect">Kategorie</div>
+            <div class="modbtns" id="ucatBtns" style="flex-wrap:wrap">
+              <button class="modbtn active" onclick="setUCat('length')">Länge</button>
+              <button class="modbtn" onclick="setUCat('weight')">Gewicht</button>
+              <button class="modbtn" onclick="setUCat('temp')">Temp.</button>
+              <button class="modbtn" onclick="setUCat('area')">Fläche</button>
+              <button class="modbtn" onclick="setUCat('speed')">Geschw.</button>
+            </div>
+          </div>
+          <div class="ig">
+            <div class="sect">Umrechnen</div>
+            <div class="urow">
+              <label style="font-size:12px;color:var(--dim)">Von</label>
+              <select class="usel" id="ucFromUnit" onchange="doUnitConvert()"></select>
+            </div>
+            <div class="srow" style="margin-bottom:8px">
+              <span class="slbl">Wert</span>
+              <input class="mi" id="ucValue" type="number" placeholder="Wert eingeben" oninput="doUnitConvert()" style="font-size:17px">
+            </div>
+            <div class="uarrow">↓</div>
+            <div class="urow" style="margin-top:6px">
+              <label style="font-size:12px;color:var(--dim)">Nach</label>
+              <select class="usel" id="ucToUnit" onchange="doUnitConvert()"></select>
+            </div>
+            <div class="ures" id="ucResult">
+              <div class="rl">Ergebnis</div>
+              <div class="rv" id="ucResultVal">—</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end einheiten -->
+
+    </div><!-- end tabRechner -->
+
+    <!-- ════════ TAB: KOORDINATENSYSTEM ════════ -->
+    <div id="tabKoord" class="panel">
+      <canvas id="cvs"></canvas>
+
+      <!-- Right toolbar -->
+      <div id="rtoolbar">
+        <button class="tbtn" title="Vergrößern" onclick="zoomBy(1.25)">+</button>
+        <button class="tbtn" title="Verkleinern" onclick="zoomBy(0.8)">−</button>
+        <button class="tbtn" title="Ansicht zurücksetzen" onclick="resetView()">⊙</button>
+        <button class="tbtn" title="Screenshot" onclick="saveCanvas()">📷</button>
+        <button class="tbtn" id="lockBtn" title="Koordinatensystem sperren" onclick="toggleLock()">🔓</button>
+        <button class="tbtn" id="rulerBtn" title="Lineal ein-/ausblenden" onclick="toggleRuler()">📏</button>
+        <button class="tbtn" id="quadBtn" title="Quadrant-Ansicht" onclick="toggleQuadPanel()">⊞</button>
+      </div>
+
+      <!-- Left draw toolbar -->
+      <div id="ltoolbar">
+        <button class="tbtn" title="Rückgängig" onclick="undoStroke()">↩</button>
+        <button class="tbtn" title="Zeichnung löschen" onclick="clearStrokes()">🗑</button>
+        <button class="tbtn" id="textBtn" title="Textfeld hinzufügen" onclick="toggleTextMode()">T</button>
+      </div>
+
+      <!-- Ruler overlays -->
+      <div id="rulerCorner"></div>
+      <canvas id="rulerH"></canvas>
+      <canvas id="rulerV"></canvas>
+
+      <!-- Quadrant panel -->
+      <div id="quadrantPanel">
+        <div style="font-size:10px; color:var(--dim); text-align:center; padding:2px 4px">Quadrant</div>
+        <div class="qgrid">
+          <button class="qbtn" id="qII"  onclick="setQuadrant(2)">II</button>
+          <button class="qbtn" id="qI"   onclick="setQuadrant(1)">I</button>
+          <button class="qbtn" id="qIII" onclick="setQuadrant(3)">III</button>
+          <button class="qbtn" id="qIV"  onclick="setQuadrant(4)">IV</button>
+        </div>
+        <button class="qbtn" style="width:100%; margin-top:2px" onclick="setQuadrant(0)" id="qAll">Alle</button>
+      </div>
+
+      <!-- Coordinates display -->
+      <div id="coordInfo">x=0.0 y=0.0</div>
+
+      <!-- Slide-up Panel -->
+      <div id="kpanel">
+        <div id="khandle" onclick="togglePanel()">
+          <div class="hbar"></div>
+          <span>Funktionen &amp; Einstellungen</span>
+        </div>
+        <div class="kcontent">
+          <!-- Panel tabs -->
+          <div class="ptabs">
+            <button class="ptab active" onclick="switchPTab('pFunktionen')">Funktionen</button>
+            <button class="ptab" onclick="switchPTab('pPunkte')">Punkte</button>
+            <button class="ptab" onclick="switchPTab('pZeichnen')">Zeichnen</button>
+            <button class="ptab" onclick="switchPTab('pTabelle')">Tabelle</button>
+            <button class="ptab" onclick="switchPTab('pEinst')">Einstellungen</button>
+          </div>
+
+          <!-- Funktionen -->
+          <div id="pFunktionen" class="psec active">
+            <div class="psect">Funktion hinzufügen</div>
+            <div class="finput-row">
+              <input class="finput" id="fnInput" placeholder="z.B.  1x+4  oder  x^2-2x+1" autocorrect="off" autocapitalize="off">
+              <button class="addbtn" onclick="addFunction()">+</button>
+            </div>
+            <div class="errmsg" id="fnErr" style="display:none"></div>
+            <div class="psect" style="margin-top:10px">Aktive Funktionen</div>
+            <div id="fnList"></div>
+          </div>
+
+          <!-- Punkte -->
+          <div id="pPunkte" class="psec">
+            <div class="psect">Punkt hinzufügen</div>
+            <div class="ptrow">
+              <input class="ptinput" id="ptName" placeholder="Name (z.B. A)" maxlength="4">
+              <input class="ptinput" id="ptX" type="number" placeholder="x" step="0.1">
+              <input class="ptinput" id="ptY" type="number" placeholder="y" step="0.1">
+              <button class="addbtn" onclick="addPoint()">+</button>
+            </div>
+            <div class="errmsg" id="ptErr" style="display:none"></div>
+            <div class="psect" style="margin-top:10px">Punkte</div>
+            <div id="ptList"></div>
+          </div>
+
+          <!-- Zeichnen -->
+          <div id="pZeichnen" class="psec">
+            <div class="psect">Zeichenmodus</div>
+            <div class="modbtns">
+              <button class="modbtn active" id="modeNone" onclick="setDrawMode('none')">Kein Zeichnen</button>
+              <button class="modbtn" id="modeFree" onclick="setDrawMode('free')">Freies Zeichnen</button>
+              <button class="modbtn" id="modeSnap" onclick="setDrawMode('snap')">Eingerastert</button>
+            </div>
+            <div class="psect">Farbe</div>
+            <div class="colrow" id="colorRow"></div>
+            <div class="psect">Linienstärke</div>
+            <input type="range" class="wslider" id="lineWidth" min="1" max="12" value="3" oninput="drawCanvas()">
+          </div>
+
+          <!-- Einstellungen -->
+          <div id="pEinst" class="psec">
+            <div class="psect">Anzeigebereich</div>
+            <div class="srow"><span class="slbl">X Minimum</span><input class="sinput" id="xMin" type="number" value="-10" onchange="applyRangeSettings()"></div>
+            <div class="srow"><span class="slbl">X Maximum</span><input class="sinput" id="xMax" type="number" value="10" onchange="applyRangeSettings()"></div>
+            <div class="srow"><span class="slbl">Y Minimum</span><input class="sinput" id="yMin" type="number" value="-8" onchange="applyRangeSettings()"></div>
+            <div class="srow"><span class="slbl">Y Maximum</span><input class="sinput" id="yMax" type="number" value="8" onchange="applyRangeSettings()"></div>
+            <div class="srow"><span class="slbl">Gitterabstand</span><input class="sinput" id="gridStep" type="number" value="1" min="0.1" step="0.1" onchange="drawCanvas()"></div>
+            <div class="psect" style="margin-top:10px">Anzeige</div>
+            <div class="togrow">
+              <button class="togbtn active" id="togGrid" onclick="toggleSetting('grid')">Gitter</button>
+              <button class="togbtn active" id="togLabels" onclick="toggleSetting('labels')">Beschriftung</button>
+              <button class="togbtn active" id="togAxes" onclick="toggleSetting('axes')">Achsen</button>
+            </div>
+            <div class="psect" style="margin-top:10px">Verhältnis (Pixel/Einheit)</div>
+            <div class="srow">
+              <span class="slbl">Skalierung</span>
+              <input class="sinput" id="scaleInput" type="number" value="50" min="5" onchange="applyScaleInput()">
+            </div>
+            <button class="sbtn" style="margin-top:10px" onclick="resetView()">Ansicht zurücksetzen</button>
+          </div>
+
+          <!-- Tabelle -->
+          <div id="pTabelle" class="psec">
+            <div class="psect">Wertetabelle</div>
+            <div class="srow">
+              <span class="slbl">x von</span>
+              <input class="sinput" id="tblXFrom" type="number" value="-5" step="1">
+            </div>
+            <div class="srow">
+              <span class="slbl">x bis</span>
+              <input class="sinput" id="tblXTo" type="number" value="5" step="1">
+            </div>
+            <div class="srow">
+              <span class="slbl">Schrittweite</span>
+              <input class="sinput" id="tblStep" type="number" value="1" min="0.001" step="0.5">
+            </div>
+            <button class="sbtn" style="margin-bottom:10px" onclick="generateTable()" aria-label="Tabelle erstellen">📊 Tabelle erstellen</button>
+            <div class="errmsg" id="tblErr" style="display:none"></div>
+            <div id="tblOutput"></div>
+          </div>
+
+        </div><!-- kcontent -->
+      </div><!-- kpanel -->
+
+    </div><!-- end tabKoord -->
+
+    <!-- ════════ TAB: NOTIZEN ════════ -->
+    <div id="tabNotizen" class="panel">
+      <div id="notesList" class="notes-grid"></div>
+      <button class="sbtn add-note-btn" onclick="addNote()">+ Neue Notiz</button>
+    </div>
+
+    <!-- ════════ TAB: KLASSE ════════ -->
+    <div id="tabKlasse" class="panel">
+      <!-- Klasse sub-tabs -->
+      <div class="stabs">
+        <button class="stab active" onclick="switchKlasseSub('kFormeln')">Formeln</button>
+        <button class="stab" onclick="switchKlasseSub('kGeometrie')">Geometrie</button>
+        <button class="stab" onclick="switchKlasseSub('kPhysik')">Physik</button>
+      </div>
+
+      <!-- Formeln -->
+      <div id="kFormeln" class="spanel active" style="overflow-y:auto; padding:14px; gap:10px">
+        <div class="klasse-card">
+          <h3>📐 Algebra</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Quadratische Formel</span><span class="kf-val">x = (−b ± √(b²−4ac)) / 2a</span></div>
+            <div class="kf-item"><span class="kf-name">Binomische Formel 1</span><span class="kf-val">(a+b)² = a²+2ab+b²</span></div>
+            <div class="kf-item"><span class="kf-name">Binomische Formel 2</span><span class="kf-val">(a−b)² = a²−2ab+b²</span></div>
+            <div class="kf-item"><span class="kf-name">Binomische Formel 3</span><span class="kf-val">(a+b)(a−b) = a²−b²</span></div>
+            <div class="kf-item"><span class="kf-name">Steigung</span><span class="kf-val">m = (y₂−y₁)/(x₂−x₁)</span></div>
+            <div class="kf-item"><span class="kf-name">Geradengleichung</span><span class="kf-val">y = mx + b</span></div>
+          </div>
+        </div>
+        <div class="klasse-card" style="border-left-color:var(--acc)">
+          <h3>📊 Statistik</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Mittelwert</span><span class="kf-val">x̄ = (Σxᵢ) / n</span></div>
+            <div class="kf-item"><span class="kf-name">Varianz</span><span class="kf-val">σ² = Σ(xᵢ−x̄)² / n</span></div>
+            <div class="kf-item"><span class="kf-name">Standardabw.</span><span class="kf-val">σ = √(Σ(xᵢ−x̄)²/n)</span></div>
+          </div>
+        </div>
+        <div class="klasse-card" style="border-left-color:var(--acc2)">
+          <h3>🔢 Zahlentheorie</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">ggT(a,b)</span><span class="kf-val">Euklidischer Algorithmus</span></div>
+            <div class="kf-item"><span class="kf-name">kgV(a,b)</span><span class="kf-val">a·b / ggT(a,b)</span></div>
+            <div class="kf-item"><span class="kf-name">Potenzgesetz</span><span class="kf-val">aⁿ·aᵐ = aⁿ⁺ᵐ</span></div>
+            <div class="kf-item"><span class="kf-name">Logarithmusgesetz</span><span class="kf-val">log(a·b) = log(a)+log(b)</span></div>
+          </div>
+        </div>
+        <!-- Custom class calculator -->
+        <div class="ig">
+          <div class="sect">Mittelwert-Rechner</div>
+          <label>Zahlen eingeben (kommagetrennt):</label>
+          <input class="mi" id="statInput" type="text" placeholder="z.B. 4, 7, 2, 9, 5" autocorrect="off">
+          <button class="sbtn" style="margin-top:8px" onclick="calcStat()">📊 Berechnen</button>
+          <div class="sol" id="statSol" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Geometrie -->
+      <div id="kGeometrie" class="spanel" style="overflow-y:auto; padding:14px; gap:10px">
+        <div class="klasse-card">
+          <h3>⬜ Viereck & Dreieck</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Rechteck Fläche</span><span class="kf-val">A = a · b</span></div>
+            <div class="kf-item"><span class="kf-name">Quadrat Fläche</span><span class="kf-val">A = a²</span></div>
+            <div class="kf-item"><span class="kf-name">Dreieck Fläche</span><span class="kf-val">A = (g · h) / 2</span></div>
+            <div class="kf-item"><span class="kf-name">Pythagoras</span><span class="kf-val">c² = a² + b²</span></div>
+            <div class="kf-item"><span class="kf-name">Trapez Fläche</span><span class="kf-val">A = (a+c)/2 · h</span></div>
+          </div>
+        </div>
+        <div class="klasse-card" style="border-left-color:var(--acc)">
+          <h3>⭕ Kreis</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Fläche</span><span class="kf-val">A = π · r²</span></div>
+            <div class="kf-item"><span class="kf-name">Umfang</span><span class="kf-val">U = 2 · π · r</span></div>
+            <div class="kf-item"><span class="kf-name">Durchmesser</span><span class="kf-val">d = 2r</span></div>
+          </div>
+        </div>
+        <div class="klasse-card" style="border-left-color:var(--acc2)">
+          <h3>📦 Körper</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Würfel V</span><span class="kf-val">V = a³</span></div>
+            <div class="kf-item"><span class="kf-name">Quader V</span><span class="kf-val">V = a · b · c</span></div>
+            <div class="kf-item"><span class="kf-name">Zylinder V</span><span class="kf-val">V = π · r² · h</span></div>
+            <div class="kf-item"><span class="kf-name">Kugel V</span><span class="kf-val">V = (4/3) · π · r³</span></div>
+            <div class="kf-item"><span class="kf-name">Kegel V</span><span class="kf-val">V = (1/3) · π · r² · h</span></div>
+          </div>
+        </div>
+        <!-- Geometry calculator -->
+        <div class="ig">
+          <div class="sect">Geometrie-Rechner</div>
+          <div class="modbtns" id="geoBtns" style="flex-wrap:wrap">
+            <button class="modbtn active" onclick="setGeoMode('kreis')">Kreis</button>
+            <button class="modbtn" onclick="setGeoMode('rechteck')">Rechteck</button>
+            <button class="modbtn" onclick="setGeoMode('dreieck')">Dreieck</button>
+            <button class="modbtn" onclick="setGeoMode('zylinder')">Zylinder</button>
+          </div>
+          <div id="geoInputs" style="margin-top:8px; display:flex; flex-direction:column; gap:6px"></div>
+          <button class="sbtn" style="margin-top:8px" onclick="calcGeo()">📐 Berechnen</button>
+          <div class="sol" id="geoSol" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Physik -->
+      <div id="kPhysik" class="spanel" style="overflow-y:auto; padding:14px; gap:10px">
+        <div class="klasse-card">
+          <h3>⚡ Mechanik</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Kraft</span><span class="kf-val">F = m · a  [N]</span></div>
+            <div class="kf-item"><span class="kf-name">Arbeit</span><span class="kf-val">W = F · s  [J]</span></div>
+            <div class="kf-item"><span class="kf-name">Leistung</span><span class="kf-val">P = W / t  [W]</span></div>
+            <div class="kf-item"><span class="kf-name">Energie (kin.)</span><span class="kf-val">E = ½mv²  [J]</span></div>
+            <div class="kf-item"><span class="kf-name">Energie (pot.)</span><span class="kf-val">E = mgh  [J]</span></div>
+            <div class="kf-item"><span class="kf-name">Geschwindigkeit</span><span class="kf-val">v = s / t  [m/s]</span></div>
+            <div class="kf-item"><span class="kf-name">Beschleunigung</span><span class="kf-val">a = Δv / Δt  [m/s²]</span></div>
+          </div>
+        </div>
+        <div class="klasse-card" style="border-left-color:var(--acc4)">
+          <h3>🔋 Elektrizität</h3>
+          <div class="kc-body">
+            <div class="kf-item"><span class="kf-name">Ohmsches Gesetz</span><span class="kf-val">U = R · I  [V]</span></div>
+            <div class="kf-item"><span class="kf-name">Elektrische Leistung</span><span class="kf-val">P = U · I  [W]</span></div>
+            <div class="kf-item"><span class="kf-name">Widerstand (Reihe)</span><span class="kf-val">R = R₁ + R₂</span></div>
+            <div class="kf-item"><span class="kf-name">Widerstand (Parallel)</span><span class="kf-val">1/R = 1/R₁ + 1/R₂</span></div>
+          </div>
+        </div>
+        <!-- Physik calculator -->
+        <div class="ig">
+          <div class="sect">Physik-Rechner</div>
+          <div class="modbtns" id="physBtns" style="flex-wrap:wrap">
+            <button class="modbtn active" onclick="setPhysMode('kraft')">Kraft</button>
+            <button class="modbtn" onclick="setPhysMode('arbeit')">Arbeit</button>
+            <button class="modbtn" onclick="setPhysMode('leistung')">Leistung</button>
+            <button class="modbtn" onclick="setPhysMode('geschw')">Geschw.</button>
+          </div>
+          <div id="physInputs" style="margin-top:8px; display:flex; flex-direction:column; gap:6px"></div>
+          <button class="sbtn" style="margin-top:8px" onclick="calcPhys()">⚡ Berechnen</button>
+          <div class="sol" id="physSol" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div><!-- end tabKlasse -->
+
+  </div><!-- content -->
+
+  <nav id="nav">
+    <button class="nb active" id="nbRechner" onclick="switchTab('rechner')">
+      <span class="ni">🧮</span>Rechner
+    </button>
+    <button class="nb" id="nbKoord" onclick="switchTab('koordinaten')">
+      <span class="ni">📐</span>Koordinaten
+    </button>
+    <button class="nb" id="nbNotizen" onclick="switchTab('notizen')">
+      <span class="ni">📝</span>Notizen
+    </button>
+    <button class="nb" id="nbKlasse" onclick="switchTab('klasse')">
+      <span class="ni">🎓</span>Klasse
+    </button>
+  </nav>
+</div><!-- app -->
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════════
+   PWA & INIT
+══════════════════════════════════════════════ */
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('andInstr').style.display = 'block';
+  document.getElementById('iosInstr').style.display = 'none';
+  document.getElementById('andBtn').classList.add('show');
+});
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true
+      || document.referrer.startsWith('android-app://')
+      || new URLSearchParams(location.search).has('dev');
+}
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+function promptInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  }
+}
+
+function dismissWarning() {
+  document.getElementById('warnOverlay').style.display = 'none';
+  sessionStorage.setItem('warned', '1');
+}
+
+function launchApp() {
+  document.getElementById('installScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  if (!sessionStorage.getItem('warned')) {
+    document.getElementById('warnOverlay').style.display = 'flex';
+  }
+  initCoordCanvas();
+}
+
+window.addEventListener('load', () => {
+  // Service Worker registration
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  if (isStandalone()) {
+    launchApp();
+  } else {
+    // Show iOS instructions by default; Android instructions shown on beforeinstallprompt
+    document.getElementById('installScreen').style.display = 'flex';
+    if (!isIOS() && !deferredPrompt) {
+      // Desktop or non-iOS non-Android – still show iOS-style instructions
+      document.getElementById('iosInstr').querySelector('h2').textContent = '🖥️ App installieren';
+    }
+  }
+
+  // Listen for display-mode change (after install)
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', e => {
+    if (e.matches) launchApp();
+  });
+});
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════ */
+let currentTab = 'rechner';
+let currentSub = 'grundrechner';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabRechner').classList.toggle('active', tab === 'rechner');
+  document.getElementById('tabKoord').classList.toggle('active', tab === 'koordinaten');
+  document.getElementById('tabNotizen').classList.toggle('active', tab === 'notizen');
+  document.getElementById('tabKlasse').classList.toggle('active', tab === 'klasse');
+  document.getElementById('nbRechner').classList.toggle('active', tab === 'rechner');
+  document.getElementById('nbKoord').classList.toggle('active', tab === 'koordinaten');
+  document.getElementById('nbNotizen').classList.toggle('active', tab === 'notizen');
+  document.getElementById('nbKlasse').classList.toggle('active', tab === 'klasse');
+  if (tab === 'koordinaten') { resizeCanvas(); applyRangeSettings(); }
+  if (tab === 'klasse') { initKlasse(); }
+}
+
+function switchSub(id) {
+  currentSub = id;
+  document.querySelectorAll('.spanel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['grundrechner','gleichungen','brueche','einheiten'].indexOf(id);
+  if (idx >= 0) document.querySelectorAll('.stab')[idx].classList.add('active');
+  if (id === 'einheiten') initUnitConverter();
+}
+
+/* ══════════════════════════════════════════════
+   BASIC CALCULATOR
+══════════════════════════════════════════════ */
+const calc = { expr: '', result: '0', history: [] };
+let calcAngleMode = 'deg';   // 'deg' | 'rad'
+let calcSciMode   = false;
+
+function calcInput(ch) {
+  const last = calc.expr.slice(-1);
+  const ops = ['+','-','×','÷','^'];
+
+  if (ch === '√') {
+    calc.expr += 'sqrt(';
+    updateCalcDisplay();
+    return;
+  }
+  // Smart parenthesis toggle
+  if (ch === '()') {
+    const opens = (calc.expr.match(/\(/g) || []).length;
+    const closes = (calc.expr.match(/\)/g) || []).length;
+    ch = opens > closes ? ')' : '(';
+  }
+  // Prevent double operators
+  if (ops.includes(ch) && ops.includes(last) && last !== ')') {
+    calc.expr = calc.expr.slice(0, -1);
+  }
+  calc.expr += ch;
+  // Live preview
+  try { calc.result = String(evalSafe(calc.expr)); } catch { calc.result = '...'; }
+  updateCalcDisplay();
+}
+
+function calcClear() {
+  calc.expr = ''; calc.result = '0';
+  updateCalcDisplay();
+}
+
+function calcBackspace() {
+  const fns = ['asin(','acos(','atan(','sqrt(','sin(','cos(','tan(','log(','exp(','ln('];
+  const matched = fns.find(fn => calc.expr.endsWith(fn));
+  if (matched) { calc.expr = calc.expr.slice(0, -matched.length); }
+  else { calc.expr = calc.expr.slice(0, -1); }
+  try { calc.result = calc.expr ? String(evalSafe(calc.expr)) : '0'; } catch { calc.result = '...'; }
+  updateCalcDisplay();
+}
+
+function calcEval() {
+  if (!calc.expr) return;
+  try {
+    const res = evalSafe(calc.expr);
+    const entry = calc.expr + ' = ' + formatNum(res);
+    calc.history.unshift(entry);
+    if (calc.history.length > 3) calc.history.pop();
+    calc.result = formatNum(res);
+    calc.expr = '';
+  } catch {
+    calc.result = 'Fehler';
+    calc.expr = '';
+  }
+  updateCalcDisplay();
+}
+
+function formatNum(n) {
+  if (typeof n !== 'number' || !isFinite(n)) return 'Fehler';
+  if (Number.isInteger(n)) return String(n);
+  // Round to 10 decimal places to avoid float artifacts
+  return parseFloat(n.toFixed(10)).toString();
+}
+
+function evalSafe(expr) {
+  // Strip known function names then validate remaining chars
+  const stripped = expr
+    .replace(/asin|acos|atan|sqrt|log|exp|sin|cos|tan|ln/gi, '')
+    .replace(/[πe]/g, '0');
+  if (!/^[0-9\s\+\-\*\/\.\(\)\^×÷%,]+$/.test(stripped)) throw new Error('unsafe');
+  const ci = calcAngleMode === 'deg' ? `*${Math.PI}/180` : '';   // input → radians
+  const co = calcAngleMode === 'deg' ? `*${180 / Math.PI}` : ''; // radians → output
+  let e = expr
+    .replace(/×/g, '*').replace(/÷/g, '/')
+    .replace(/\^/g, '**')
+    // Function replacements (longest first to avoid partial matches)
+    .replace(/asin\(/gi, '_asin(').replace(/acos\(/gi, '_acos(').replace(/atan\(/gi, '_atan(')
+    .replace(/sqrt\(/gi, 'Math.sqrt(')
+    .replace(/sin\(/gi,  '_sin(').replace(/cos\(/gi,  '_cos(').replace(/tan\(/gi,  '_tan(')
+    .replace(/log\(/gi,  'Math.log10(').replace(/ln\(/gi, 'Math.log(').replace(/exp\(/gi, 'Math.exp(')
+    // Constant replacements
+    .replace(/π/g, String(Math.PI)).replace(/\be\b/g, String(Math.E))
+    // Percentage
+    .replace(/(\d)(%)/g, '($1/100)').replace(/(%)/g, '/100');
+  // eslint-disable-next-line no-new-func
+  return Function(`"use strict";
+    const _sin=x=>Math.sin(x${ci});
+    const _cos=x=>Math.cos(x${ci});
+    const _tan=x=>Math.tan(x${ci});
+    const _asin=x=>Math.asin(x)${co};
+    const _acos=x=>Math.acos(x)${co};
+    const _atan=x=>Math.atan(x)${co};
+    return (${e});`)();
+}
+
+function updateCalcDisplay() {
+  const histEl = document.getElementById('calcHist');
+  histEl.innerHTML = calc.history.map(h =>
+    `<div class="chistrow">${escHtml(h)}</div>`).join('');
+  document.getElementById('calcExpr').textContent = calc.expr || '';
+  document.getElementById('calcRes').textContent = calc.result;
+}
+
+function toggleSciMode() {
+  calcSciMode = !calcSciMode;
+  document.getElementById('sciRows').style.display = calcSciMode ? 'block' : 'none';
+  document.getElementById('sciToggleBtn').classList.toggle('active', calcSciMode);
+  document.getElementById('angleBtn').style.display = calcSciMode ? 'inline-block' : 'none';
+}
+
+function toggleAngle() {
+  calcAngleMode = calcAngleMode === 'deg' ? 'rad' : 'deg';
+  const btn = document.getElementById('angleBtn');
+  btn.textContent = calcAngleMode.toUpperCase();
+  btn.classList.toggle('rad', calcAngleMode === 'rad');
+  // Refresh live preview
+  try { calc.result = calc.expr ? String(evalSafe(calc.expr)) : '0'; } catch { calc.result = '...'; }
+  updateCalcDisplay();
+}
+
+/* Also handle keyboard input */
+document.addEventListener('keydown', e => {
+  if (currentSub !== 'grundrechner' || currentTab !== 'rechner') return;
+  if (e.key === 'Backspace') { calcBackspace(); e.preventDefault(); }
+  else if (e.key === 'Enter') { calcEval(); }
+  else if (e.key === 'Escape') { calcClear(); }
+  else if ('0123456789+-*/.()'.includes(e.key)) { calcInput(e.key === '*' ? '×' : e.key === '/' ? '÷' : e.key); }
+});
+
+/* ══════════════════════════════════════════════
+   EQUATION SOLVER
+══════════════════════════════════════════════ */
+function solveEquation() {
+  const raw = document.getElementById('eqInput').value.trim();
+  const sol = document.getElementById('eqSol');
+  if (!raw) return;
+  sol.classList.add('vis');
+
+  try {
+    const steps = parseAndSolve(raw);
+    sol.innerHTML = renderSteps(steps);
+  } catch (err) {
+    sol.innerHTML = `<div class="errmsg">⚠️ ${escHtml(err.message)}</div>`;
+  }
+}
+
+function parseAndSolve(raw) {
+  // Normalize
+  let eq = raw.replace(/\s/g, '').replace(/²/g, '^2').replace(/×/g, '*').replace(/÷/g, '/');
+  const eqIdx = eq.indexOf('=');
+  if (eqIdx < 0) throw new Error('Kein Gleichheitszeichen (=) gefunden.');
+
+  const lhsStr = eq.slice(0, eqIdx);
+  const rhsStr = eq.slice(eqIdx + 1);
+
+  const lhs = parsePoly(lhsStr);
+  const rhs = parsePoly(rhsStr);
+
+  // Move rhs to lhs: lhs - rhs = 0
+  const a = round(lhs.a - rhs.a);
+  const b = round(lhs.b - rhs.b);
+  const c = round(lhs.c - rhs.c);
+
+  const steps = [];
+  steps.push({ desc: 'Originalgleichung', math: raw });
+  steps.push({ desc: 'Alle Terme auf die linke Seite', math: `${polyStr(a,b,c)} = 0` });
+
+  if (a !== 0) {
+    // Quadratic
+    steps.push({ desc: 'Erkannt: Quadratische Gleichung (ax² + bx + c = 0)', math: `a = ${a},  b = ${b},  c = ${c}` });
+    const D = round(b*b - 4*a*c);
+    steps.push({ desc: 'Diskriminante berechnen: D = b² − 4ac', math: `D = (${b})² − 4·(${a})·(${c}) = ${D}` });
+
+    if (D < 0) {
+      steps.push({ desc: 'D < 0 → Keine reellen Lösungen', math: 'Keine Lösung in ℝ' });
+      return steps;
+    } else if (D === 0) {
+      const x = round(-b / (2*a));
+      steps.push({ desc: 'D = 0 → Eine Lösung (doppelte Nullstelle)', math: `x = -b / (2a) = ${-b} / ${2*a} = ${x}` });
+      steps.push({ desc: '✅ Ergebnis', math: `x = ${x}`, result: true });
+    } else {
+      const sqrtD = round(Math.sqrt(D));
+      steps.push({ desc: '√D berechnen', math: `√D = √${D} ≈ ${sqrtD}` });
+      const x1 = round((-b + Math.sqrt(D)) / (2*a));
+      const x2 = round((-b - Math.sqrt(D)) / (2*a));
+      steps.push({ desc: 'Lösungsformel: x₁,₂ = (−b ± √D) / (2a)', math: `x₁ = (${-b} + ${sqrtD}) / ${2*a} = ${x1}` });
+      steps.push({ desc: '', math: `x₂ = (${-b} − ${sqrtD}) / ${2*a} = ${x2}` });
+      steps.push({ desc: '✅ Ergebnis', math: `x₁ = ${x1},   x₂ = ${x2}`, result: true });
+    }
+  } else if (b !== 0) {
+    // Linear
+    steps.push({ desc: 'Erkannt: Lineare Gleichung (bx + c = 0)', math: `${b}x + (${c}) = 0` });
+    steps.push({ desc: 'x-Term isolieren: bx = −c', math: `${b}x = ${-c}` });
+    const x = round(-c / b);
+    steps.push({ desc: 'Beide Seiten durch b dividieren: x = −c/b', math: `x = ${-c} ÷ ${b} = ${x}` });
+    steps.push({ desc: '✅ Ergebnis', math: `x = ${x}`, result: true });
+  } else {
+    if (c === 0) steps.push({ desc: '⚠️ Jede Zahl ist eine Lösung (unendlich viele Lösungen)', math: 'x ∈ ℝ' });
+    else steps.push({ desc: '⚠️ Keine Lösung (Widerspruch)', math: `${c} ≠ 0` });
+  }
+  return steps;
+}
+
+function parsePoly(expr) {
+  // Returns {a, b, c} for ax² + bx + c
+  // Normalize signs
+  let e = expr.replace(/\-/g, '+-').replace(/^\+/, '');
+  let terms = e.split('+').filter(t => t !== '');
+  let a = 0, b = 0, c = 0;
+  for (let t of terms) {
+    t = t.trim();
+    if (t === '') continue;
+    if (/x\^?2/.test(t)) {
+      let coef = t.replace(/x\^?2/, '');
+      if (coef === '' || coef === '+') coef = '1';
+      else if (coef === '-') coef = '-1';
+      a += parseFloat(coef) || 0;
+    } else if (/x/.test(t)) {
+      let coef = t.replace(/x/, '');
+      if (coef === '' || coef === '+') coef = '1';
+      else if (coef === '-') coef = '-1';
+      b += parseFloat(coef) || 0;
+    } else {
+      if (t !== '') c += parseFloat(t) || 0;
+    }
+  }
+  return { a, b, c };
+}
+
+function polyStr(a, b, c) {
+  let parts = [];
+  if (a !== 0) parts.push(`${a}x²`);
+  if (b !== 0) parts.push(`${b > 0 && parts.length ? '+' : ''}${b}x`);
+  if (c !== 0) parts.push(`${c > 0 && parts.length ? '+' : ''}${c}`);
+  return parts.length ? parts.join('') : '0';
+}
+
+function renderSteps(steps) {
+  let html = '<div class="psect" style="margin-bottom:8px">Lösungsweg</div>';
+  let num = 1;
+  const result = steps.filter(s => s.result);
+  const regular = steps.filter(s => !s.result);
+  for (const s of regular) {
+    html += `<div class="solstep">
+      <div class="ssn">${num++}</div>
+      <div><div class="ssd">${escHtml(s.desc)}</div><div class="ssm">${escHtml(s.math)}</div></div>
+    </div>`;
+  }
+  for (const s of result) {
+    html += `<div class="solres"><div class="rl">${escHtml(s.desc)}</div><div class="rv">${escHtml(s.math)}</div></div>`;
+  }
+  return html;
+}
+
+/* ══════════════════════════════════════════════
+   FRACTION CALCULATOR
+══════════════════════════════════════════════ */
+let fracOp = '+';
+
+function setFracOp(op) {
+  fracOp = op;
+  ['Add','Sub','Mul','Div'].forEach(id => document.getElementById('op'+id).classList.remove('sel'));
+  const map = {'+':'Add','-':'Sub','*':'Mul','/':'Div'};
+  document.getElementById('op'+map[op]).classList.add('sel');
+}
+
+function solveFraction() {
+  const n1 = parseInt(document.getElementById('fn1').value);
+  const d1 = parseInt(document.getElementById('fd1').value);
+  const n2 = parseInt(document.getElementById('fn2').value);
+  const d2 = parseInt(document.getElementById('fd2').value);
+  const sol = document.getElementById('fracSol');
+
+  if (!d1 || !d2) { sol.classList.add('vis'); sol.innerHTML = '<div class="errmsg">Nenner darf nicht 0 sein</div>'; return; }
+
+  const steps = [];
+  const opSymbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+  steps.push({ desc: 'Aufgabe', math: `${n1}/${d1}  ${opSymbols[fracOp]}  ${n2}/${d2}` });
+
+  let rn, rd;
+  if (fracOp === '+' || fracOp === '-') {
+    const lcm = LCM(Math.abs(d1), Math.abs(d2));
+    const f1 = lcm / d1, f2 = lcm / d2;
+    const en1 = n1 * f1, en2 = n2 * f2;
+    steps.push({ desc: 'Gemeinsamer Nenner (kgV)', math: `kgV(${Math.abs(d1)}, ${Math.abs(d2)}) = ${lcm}` });
+    steps.push({ desc: 'Brüche erweitern', math: `${en1}/${lcm}  ${opSymbols[fracOp]}  ${en2}/${lcm}` });
+    rn = fracOp === '+' ? en1 + en2 : en1 - en2;
+    rd = lcm;
+    steps.push({ desc: 'Zähler addieren/subtrahieren', math: `${rn}/${rd}` });
+  } else if (fracOp === '*') {
+    rn = n1 * n2; rd = d1 * d2;
+    steps.push({ desc: 'Zähler × Zähler, Nenner × Nenner', math: `(${n1}×${n2}) / (${d1}×${d2}) = ${rn}/${rd}` });
+  } else {
+    rn = n1 * d2; rd = d1 * n2;
+    steps.push({ desc: 'Durch Kehrwert multiplizieren', math: `${n1}/${d1} × ${d2}/${n2} = (${n1}×${d2}) / (${d1}×${n2}) = ${rn}/${rd}` });
+  }
+
+  const g = GCD(Math.abs(rn), Math.abs(rd));
+  const sn = rn / g, sd = rd / g;
+  if (g !== 1) steps.push({ desc: `Kürzen mit ggT(${Math.abs(rn)},${Math.abs(rd)}) = ${g}`, math: `${sn}/${sd}` });
+
+  const dec = parseFloat((sn / sd).toFixed(8));
+  steps.push({ desc: '✅ Ergebnis', math: `${sn}/${sd}  =  ${dec}`, result: true });
+
+  sol.classList.add('vis');
+  sol.innerHTML = renderSteps(steps);
+}
+
+function GCD(a, b) { return b === 0 ? a : GCD(b, a % b); }
+function LCM(a, b) { return a / GCD(a, b) * b; }
+
+/* ══════════════════════════════════════════════
+   COORDINATE SYSTEM
+══════════════════════════════════════════════ */
+const COLORS = ['#ff6b6b','#4ecdc4','#45b7d1','#96ceb4','#ffd93d','#c3a6ff','#ff9f43','#a8edea'];
+let colorIdx = 0;
+
+const coord = {
+  ox: 0, oy: 0,  // canvas pixel coords of math origin
+  scale: 50,     // pixels per unit
+  functions: [], // {expr, color, id}
+  points: [],    // {x, y, name, id}
+  strokes: [],   // [{mode, color, width, pts:[{cx,cy}]}]
+  currentStroke: null,
+  drawMode: 'none',
+  drawColor: '#ff6b6b',
+  showGrid: true,
+  showLabels: true,
+  showAxes: true,
+  panStart: null,
+  isPanning: false,
+  pinchDist: 0,
+  nextId: 1,
+};
+
+function initCoordCanvas() {
+  const cvs = document.getElementById('cvs');
+  resizeCanvas();
+
+  // Setup color picker
+  const cr = document.getElementById('colorRow');
+  COLORS.forEach(c => {
+    const b = document.createElement('div');
+    b.className = 'colopt' + (c === coord.drawColor ? ' sel' : '');
+    b.style.background = c;
+    b.onclick = () => {
+      coord.drawColor = c;
+      cr.querySelectorAll('.colopt').forEach(o => o.classList.remove('sel'));
+      b.classList.add('sel');
+    };
+    cr.appendChild(b);
+  });
+
+  // Canvas events
+  cvs.addEventListener('pointerdown', onPointerDown);
+  cvs.addEventListener('pointermove', onPointerMove);
+  cvs.addEventListener('pointerup', onPointerUp);
+  cvs.addEventListener('pointercancel', onPointerUp);
+  cvs.addEventListener('wheel', onWheel, { passive: false });
+
+  window.addEventListener('resize', () => { resizeCanvas(); applyRangeSettings(); });
+  // Don't call drawCanvas here - canvas has 0 size since tabKoord is hidden on init
+}
+
+function resizeCanvas() {
+  const cvs = document.getElementById('cvs');
+  const container = document.getElementById('tabKoord');
+  const rect = container.getBoundingClientRect();
+  cvs.width = rect.width;
+  cvs.height = rect.height;
+  // Keep origin centered
+  coord.ox = cvs.width / 2;
+  coord.oy = cvs.height / 2;
+}
+
+/* ─ Math ↔ Canvas transforms ─ */
+function m2c(mx, my) {
+  return { cx: coord.ox + mx * coord.scale, cy: coord.oy - my * coord.scale };
+}
+function c2m(cx, cy) {
+  return { mx: (cx - coord.ox) / coord.scale, my: (coord.oy - cy) / coord.scale };
+}
+function snapToGrid(mx, my) {
+  const gs = parseFloat(document.getElementById('gridStep').value) || 1;
+  return { mx: Math.round(mx / gs) * gs, my: Math.round(my / gs) * gs };
+}
+
+/* ─ Draw Canvas ─ */
+function applyRangeSettings() {
+  const cvs = document.getElementById('cvs');
+  const W = cvs.width, H = cvs.height;
+  if (!W || !H) return;
+  const xMin = parseFloat(document.getElementById('xMin').value) || -10;
+  const xMax = parseFloat(document.getElementById('xMax').value) || 10;
+  const yMin = parseFloat(document.getElementById('yMin').value) || -8;
+  const yMax = parseFloat(document.getElementById('yMax').value) || 8;
+  const rangeW = xMax - xMin;
+  const rangeH = yMax - yMin;
+  if (rangeW > 0 && rangeH > 0) {
+    coord.scale = Math.min(W / rangeW, H / rangeH) * 0.88;
+    coord.ox = W / 2 - (xMin + xMax) / 2 * coord.scale;
+    coord.oy = H / 2 + (yMin + yMax) / 2 * coord.scale;
+  }
+  drawCanvas();
+}
+
+function drawCanvas() {
+  const cvs = document.getElementById('cvs');
+  if (!cvs) return;
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, H = cvs.height;
+  if (!W || !H) return;  // Guard: skip render on zero-size canvas
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, W, H);
+
+  const gs = parseFloat(document.getElementById('gridStep').value) || 1;
+
+  // Grid
+  if (coord.showGrid) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    const xStart = Math.floor(c2m(0, 0).mx / gs) * gs;
+    const xEnd = Math.ceil(c2m(W, 0).mx / gs) * gs;
+    const yStart = Math.floor(c2m(0, H).my / gs) * gs;
+    const yEnd = Math.ceil(c2m(0, 0).my / gs) * gs;
+    for (let x = xStart; x <= xEnd; x += gs) {
+      const {cx} = m2c(x, 0);
+      ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+    }
+    for (let y = yStart; y <= yEnd; y += gs) {
+      const {cy} = m2c(0, y);
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+    }
+  }
+
+  // Axes
+  if (coord.showAxes) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1.5;
+    // X axis
+    ctx.beginPath(); ctx.moveTo(0, coord.oy); ctx.lineTo(W, coord.oy); ctx.stroke();
+    // Y axis
+    ctx.beginPath(); ctx.moveTo(coord.ox, 0); ctx.lineTo(coord.ox, H); ctx.stroke();
+    // Arrow tips
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    drawArrow(ctx, W-4, coord.oy, 8, 4, 'right');
+    drawArrow(ctx, coord.ox, 4, 8, 4, 'up');
+    // Axis labels
+    if (coord.showLabels) {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillText('x', W - 16, coord.oy - 8);
+      ctx.fillText('y', coord.ox + 8, 16);
+    }
+  }
+
+  // Axis tick labels
+  if (coord.showLabels && coord.showAxes) {
+    const xStart2 = Math.floor(c2m(0, 0).mx / gs) * gs;
+    const xEnd2 = Math.ceil(c2m(W, 0).mx / gs) * gs;
+    const yStart2 = Math.floor(c2m(0, H).my / gs) * gs;
+    const yEnd2 = Math.ceil(c2m(0, 0).my / gs) * gs;
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    for (let x = xStart2; x <= xEnd2; x += gs) {
+      if (Math.abs(x) < gs * 0.1) continue;
+      const {cx, cy} = m2c(x, 0);
+      ctx.fillText(round(x), cx, Math.min(Math.max(cy + 14, 14), H - 4));
+    }
+    ctx.textAlign = 'right';
+    for (let y = yStart2; y <= yEnd2; y += gs) {
+      if (Math.abs(y) < gs * 0.1) continue;
+      const {cx, cy} = m2c(0, y);
+      ctx.fillText(round(y), Math.max(cx - 5, 20), Math.min(Math.max(cy + 4, 4), H - 4));
+    }
+    ctx.textAlign = 'left';
+  }
+
+  // Draw functions
+  coord.functions.forEach(fn => plotFunction(ctx, fn.expr, fn.color));
+
+  // Draw points
+  coord.points.forEach(pt => drawPoint(ctx, pt));
+
+  // Draw freehand strokes
+  coord.strokes.forEach(stroke => drawStroke(ctx, stroke));
+  if (coord.currentStroke) drawStroke(ctx, coord.currentStroke);
+}
+
+function drawArrow(ctx, x, y, size, halfW, dir) {
+  ctx.beginPath();
+  if (dir === 'right') {
+    ctx.moveTo(x, y); ctx.lineTo(x-size, y-halfW); ctx.lineTo(x-size, y+halfW);
+  } else {
+    ctx.moveTo(x, y); ctx.lineTo(x-halfW, y+size); ctx.lineTo(x+halfW, y+size);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+function plotFunction(ctx, exprRaw, color) {
+  const cvs = document.getElementById('cvs');
+  const W = cvs.width;
+  const steps = W * 2;
+  const xLeft = c2m(0, 0).mx;
+  const xRight = c2m(W, 0).mx;
+  const dx = (xRight - xLeft) / steps;
+
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+
+  let started = false;
+  let prevY = null;
+
+  for (let i = 0; i <= steps; i++) {
+    const mx = xLeft + i * dx;
+    const my = evalFn(exprRaw, mx);
+    if (!isFinite(my) || isNaN(my)) { started = false; prevY = null; continue; }
+    // Discontinuity detection
+    if (prevY !== null && Math.abs(my - prevY) > Math.abs(c2m(0, 0).my - c2m(0, cvs.height).my) * 2) {
+      started = false;
+    }
+    const {cx, cy} = m2c(mx, my);
+    if (!started) { ctx.moveTo(cx, cy); started = true; }
+    else { ctx.lineTo(cx, cy); }
+    prevY = my;
+  }
+  ctx.stroke();
+}
+
+function evalFn(expr, x) {
+  // Sanitize: only allow math-safe chars
+  if (!/^[0-9x\s\+\-\*\/\^\.\(\)πe]+$/i.test(expr.replace(/sqrt|sin|cos|tan|abs|log|exp|pi/gi, ''))) return NaN;
+  try {
+    let e = expr
+      .replace(/²/g, '**2').replace(/\^/g, '**')
+      .replace(/\bpi\b/gi, Math.PI).replace(/π/g, Math.PI)
+      .replace(/\bsqrt\b/gi, 'Math.sqrt').replace(/\bsin\b/gi, 'Math.sin')
+      .replace(/\bcos\b/gi, 'Math.cos').replace(/\btan\b/gi, 'Math.tan')
+      .replace(/\babs\b/gi, 'Math.abs').replace(/\blog\b/gi, 'Math.log10')
+      .replace(/\bexp\b/gi, 'Math.exp')
+      .replace(/([0-9πe\)])\s*x/g, '$1*x')  // implicit multiply
+      .replace(/x/g, `(${x})`);
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict"; return (' + e + ')')();
+  } catch { return NaN; }
+}
+
+function drawPoint(ctx, pt) {
+  const {cx, cy} = m2c(pt.x, pt.y);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffd93d';
+  ctx.fill();
+  ctx.strokeStyle = '#0a0a1a';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  if (coord.showLabels) {
+    ctx.fillStyle = '#ffd93d';
+    ctx.font = 'bold 12px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${pt.name}(${round(pt.x)},${round(pt.y)})`, cx + 8, cy - 5);
+  }
+}
+
+function drawStroke(ctx, stroke) {
+  if (!stroke.pts || stroke.pts.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = stroke.color;
+  ctx.lineWidth = stroke.width;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.moveTo(stroke.pts[0].cx, stroke.pts[0].cy);
+  for (let i = 1; i < stroke.pts.length; i++) ctx.lineTo(stroke.pts[i].cx, stroke.pts[i].cy);
+  ctx.stroke();
+}
+
+/* ─ Pointer Events ─ */
+const activeTouches = new Map();
+
+function onPointerDown(e) {
+  e.preventDefault();
+  const cvs = document.getElementById('cvs');
+  activeTouches.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  cvs.setPointerCapture(e.pointerId);
+
+  const rect = cvs.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+
+  // Text placement mode
+  if (coord.textMode) {
+    placeTextLabel(cx, cy);
+    coord.textMode = false;
+    document.getElementById('textBtn').classList.remove('act');
+    cvs.style.cursor = 'crosshair';
+    return;
+  }
+
+  if (activeTouches.size === 2) {
+    // Pinch zoom setup
+    const pts = [...activeTouches.values()];
+    const dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y;
+    coord.pinchDist = Math.sqrt(dx*dx + dy*dy);
+    coord.isPanning = false;
+    if (coord.currentStroke) { coord.strokes.push(coord.currentStroke); coord.currentStroke = null; }
+    return;
+  }
+
+  if (coord.drawMode === 'none') {
+    if (!coord.locked) {
+      coord.isPanning = true;
+      coord.panStart = { cx, cy, ox: coord.ox, oy: coord.oy };
+      cvs.classList.add('panning', 'dragging');
+    }
+  } else {
+    let {mx, my} = c2m(cx, cy);
+    if (coord.drawMode === 'snap') { const s = snapToGrid(mx, my); mx = s.mx; my = s.my; }
+    const {cx: scx, cy: scy} = m2c(mx, my);
+    const w = parseInt(document.getElementById('lineWidth').value) || 3;
+    coord.currentStroke = { mode: coord.drawMode, color: coord.drawColor, width: w, pts: [{cx: scx, cy: scy}] };
+  }
+}
+
+function onPointerMove(e) {
+  e.preventDefault();
+  const cvs = document.getElementById('cvs');
+  activeTouches.set(e.pointerId, {x: e.clientX, y: e.clientY});
+
+  const rect = cvs.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+
+  // Update coord info
+  const {mx, my} = c2m(cx, cy);
+  document.getElementById('coordInfo').textContent = `x=${mx.toFixed(2)}  y=${my.toFixed(2)}`;
+
+  if (activeTouches.size === 2) {
+    // Pinch zoom
+    const pts = [...activeTouches.values()];
+    const dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y;
+    const newDist = Math.sqrt(dx*dx + dy*dy);
+    if (coord.pinchDist > 0) {
+      const factor = newDist / coord.pinchDist;
+      const midX = (pts[0].x + pts[1].x) / 2 - rect.left;
+      const midY = (pts[0].y + pts[1].y) / 2 - rect.top;
+      zoomAt(factor, midX, midY);
+    }
+    coord.pinchDist = newDist;
+    return;
+  }
+
+  if (coord.isPanning && coord.panStart) {
+    coord.ox = coord.panStart.ox + (cx - coord.panStart.cx);
+    coord.oy = coord.panStart.oy + (cy - coord.panStart.cy);
+    drawCanvas();
+    if (coord.showRuler) drawRulers();
+  } else if (coord.currentStroke) {
+    let {mx: pmx, my: pmy} = c2m(cx, cy);
+    if (coord.drawMode === 'snap') { const s = snapToGrid(pmx, pmy); pmx = s.mx; pmy = s.my; }
+    const {cx: scx, cy: scy} = m2c(pmx, pmy);
+    coord.currentStroke.pts.push({cx: scx, cy: scy});
+    drawCanvas();
+  }
+}
+
+function onPointerUp(e) {
+  e.preventDefault();
+  activeTouches.delete(e.pointerId);
+  const cvs = document.getElementById('cvs');
+  coord.isPanning = false;
+  cvs.classList.remove('panning', 'dragging');
+  coord.panStart = null;
+  if (coord.currentStroke) {
+    if (coord.currentStroke.pts.length >= 2) coord.strokes.push(coord.currentStroke);
+    coord.currentStroke = null;
+    drawCanvas();
+  }
+}
+
+function onWheel(e) {
+  e.preventDefault();
+  if (coord.locked) return;
+  const cvs = document.getElementById('cvs');
+  const rect = cvs.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  zoomAt(factor, cx, cy);
+}
+
+function zoomAt(factor, cx, cy) {
+  if (coord.locked) return;
+  const {mx, my} = c2m(cx, cy);
+  coord.scale = Math.min(Math.max(coord.scale * factor, 5), 2000);
+  coord.ox = cx - mx * coord.scale;
+  coord.oy = cy + my * coord.scale;
+  drawCanvas();
+  if (coord.showRuler) drawRulers();
+}
+
+function zoomBy(factor) {
+  const cvs = document.getElementById('cvs');
+  zoomAt(factor, cvs.width / 2, cvs.height / 2);
+}
+
+function resetView() {
+  document.getElementById('xMin').value = -10;
+  document.getElementById('xMax').value = 10;
+  document.getElementById('yMin').value = -8;
+  document.getElementById('yMax').value = 8;
+  applyRangeSettings();
+}
+
+function applyScaleInput() {
+  const s = parseFloat(document.getElementById('scaleInput').value);
+  if (s >= 5) {
+    const cvs = document.getElementById('cvs');
+    coord.scale = s;
+    coord.ox = cvs.width / 2;
+    coord.oy = cvs.height / 2;
+    drawCanvas();
+  }
+}
+
+/* ─ Functions ─ */
+function addFunction() {
+  const raw = document.getElementById('fnInput').value.trim();
+  const errEl = document.getElementById('fnErr');
+  if (!raw) return;
+
+  // Normalize: strip "y=" prefix
+  let expr = raw.replace(/^y\s*=\s*/i, '').replace(/\s/g, '');
+  if (!expr) { showErr(errEl, 'Bitte eine Funktion eingeben'); return; }
+
+  // Validate by evaluating at x=1
+  const test = evalFn(expr, 1);
+  if (isNaN(test)) { showErr(errEl, 'Ungültige Funktion. Beispiel: 2x+1 oder x^2-3'); return; }
+
+  errEl.style.display = 'none';
+  const color = COLORS[colorIdx % COLORS.length]; colorIdx++;
+  const id = coord.nextId++;
+  coord.functions.push({ expr, color, id, raw });
+  document.getElementById('fnInput').value = '';
+  renderFnList();
+  drawCanvas();
+}
+
+function renderFnList() {
+  const list = document.getElementById('fnList');
+  list.innerHTML = coord.functions.map(fn =>
+    `<div class="listitem">
+      <div class="clrdot" style="background:${fn.color}"></div>
+      <span class="lbl">y = ${escHtml(fn.expr)}</span>
+      <button class="delbtn" onclick="deleteFunction(${fn.id})">✕</button>
+    </div>`).join('');
+}
+
+function deleteFunction(id) {
+  coord.functions = coord.functions.filter(f => f.id !== id);
+  renderFnList(); drawCanvas();
+}
+
+/* ─ Value Table ─ */
+function generateTable() {
+  const errEl = document.getElementById('tblErr');
+  const output = document.getElementById('tblOutput');
+  errEl.style.display = 'none';
+  output.innerHTML = '';
+
+  if (coord.functions.length === 0) {
+    showErr(errEl, 'Bitte zuerst eine Funktion hinzufügen');
+    return;
+  }
+
+  const xFrom = parseFloat(document.getElementById('tblXFrom').value);
+  const xTo   = parseFloat(document.getElementById('tblXTo').value);
+  const step  = parseFloat(document.getElementById('tblStep').value);
+
+  if (isNaN(xFrom) || isNaN(xTo) || isNaN(step) || step <= 0) {
+    showErr(errEl, 'Bitte gültige Werte eingeben (Schrittweite > 0)');
+    return;
+  }
+  if (xFrom >= xTo) {
+    showErr(errEl, '"x von" muss kleiner als "x bis" sein');
+    return;
+  }
+  const maxRows = 500;
+  const count = Math.round((xTo - xFrom) / step) + 1;
+  if (count > maxRows) {
+    showErr(errEl, `Zu viele Zeilen (max ${maxRows}). Schrittweite vergrößern`);
+    return;
+  }
+
+  // Build header
+  let header = '<tr><th>x</th>' +
+    coord.functions.map(fn =>
+      `<th style="color:${fn.color}">f(x) = ${escHtml(fn.expr)}</th>`
+    ).join('') + '</tr>';
+
+  // Build rows
+  let rows = '';
+  for (let i = 0; i < count; i++) {
+    const x = parseFloat((xFrom + i * step).toFixed(10));
+    if (x > xTo + step * 1e-9) break;
+    const cells = coord.functions.map(fn => {
+      const y = evalFn(fn.expr, x);
+      if (!isFinite(y) || isNaN(y)) return '<td class="vt-nan">—</td>';
+      return `<td>${round(y)}</td>`;
+    }).join('');
+    rows += `<tr><td class="vt-x">${round(x)}</td>${cells}</tr>`;
+  }
+
+  output.innerHTML =
+    '<div class="vt-wrap"><table class="vt"><thead>' +
+    header + '</thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+/* ─ Points ─ */
+function addPoint() {
+  const name = document.getElementById('ptName').value.trim() || `P${coord.nextId}`;
+  const x = parseFloat(document.getElementById('ptX').value);
+  const y = parseFloat(document.getElementById('ptY').value);
+  const errEl = document.getElementById('ptErr');
+  if (isNaN(x) || isNaN(y)) { showErr(errEl, 'Bitte gültige x- und y-Koordinaten eingeben'); return; }
+  errEl.style.display = 'none';
+  const id = coord.nextId++;
+  coord.points.push({ x, y, name, id });
+  document.getElementById('ptName').value = '';
+  document.getElementById('ptX').value = '';
+  document.getElementById('ptY').value = '';
+  renderPtList(); drawCanvas();
+}
+
+function renderPtList() {
+  const list = document.getElementById('ptList');
+  list.innerHTML = coord.points.map(pt =>
+    `<div class="listitem">
+      <div class="clrdot" style="background:#ffd93d"></div>
+      <span class="lbl">${escHtml(pt.name)} (${round(pt.x)}, ${round(pt.y)})</span>
+      <button class="delbtn" onclick="deletePoint(${pt.id})">✕</button>
+    </div>`).join('');
+}
+
+function deletePoint(id) {
+  coord.points = coord.points.filter(p => p.id !== id);
+  renderPtList(); drawCanvas();
+}
+
+/* ─ Draw Mode ─ */
+function setDrawMode(mode) {
+  coord.drawMode = mode;
+  ['modeNone','modeFree','modeSnap'].forEach((id, i) => {
+    document.getElementById(id).classList.toggle('active', ['none','free','snap'][i] === mode);
+  });
+  const cvs = document.getElementById('cvs');
+  cvs.classList.toggle('panning', mode === 'none');
+}
+
+function undoStroke() { coord.strokes.pop(); drawCanvas(); }
+function clearStrokes() { coord.strokes = []; drawCanvas(); }
+
+function saveCanvas() {
+  const cvs = document.getElementById('cvs');
+  const a = document.createElement('a');
+  a.download = 'rechner-koordinaten.png';
+  a.href = cvs.toDataURL();
+  a.click();
+}
+
+/* ─ Panel & settings ─ */
+function togglePanel() {
+  document.getElementById('kpanel').classList.toggle('open');
+}
+
+function switchPTab(id) {
+  document.querySelectorAll('.psec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['pFunktionen','pPunkte','pZeichnen','pTabelle','pEinst'];
+  document.querySelectorAll('.ptab')[tabs.indexOf(id)].classList.add('active');
+}
+
+function toggleSetting(s) {
+  const map = { grid: 'showGrid', labels: 'showLabels', axes: 'showAxes' };
+  const btn = document.getElementById('tog' + s.charAt(0).toUpperCase() + s.slice(1));
+  coord[map[s]] = !coord[map[s]];
+  btn.classList.toggle('active', coord[map[s]]);
+  drawCanvas();
+}
+
+/* ══════════════════════════════════════════════
+   UNIT CONVERTER
+══════════════════════════════════════════════ */
+const UNIT_CATS = {
+  length: {
+    label: 'Länge',
+    units: { 'mm': 1e-3, 'cm': 1e-2, 'm': 1, 'km': 1e3, 'Zoll (in)': 0.0254, 'Fuß (ft)': 0.3048, 'Yard (yd)': 0.9144, 'Meile (mi)': 1609.344 }
+  },
+  weight: {
+    label: 'Gewicht',
+    units: { 'mg': 1e-6, 'g': 1e-3, 'kg': 1, 't': 1e3, 'Unze (oz)': 0.0283495, 'Pfund (lb)': 0.453592 }
+  },
+  temp: {
+    label: 'Temperatur',
+    units: ['°C', '°F', 'K']
+  },
+  area: {
+    label: 'Fläche',
+    units: { 'mm²': 1e-6, 'cm²': 1e-4, 'm²': 1, 'km²': 1e6, 'Hektar (ha)': 1e4, 'Acre': 4046.856, 'ft²': 0.092903 }
+  },
+  speed: {
+    label: 'Geschwindigkeit',
+    units: { 'm/s': 1, 'km/h': 1 / 3.6, 'mph': 0.44704, 'Knoten (kn)': 0.514444 }
+  }
+};
+
+let ucCurrentCat = 'length';
+let ucInited = false;
+
+function initUnitConverter() {
+  if (ucInited) return;
+  ucInited = true;
+  populateUnitSelects();
+}
+
+function setUCat(cat) {
+  ucCurrentCat = cat;
+  document.querySelectorAll('#ucatBtns .modbtn').forEach((b, i) => {
+    b.classList.toggle('active', Object.keys(UNIT_CATS)[i] === cat);
+  });
+  populateUnitSelects();
+  doUnitConvert();
+}
+
+function populateUnitSelects() {
+  const cat = UNIT_CATS[ucCurrentCat];
+  const units = Array.isArray(cat.units) ? cat.units : Object.keys(cat.units);
+  const fromSel = document.getElementById('ucFromUnit');
+  const toSel = document.getElementById('ucToUnit');
+  fromSel.innerHTML = units.map(u => `<option value="${escHtml(u)}">${escHtml(u)}</option>`).join('');
+  toSel.innerHTML   = units.map(u => `<option value="${escHtml(u)}">${escHtml(u)}</option>`).join('');
+  if (units.length > 1) toSel.value = units[1];
+  document.getElementById('ucResult').classList.remove('vis');
+}
+
+function doUnitConvert() {
+  const val = parseFloat(document.getElementById('ucValue').value);
+  const from = document.getElementById('ucFromUnit').value;
+  const to   = document.getElementById('ucToUnit').value;
+  const resEl = document.getElementById('ucResult');
+  const valEl = document.getElementById('ucResultVal');
+
+  if (isNaN(val)) { resEl.classList.remove('vis'); return; }
+
+  let result;
+  if (ucCurrentCat === 'temp') {
+    let k;
+    if (from === '°C') k = val + 273.15;
+    else if (from === '°F') k = (val + 459.67) * 5 / 9;
+    else k = val;
+    if (to === '°C') result = k - 273.15;
+    else if (to === '°F') result = k * 9 / 5 - 459.67;
+    else result = k;
+  } else {
+    const u = UNIT_CATS[ucCurrentCat].units;
+    result = val * u[from] / u[to];
+  }
+
+  const formatted = !isFinite(result) ? '—' :
+    Math.abs(result) < 1e-9 || Math.abs(result) >= 1e12
+      ? result.toExponential(6)
+      : parseFloat(result.toFixed(8)).toString();
+
+  valEl.textContent = `${formatted} ${to}`;
+  resEl.classList.add('vis');
+}
+
+/* ══════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════ */
+function round(n) {
+  const r = parseFloat(n.toFixed(6));
+  return r === 0 ? 0 : r;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+
+/* ══════════════════════════════════════════════
+   HIDE UI
+══════════════════════════════════════════════ */
+function toggleHideUI() {
+  const hidden = document.body.classList.toggle('hide-ui');
+  document.getElementById('hideUIBtn').textContent = hidden ? 'UI an' : 'UI aus';
+}
+
+/* ══════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════ */
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sideOverlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('show', open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sideOverlay').classList.remove('show');
+}
+function switchSideTab(id) {
+  document.querySelectorAll('.sdpanel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sdtab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['sdMiniCalc','sdSideNotes'];
+  document.querySelectorAll('.sdtab')[tabs.indexOf(id)].classList.add('active');
+}
+
+/* ══════════════════════════════════════════════
+   MINI CALCULATOR
+══════════════════════════════════════════════ */
+const mc = { expr: '', result: '0' };
+
+function mcInput(ch) {
+  if (ch === 'AC') { mc.expr = ''; mc.result = '0'; updateMcDisplay(); return; }
+  if (ch === '⌫') {
+    mc.expr = mc.expr.slice(0, -1);
+    try { mc.result = mc.expr ? String(evalSafe(mc.expr)) : '0'; } catch { mc.result = '...'; }
+    updateMcDisplay(); return;
+  }
+  if (ch === '=') {
+    if (!mc.expr) return;
+    try {
+      mc.result = formatNum(evalSafe(mc.expr));
+      mc.expr = '';
+    } catch { mc.result = 'Fehler'; mc.expr = ''; }
+    updateMcDisplay(); return;
+  }
+  const ops = ['+','-','×','÷'];
+  const last = mc.expr.slice(-1);
+  if (ops.includes(ch) && ops.includes(last)) mc.expr = mc.expr.slice(0, -1);
+  mc.expr += ch;
+  try { mc.result = String(evalSafe(mc.expr)); } catch { mc.result = '...'; }
+  updateMcDisplay();
+}
+
+function updateMcDisplay() {
+  document.getElementById('mcExpr').textContent = mc.expr || '';
+  document.getElementById('mcRes').textContent = mc.result;
+}
+
+/* ══════════════════════════════════════════════
+   COORDINATE SYSTEM LOCK
+══════════════════════════════════════════════ */
+coord.locked = false;
+
+function toggleLock() {
+  coord.locked = !coord.locked;
+  const btn = document.getElementById('lockBtn');
+  btn.textContent = coord.locked ? '🔒' : '🔓';
+  btn.classList.toggle('act', coord.locked);
+}
+
+/* ══════════════════════════════════════════════
+   RULER
+══════════════════════════════════════════════ */
+coord.showRuler = false;
+
+function toggleRuler() {
+  coord.showRuler = !coord.showRuler;
+  const container = document.getElementById('tabKoord');
+  container.classList.toggle('ruler-visible', coord.showRuler);
+  document.getElementById('rulerBtn').classList.toggle('act', coord.showRuler);
+  drawCanvas();
+  if (coord.showRuler) drawRulers();
+}
+
+function drawRulers() {
+  const rulerH = document.getElementById('rulerH');
+  const rulerV = document.getElementById('rulerV');
+  const container = document.getElementById('tabKoord');
+  const rect = container.getBoundingClientRect();
+  const W = rect.width - 20;
+  const H = rect.height - 20;
+
+  rulerH.width = W; rulerH.height = 20;
+  rulerV.width = 20; rulerV.height = H;
+
+  const ctxH = rulerH.getContext('2d');
+  const ctxV = rulerV.getContext('2d');
+
+  // H ruler background
+  ctxH.fillStyle = 'rgba(26,26,62,.95)';
+  ctxH.fillRect(0, 0, W, 20);
+  ctxH.strokeStyle = 'rgba(42,42,90,1)';
+  ctxH.lineWidth = 1;
+  ctxH.strokeRect(0, 0, W, 20);
+
+  // V ruler background
+  ctxV.fillStyle = 'rgba(26,26,62,.95)';
+  ctxV.fillRect(0, 0, 20, H);
+  ctxV.strokeStyle = 'rgba(42,42,90,1)';
+  ctxV.lineWidth = 1;
+  ctxV.strokeRect(0, 0, 20, H);
+
+  const gs = parseFloat(document.getElementById('gridStep').value) || 1;
+  const xLeft  = c2m(0, 0).mx;
+  const xRight = c2m(rect.width, 0).mx;
+  const yTop   = c2m(0, 0).my;
+  const yBot   = c2m(0, rect.height).my;
+
+  ctxH.fillStyle = 'rgba(255,255,255,0.55)';
+  ctxH.font = '9px -apple-system, sans-serif';
+  ctxH.textAlign = 'center';
+
+  // H tick marks
+  const xStart = Math.floor(xLeft / gs) * gs;
+  const xEnd   = Math.ceil(xRight / gs) * gs;
+  for (let x = xStart; x <= xEnd; x += gs) {
+    const { cx } = m2c(x, 0);
+    const px = cx - 20; // offset for ruler left margin
+    if (px < 0 || px > W) continue;
+    const isMajor = Math.abs(x % (gs * 5)) < gs * 0.01;
+    ctxH.fillRect(px, isMajor ? 11 : 14, 1, isMajor ? 9 : 6);
+    if (isMajor || gs >= 1) {
+      ctxH.fillText(round(x), px, 10);
+    }
+  }
+
+  // V tick marks
+  ctxV.fillStyle = 'rgba(255,255,255,0.55)';
+  ctxV.font = '9px -apple-system, sans-serif';
+  ctxV.textAlign = 'right';
+  const yStart = Math.floor(yBot / gs) * gs;
+  const yEnd   = Math.ceil(yTop / gs) * gs;
+  for (let y = yStart; y <= yEnd; y += gs) {
+    const { cy } = m2c(0, y);
+    const py = cy - 20;
+    if (py < 0 || py > H) continue;
+    const isMajor = Math.abs(y % (gs * 5)) < gs * 0.01;
+    ctxV.fillRect(isMajor ? 11 : 14, py, isMajor ? 9 : 6, 1);
+    if (isMajor || gs >= 1) {
+      ctxV.save();
+      ctxV.translate(10, py);
+      ctxV.rotate(-Math.PI / 2);
+      ctxV.fillText(round(y), 0, 0);
+      ctxV.restore();
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════
+   QUADRANT VIEW
+══════════════════════════════════════════════ */
+coord.quadrant = 0; // 0=all, 1–4=quadrants
+
+function toggleQuadPanel() {
+  const p = document.getElementById('quadrantPanel');
+  p.classList.toggle('vis');
+  document.getElementById('quadBtn').classList.toggle('act', p.classList.contains('vis'));
+}
+
+function setQuadrant(q) {
+  coord.quadrant = q;
+  ['qI','qII','qIII','qIV','qAll'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active');
+  });
+  const ids = { 0:'qAll', 1:'qI', 2:'qII', 3:'qIII', 4:'qIV' };
+  if (ids[q]) document.getElementById(ids[q]).classList.add('active');
+  applyQuadrant();
+  drawCanvas();
+  if (coord.showRuler) drawRulers();
+}
+
+function applyQuadrant() {
+  const q = coord.quadrant;
+  if (q === 0) return; // no restriction
+  const cvs = document.getElementById('cvs');
+  const W = cvs.width, H = cvs.height;
+  const margin = 0.5; // small extra units visible
+  const range = Math.max(W, H) / coord.scale / 2 + margin;
+  // Place origin at corner based on quadrant
+  switch (q) {
+    case 1: coord.ox = 20; coord.oy = H - 20; break; // origin bottom-left
+    case 2: coord.ox = W - 20; coord.oy = H - 20; break; // origin bottom-right
+    case 3: coord.ox = W - 20; coord.oy = 20; break; // origin top-right
+    case 4: coord.ox = 20; coord.oy = 20; break; // origin top-left
+  }
+}
+
+/* ══════════════════════════════════════════════
+   TEXTBOX TOOL
+══════════════════════════════════════════════ */
+coord.textMode = false;
+const textLabels = []; // {id, x, y, text, el}
+let textLabelId = 1;
+
+function toggleTextMode() {
+  coord.textMode = !coord.textMode;
+  document.getElementById('textBtn').classList.toggle('act', coord.textMode);
+  const cvs = document.getElementById('cvs');
+  cvs.style.cursor = coord.textMode ? 'text' : 'crosshair';
+}
+
+function placeTextLabel(cx, cy) {
+  const container = document.getElementById('tabKoord');
+  const text = prompt('Text eingeben:');
+  if (!text) return;
+  const { mx, my } = c2m(cx, cy);
+  const el = document.createElement('div');
+  el.className = 'canvas-label';
+  el.textContent = text;
+  el.style.left = cx + 'px';
+  el.style.top  = cy + 'px';
+  const id = textLabelId++;
+  el.dataset.id = id;
+
+  // Drag support
+  let dragging = false, startX, startY, origLeft, origTop;
+  el.addEventListener('pointerdown', ev => {
+    ev.stopPropagation();
+    dragging = true;
+    startX = ev.clientX; startY = ev.clientY;
+    origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
+    el.setPointerCapture(ev.pointerId);
+  });
+  el.addEventListener('pointermove', ev => {
+    if (!dragging) return;
+    el.style.left = (origLeft + ev.clientX - startX) + 'px';
+    el.style.top  = (origTop  + ev.clientY - startY) + 'px';
+  });
+  el.addEventListener('pointerup', () => { dragging = false; });
+
+  // Double-click to delete
+  el.addEventListener('dblclick', ev => {
+    ev.stopPropagation();
+    el.remove();
+  });
+
+  container.appendChild(el);
+  textLabels.push({ id, mx, my, el });
+}
+
+/* ══════════════════════════════════════════════
+   NOTIZEN (NOTES)
+══════════════════════════════════════════════ */
+const NOTE_COLORS = ['#ffd93d','#6c63ff','#ff6b6b','#4ecdc4','#ff9f43'];
+const notes = [];
+let noteId = 1;
+
+function addNote(color) {
+  const id = noteId++;
+  const c = color || NOTE_COLORS[0];
+  const note = { id, title: '', body: '', color: c };
+  notes.push(note);
+  renderNotes();
+}
+
+function deleteNote(id) {
+  const idx = notes.findIndex(n => n.id === id);
+  if (idx >= 0) notes.splice(idx, 1);
+  renderNotes();
+}
+
+function renderNotes() {
+  const list = document.getElementById('notesList');
+  if (notes.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:40px 20px;font-size:14px">📝 Noch keine Notizen.<br>Erstelle eine neue Notiz!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  notes.forEach(note => {
+    const card = document.createElement('div');
+    card.className = 'note-card';
+    card.style.borderLeftColor = note.color;
+
+    const titleInput = document.createElement('input');
+    titleInput.className = 'note-title';
+    titleInput.placeholder = 'Titel…';
+    titleInput.value = note.title;
+    titleInput.addEventListener('input', () => updateNote(note.id, 'title', titleInput.value));
+
+    const bodyTA = document.createElement('textarea');
+    bodyTA.placeholder = 'Notiz eingeben…';
+    bodyTA.textContent = note.body;
+    bodyTA.addEventListener('input', () => updateNote(note.id, 'body', bodyTA.value));
+
+    const footer = document.createElement('div');
+    footer.className = 'note-footer';
+
+    const colorStrip = document.createElement('div');
+    colorStrip.className = 'note-color-strip';
+    NOTE_COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'ncol' + (c === note.color ? ' sel' : '');
+      dot.style.background = c;
+      dot.addEventListener('click', () => updateNote(note.id, 'color', c));
+      colorStrip.appendChild(dot);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'note-del';
+    delBtn.textContent = '🗑 Löschen';
+    delBtn.addEventListener('click', () => deleteNote(note.id));
+
+    footer.appendChild(colorStrip);
+    footer.appendChild(delBtn);
+    card.appendChild(titleInput);
+    card.appendChild(bodyTA);
+    card.appendChild(footer);
+    list.appendChild(card);
+  });
+}
+
+function updateNote(id, field, value) {
+  const note = notes.find(n => n.id === id);
+  if (note) {
+    note[field] = value;
+    if (field === 'color') renderNotes();
+  }
+}
+
+/* Initialize notes list on first render */
+document.addEventListener('DOMContentLoaded', () => { renderNotes(); });
+
+/* ══════════════════════════════════════════════
+   KLASSE TOOLS
+══════════════════════════════════════════════ */
+let geoMode = 'kreis';
+let physMode = 'kraft';
+let klasseInited = false;
+
+function initKlasse() {
+  if (klasseInited) return;
+  klasseInited = true;
+  setGeoMode('kreis');
+  setPhysMode('kraft');
+}
+
+function switchKlasseSub(id) {
+  document.querySelectorAll('#tabKlasse .spanel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tabKlasse .stab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['kFormeln','kGeometrie','kPhysik'];
+  document.querySelectorAll('#tabKlasse .stab')[tabs.indexOf(id)].classList.add('active');
+}
+
+function setGeoMode(mode) {
+  geoMode = mode;
+  document.querySelectorAll('#geoBtns .modbtn').forEach((b, i) => {
+    b.classList.toggle('active', ['kreis','rechteck','dreieck','zylinder'][i] === mode);
+  });
+  const inp = document.getElementById('geoInputs');
+  const defs = {
+    kreis:    [['Radius r (m)', 'geoR']],
+    rechteck: [['Seite a (m)', 'geoA'], ['Seite b (m)', 'geoB']],
+    dreieck:  [['Grundlinie g (m)', 'geoG'], ['Höhe h (m)', 'geoHH']],
+    zylinder: [['Radius r (m)', 'geoR'], ['Höhe h (m)', 'geoHH']],
+  };
+  inp.innerHTML = (defs[mode] || []).map(([lbl, id]) =>
+    `<div class="srow"><span class="slbl">${lbl}</span>
+     <input class="sinput" id="${id}" type="number" placeholder="Wert" step="0.1" style="-webkit-user-select:text;user-select:text"></div>`
+  ).join('');
+  document.getElementById('geoSol').classList.remove('vis');
+  document.getElementById('geoSol').innerHTML = '';
+}
+
+function calcGeo() {
+  const sol = document.getElementById('geoSol');
+  const get = id => { const el = document.getElementById(id); return el ? parseFloat(el.value) : NaN; };
+  let res = '';
+  const PI = Math.PI;
+  switch (geoMode) {
+    case 'kreis': {
+      const r = get('geoR');
+      if (isNaN(r)) { sol.innerHTML = '<div class="errmsg">Radius eingeben</div>'; break; }
+      const A = PI * r * r, U = 2 * PI * r;
+      res = `<div class="solres"><div class="rl">Kreis · r = ${r} m</div>
+        <div class="rv">A = ${round(A)} m²</div>
+        <div class="rv" style="font-size:16px;margin-top:4px">U = ${round(U)} m</div></div>`;
+      break;
+    }
+    case 'rechteck': {
+      const a = get('geoA'), b = get('geoB');
+      if (isNaN(a)||isNaN(b)) { sol.innerHTML = '<div class="errmsg">Seiten eingeben</div>'; break; }
+      const A = a*b, U = 2*(a+b);
+      res = `<div class="solres"><div class="rl">Rechteck · a=${a} m, b=${b} m</div>
+        <div class="rv">A = ${round(A)} m²</div>
+        <div class="rv" style="font-size:16px;margin-top:4px">U = ${round(U)} m</div></div>`;
+      break;
+    }
+    case 'dreieck': {
+      const g = get('geoG'), h = get('geoHH');
+      if (isNaN(g)||isNaN(h)) { sol.innerHTML = '<div class="errmsg">Grundlinie und Höhe eingeben</div>'; break; }
+      const A = g*h/2;
+      res = `<div class="solres"><div class="rl">Dreieck · g=${g} m, h=${h} m</div>
+        <div class="rv">A = ${round(A)} m²</div></div>`;
+      break;
+    }
+    case 'zylinder': {
+      const r = get('geoR'), h = get('geoHH');
+      if (isNaN(r)||isNaN(h)) { sol.innerHTML = '<div class="errmsg">Radius und Höhe eingeben</div>'; break; }
+      const V = PI*r*r*h, M = 2*PI*r*h, G = 2*PI*r*r;
+      res = `<div class="solres"><div class="rl">Zylinder · r=${r} m, h=${h} m</div>
+        <div class="rv">V = ${round(V)} m³</div>
+        <div class="rv" style="font-size:16px;margin-top:4px">Mantel = ${round(M)} m²</div>
+        <div class="rv" style="font-size:16px">Oberfläche = ${round(M+G)} m²</div></div>`;
+      break;
+    }
+  }
+  if (res) { sol.innerHTML = res; sol.classList.add('vis'); }
+  else { sol.classList.add('vis'); }
+}
+
+function setPhysMode(mode) {
+  physMode = mode;
+  document.querySelectorAll('#physBtns .modbtn').forEach((b, i) => {
+    b.classList.toggle('active', ['kraft','arbeit','leistung','geschw'][i] === mode);
+  });
+  const inp = document.getElementById('physInputs');
+  const defs = {
+    kraft:    [['Masse m (kg)', 'phM'],  ['Beschleunigung a (m/s²)', 'phA']],
+    arbeit:   [['Kraft F (N)', 'phF'],   ['Strecke s (m)', 'phS']],
+    leistung: [['Arbeit W (J)', 'phW'],  ['Zeit t (s)', 'phT']],
+    geschw:   [['Strecke s (m)', 'phS'], ['Zeit t (s)', 'phT']],
+  };
+  inp.innerHTML = (defs[mode] || []).map(([lbl, id]) =>
+    `<div class="srow"><span class="slbl">${lbl}</span>
+     <input class="sinput" id="${id}" type="number" placeholder="Wert" step="0.01" style="-webkit-user-select:text;user-select:text"></div>`
+  ).join('');
+  document.getElementById('physSol').classList.remove('vis');
+  document.getElementById('physSol').innerHTML = '';
+}
+
+function calcPhys() {
+  const sol = document.getElementById('physSol');
+  const get = id => { const el = document.getElementById(id); return el ? parseFloat(el.value) : NaN; };
+  let res = '';
+  switch (physMode) {
+    case 'kraft': {
+      const m = get('phM'), a = get('phA');
+      if (isNaN(m)||isNaN(a)) { sol.innerHTML = '<div class="errmsg">Werte eingeben</div>'; break; }
+      res = `<div class="solres"><div class="rl">F = m · a</div>
+        <div class="rv">F = ${round(m*a)} N</div></div>`;
+      break;
+    }
+    case 'arbeit': {
+      const F = get('phF'), s = get('phS');
+      if (isNaN(F)||isNaN(s)) { sol.innerHTML = '<div class="errmsg">Werte eingeben</div>'; break; }
+      res = `<div class="solres"><div class="rl">W = F · s</div>
+        <div class="rv">W = ${round(F*s)} J</div></div>`;
+      break;
+    }
+    case 'leistung': {
+      const W = get('phW'), t = get('phT');
+      if (isNaN(W)||isNaN(t)||t===0) { sol.innerHTML = '<div class="errmsg">Werte eingeben (t ≠ 0)</div>'; break; }
+      res = `<div class="solres"><div class="rl">P = W / t</div>
+        <div class="rv">P = ${round(W/t)} W</div></div>`;
+      break;
+    }
+    case 'geschw': {
+      const s = get('phS'), t = get('phT');
+      if (isNaN(s)||isNaN(t)||t===0) { sol.innerHTML = '<div class="errmsg">Werte eingeben (t ≠ 0)</div>'; break; }
+      res = `<div class="solres"><div class="rl">v = s / t</div>
+        <div class="rv">v = ${round(s/t)} m/s</div>
+        <div class="rv" style="font-size:16px;margin-top:4px">= ${round(s/t*3.6)} km/h</div></div>`;
+      break;
+    }
+  }
+  if (res) { sol.innerHTML = res; sol.classList.add('vis'); }
+  else { sol.classList.add('vis'); }
+}
+
+/* ─ Statistics calculator ─ */
+function calcStat() {
+  const raw = document.getElementById('statInput').value.trim();
+  const sol = document.getElementById('statSol');
+  if (!raw) { sol.innerHTML = '<div class="errmsg">Bitte Zahlen eingeben</div>'; sol.classList.add('vis'); return; }
+  const nums = raw.split(/[,;\s]+/).map(s => parseFloat(s)).filter(n => !isNaN(n));
+  if (nums.length === 0) { sol.innerHTML = '<div class="errmsg">Bitte gültige Zahlen eingeben</div>'; sol.classList.add('vis'); return; }
+  const n = nums.length;
+  const sum = nums.reduce((a,b)=>a+b, 0);
+  const mean = sum / n;
+  const sorted = [...nums].sort((a,b)=>a-b);
+  const median = n % 2 === 0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
+  const variance = nums.reduce((a,b)=>a+(b-mean)**2, 0) / n;
+  const stddev = Math.sqrt(variance);
+  const min = sorted[0], max = sorted[n-1];
+  sol.innerHTML = `<div class="solres">
+    <div class="rl">n = ${n} Werte</div>
+    <div class="rv" style="font-size:16px">Summe: ${round(sum)}</div>
+    <div class="rv" style="font-size:16px">Mittelwert: ${round(mean)}</div>
+    <div class="rv" style="font-size:16px">Median: ${round(median)}</div>
+    <div class="rv" style="font-size:16px">Standardabw.: ${round(stddev)}</div>
+    <div class="rv" style="font-size:16px">Min: ${min}  |  Max: ${max}</div>
+  </div>`;
+  sol.classList.add('vis');
+}
+
+</script>
+</body>
+</html>
