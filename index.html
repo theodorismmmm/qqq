@@ -244,6 +244,39 @@
     .sdpanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
     .sdpanel.active { display: flex; }
 
+    /* ─── Line Connector Sidebar Panel ─── */
+    .lcwrap { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
+    .lcwrap .psect { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; }
+    #lcActivateBtn { background: var(--acc); border: none; border-radius: var(--r); color: white;
+      font-size: 13px; font-weight: 600; padding: 10px; width: 100%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px; }
+    #lcActivateBtn.active { background: var(--acc2); }
+    #lcActivateBtn:active { opacity: .8; }
+    .lc-colrow { display: flex; gap: 6px; flex-wrap: wrap; }
+    .lc-colopt { width: 24px; height: 24px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border .2s; }
+    .lc-colopt.sel { border-color: white; }
+    .lc-hint { font-size: 11px; color: var(--dim); text-align: center; line-height: 1.5; padding: 4px; }
+    #lcPointList { display: flex; flex-direction: column; gap: 4px; }
+    .lc-pt-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--card);
+      border-radius: 8px; font-size: 12px; font-family: 'Courier New', monospace; }
+    .lc-pt-num { width: 20px; height: 20px; background: var(--acc); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+      color: white; flex-shrink: 0; }
+    .lc-pt-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lc-pt-del { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 13px; padding: 2px 4px; }
+    .lc-actions { display: flex; gap: 6px; }
+    .lc-btn { flex: 1; padding: 9px 4px; background: var(--btn); border: none; border-radius: 8px;
+      color: var(--txt); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .lc-btn:active { opacity: .7; }
+    .lc-btn.ok { background: var(--acc3); color: #0a0a1a; }
+    #lcConnectors { display: flex; flex-direction: column; gap: 5px; }
+    .lc-conn-item { display: flex; align-items: center; gap: 7px; padding: 7px 8px; background: var(--card);
+      border-radius: 8px; }
+    .lc-conn-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .lc-conn-lbl { flex: 1; font-size: 11px; font-family: 'Courier New', monospace;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+    .lc-conn-del { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 13px; padding: 2px 4px; }
+
     /* ─── Sidebar Toggle Button ─── */
     #sidebarToggle { position: fixed; left: 10px; top: calc(var(--st) + 8px); z-index: 198;
       width: 36px; height: 36px; background: var(--card); border: 1px solid var(--bdr);
@@ -433,6 +466,7 @@
   <div class="sdtabs">
     <button class="sdtab active" onclick="switchSideTab('sdMiniCalc')">Mini-Rechner</button>
     <button class="sdtab" onclick="switchSideTab('sdSideNotes')">Notizen</button>
+    <button class="sdtab" onclick="switchSideTab('sdLineConn')">Verbinder</button>
   </div>
 
   <!-- Mini Calculator -->
@@ -475,6 +509,31 @@
     <div class="sdnotes">
       <div class="psect" style="margin-bottom:4px">Schnellnotiz</div>
       <textarea id="sideNoteArea" placeholder="Notizen hier eingeben…"></textarea>
+    </div>
+  </div>
+
+  <!-- Line Connector -->
+  <div id="sdLineConn" class="sdpanel">
+    <div class="lcwrap">
+      <button id="lcActivateBtn" onclick="toggleLineConnectMode()">🔗 Linienverbinder aktivieren</button>
+      <div class="lc-hint" id="lcHint">Wechsle zum Koordinatensystem, aktiviere den Verbinder und klicke Punkte an.</div>
+      <div>
+        <div class="psect" style="margin-bottom:6px">Linienfarbe</div>
+        <div class="lc-colrow" id="lcColorRow"></div>
+      </div>
+      <div>
+        <div class="psect" style="margin-bottom:6px">Aktuelle Auswahl</div>
+        <div id="lcPointList"></div>
+        <div class="lc-actions" style="margin-top:6px">
+          <button class="lc-btn ok" onclick="finishConnector()">✓ Verbinden</button>
+          <button class="lc-btn" onclick="clearCurrentConnector()">✕ Zurücksetzen</button>
+        </div>
+      </div>
+      <div>
+        <div class="psect" style="margin-bottom:6px">Gespeicherte Verbindungen</div>
+        <div id="lcConnectors"></div>
+        <button class="lc-btn" style="width:100%;margin-top:4px" onclick="clearAllConnectors()">Alle löschen</button>
+      </div>
     </div>
   </div>
 </div>
@@ -983,6 +1042,7 @@ function launchApp() {
     document.getElementById('warnOverlay').style.display = 'flex';
   }
   initCoordCanvas();
+  initLcColorRow();
 }
 
 window.addEventListener('load', () => {
@@ -1366,6 +1426,9 @@ const coord = {
   functions: [], // {expr, color, id}
   points: [],    // {x, y, name, id}
   strokes: [],   // [{mode, color, width, pts:[{cx,cy}]}]
+  connectors: [], // [{pts:[{id,x,y,name}], color, id}]
+  currentConnector: null, // {pts:[...], color}
+  lineConnectMode: false,
   currentStroke: null,
   drawMode: 'none',
   drawColor: '#ff6b6b',
@@ -1533,6 +1596,13 @@ function drawCanvas() {
   // Draw freehand strokes
   coord.strokes.forEach(stroke => drawStroke(ctx, stroke));
   if (coord.currentStroke) drawStroke(ctx, coord.currentStroke);
+
+  // Draw saved connectors
+  coord.connectors.forEach(con => drawConnector(ctx, con.pts, con.color, false));
+  // Draw current connector being built
+  if (coord.currentConnector && coord.currentConnector.pts.length >= 1) {
+    drawConnector(ctx, coord.currentConnector.pts, coord.currentConnector.color, true);
+  }
 }
 
 function drawArrow(ctx, x, y, size, halfW, dir) {
@@ -1624,6 +1694,62 @@ function drawStroke(ctx, stroke) {
   ctx.stroke();
 }
 
+function drawConnector(ctx, pts, color, inProgress) {
+  if (!pts || pts.length === 0) return;
+  const canvasPts = pts.map(p => m2c(p.x, p.y));
+
+  // Draw polyline
+  if (canvasPts.length >= 2) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (inProgress) {
+      ctx.setLineDash([6, 4]);
+    }
+    ctx.moveTo(canvasPts[0].cx, canvasPts[0].cy);
+    for (let i = 1; i < canvasPts.length; i++) ctx.lineTo(canvasPts[i].cx, canvasPts[i].cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw arrows at midpoints of each segment
+    for (let i = 1; i < canvasPts.length; i++) {
+      const x1 = canvasPts[i-1].cx, y1 = canvasPts[i-1].cy;
+      const x2 = canvasPts[i].cx,   y2 = canvasPts[i].cy;
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const as = 7;
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.moveTo(mx + Math.cos(angle) * as, my + Math.sin(angle) * as);
+      ctx.lineTo(mx + Math.cos(angle + 2.5) * as * 0.7, my + Math.sin(angle + 2.5) * as * 0.7);
+      ctx.lineTo(mx + Math.cos(angle - 2.5) * as * 0.7, my + Math.sin(angle - 2.5) * as * 0.7);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // Draw highlighted circles on connector points
+  canvasPts.forEach((cp, i) => {
+    ctx.beginPath();
+    ctx.arc(cp.cx, cp.cy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.35;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Order number label
+    ctx.fillStyle = color;
+    ctx.font = 'bold 11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(i + 1), cp.cx, cp.cy - 11);
+    ctx.textAlign = 'left';
+  });
+}
+
 /* ─ Pointer Events ─ */
 const activeTouches = new Map();
 
@@ -1643,6 +1769,30 @@ function onPointerDown(e) {
     coord.textMode = false;
     document.getElementById('textBtn').classList.remove('act');
     cvs.style.cursor = 'crosshair';
+    return;
+  }
+
+  // Line connector mode: click near a point to add it to the connector
+  if (coord.lineConnectMode) {
+    const hitR = 20; // pixels hit radius
+    let nearest = null, nearDist = Infinity;
+    coord.points.forEach(pt => {
+      const {cx: pcx, cy: pcy} = m2c(pt.x, pt.y);
+      const d = Math.sqrt((cx - pcx) ** 2 + (cy - pcy) ** 2);
+      if (d < hitR && d < nearDist) { nearest = pt; nearDist = d; }
+    });
+    if (nearest) {
+      if (!coord.currentConnector) {
+        coord.currentConnector = { pts: [], color: coord.lcColor || '#4ecdc4' };
+      }
+      // Avoid adding the same point twice in a row
+      const last = coord.currentConnector.pts[coord.currentConnector.pts.length - 1];
+      if (!last || last.id !== nearest.id) {
+        coord.currentConnector.pts.push({ id: nearest.id, x: nearest.x, y: nearest.y, name: nearest.name });
+        renderLcPointList();
+        drawCanvas();
+      }
+    }
     return;
   }
 
@@ -1896,6 +2046,124 @@ function deletePoint(id) {
   renderPtList(); drawCanvas();
 }
 
+/* ─ Line Connector ─ */
+const LC_COLORS = ['#4ecdc4','#6c63ff','#ff6b6b','#ffd93d','#a8e6cf','#ff8b94','#c7b3f7'];
+let lcColorIdx = 0;
+coord.lcColor = LC_COLORS[0];
+
+function initLcColorRow() {
+  const row = document.getElementById('lcColorRow');
+  if (!row || row.children.length > 0) return;
+  LC_COLORS.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'lc-colopt' + (i === 0 ? ' sel' : '');
+    d.style.background = c;
+    d.onclick = () => {
+      coord.lcColor = c;
+      if (coord.currentConnector) coord.currentConnector.color = c;
+      row.querySelectorAll('.lc-colopt').forEach(o => o.classList.remove('sel'));
+      d.classList.add('sel');
+    };
+    row.appendChild(d);
+  });
+}
+
+function toggleLineConnectMode() {
+  coord.lineConnectMode = !coord.lineConnectMode;
+  const btn = document.getElementById('lcActivateBtn');
+  const hint = document.getElementById('lcHint');
+  btn.classList.toggle('active', coord.lineConnectMode);
+  btn.textContent = coord.lineConnectMode ? '🔗 Verbinder aktiv – Punkte anklicken' : '🔗 Linienverbinder aktivieren';
+  if (coord.lineConnectMode) {
+    hint.textContent = 'Klicke Punkte im Koordinatensystem in der gewünschten Reihenfolge an.';
+    // Switch to coordinate system tab so the canvas is visible
+    if (currentTab !== 'koordinaten') switchTab('koordinaten');
+    // Close the slide-up panel so it doesn't block the canvas while connecting
+    document.getElementById('kpanel').classList.remove('open');
+  } else {
+    hint.textContent = 'Verbinder deaktiviert. Klicke "Aktivieren" um Punkte zu verbinden.';
+  }
+  // Reset canvas cursor
+  const cvs = document.getElementById('cvs');
+  if (cvs) cvs.style.cursor = 'crosshair';
+}
+
+function renderLcPointList() {
+  const list = document.getElementById('lcPointList');
+  if (!list) return;
+  const pts = coord.currentConnector ? coord.currentConnector.pts : [];
+  if (pts.length === 0) {
+    list.innerHTML = '<div class="lc-hint">Noch keine Punkte gewählt.</div>';
+    return;
+  }
+  list.innerHTML = pts.map((p, i) =>
+    `<div class="lc-pt-item">
+      <div class="lc-pt-num">${i + 1}</div>
+      <span class="lc-pt-lbl">${escHtml(p.name)} (${round(p.x)}, ${round(p.y)})</span>
+      <button class="lc-pt-del" onclick="removeLcPoint(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeLcPoint(idx) {
+  if (!coord.currentConnector) return;
+  coord.currentConnector.pts.splice(idx, 1);
+  renderLcPointList();
+  drawCanvas();
+}
+
+function finishConnector() {
+  if (!coord.currentConnector || coord.currentConnector.pts.length < 2) {
+    document.getElementById('lcHint').textContent = '⚠️ Bitte mindestens 2 Punkte auswählen.';
+    return;
+  }
+  const id = coord.nextId++;
+  coord.connectors.push({ id, pts: [...coord.currentConnector.pts], color: coord.currentConnector.color });
+  coord.currentConnector = null;
+  coord.lineConnectMode = false;
+  const btn = document.getElementById('lcActivateBtn');
+  btn.classList.remove('active');
+  btn.textContent = '🔗 Linienverbinder aktivieren';
+  document.getElementById('lcHint').textContent = 'Verbindung gespeichert!';
+  renderLcPointList();
+  renderLcConnectors();
+  drawCanvas();
+}
+
+function clearCurrentConnector() {
+  coord.currentConnector = null;
+  renderLcPointList();
+  drawCanvas();
+}
+
+function deleteConnector(id) {
+  coord.connectors = coord.connectors.filter(c => c.id !== id);
+  renderLcConnectors();
+  drawCanvas();
+}
+
+function clearAllConnectors() {
+  coord.connectors = [];
+  coord.currentConnector = null;
+  renderLcConnectors();
+  renderLcPointList();
+  drawCanvas();
+}
+
+function renderLcConnectors() {
+  const list = document.getElementById('lcConnectors');
+  if (!list) return;
+  if (coord.connectors.length === 0) {
+    list.innerHTML = '<div class="lc-hint">Keine gespeicherten Verbindungen.</div>';
+    return;
+  }
+  list.innerHTML = coord.connectors.map(con =>
+    `<div class="lc-conn-item">
+      <div class="lc-conn-dot" style="background:${con.color}"></div>
+      <span class="lc-conn-lbl">${con.pts.map(p => escHtml(p.name)).join(' → ')}</span>
+      <button class="lc-conn-del" onclick="deleteConnector(${con.id})">✕</button>
+    </div>`).join('');
+}
+
 /* ─ Draw Mode ─ */
 function setDrawMode(mode) {
   coord.drawMode = mode;
@@ -2062,8 +2330,9 @@ function switchSideTab(id) {
   document.querySelectorAll('.sdpanel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sdtab').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const tabs = ['sdMiniCalc','sdSideNotes'];
+  const tabs = ['sdMiniCalc','sdSideNotes','sdLineConn'];
   document.querySelectorAll('.sdtab')[tabs.indexOf(id)].classList.add('active');
+  if (id === 'sdLineConn') { initLcColorRow(); renderLcPointList(); renderLcConnectors(); }
 }
 
 /* ══════════════════════════════════════════════
