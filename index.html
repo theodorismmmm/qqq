@@ -6,10 +6,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Rechner">
+  <meta name="apple-mobile-web-app-title" content="Rechner +">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Professioneller Taschenrechner mit Koordinatensystem, Gleichungslöser und Bruchrechnung – Rechner by XTeam">
-  <title>Rechner by XTeam</title>
+  <meta name="description" content="Professioneller Taschenrechner mit Koordinatensystem, Gleichungslöser und Bruchrechnung – Rechner +">
+  <title>Rechner +</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -411,7 +411,7 @@
     .ncol.sel { border-color: #111111; }
     .add-note-btn { position: sticky; bottom: 10px; margin: 0 14px 14px; }
 
-    /* ─── Klasse (Class) Panel ─── */
+    /* ─── Formeln + Panel ─── */
     #tabKlasse { overflow-y: auto; }
     .klasse-grid { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
     .klasse-card { background: var(--card); border-radius: var(--r); padding: 12px; border-left: 4px solid var(--acc3); }
@@ -511,7 +511,8 @@
 ══════════════════════════════════════════ -->
 <div id="installScreen">
   <div class="ic">🧮</div>
-  <h1>Rechner by XTeam</h1>
+  <h1>Rechner +</h1>
+  <p class="sub" style="font-size:12px;color:var(--dim);margin-top:-14px;margin-bottom:4px">by xmenu</p>
   <p class="sub">Professioneller Taschenrechner &amp; Koordinatensystem</p>
 
   <!-- Features -->
@@ -553,7 +554,7 @@
     </div>
     <div class="feat-card">
       <div class="fi">🎓</div>
-      <div class="ft">Klasse</div>
+      <div class="ft">Formeln +</div>
       <div class="fd">Formeln, Geometrie &amp; Physik-Rechner</div>
     </div>
   </div>
@@ -611,7 +612,7 @@
   <div id="warnModal">
     <div class="wi">⚠️</div>
     <h2>Hinweis: Keine Datenspeicherung</h2>
-    <p>Rechner by XTeam speichert <strong>keine Eingaben, Berechnungen oder Zeichnungen</strong>.
+    <p>Rechner + speichert <strong>keine Eingaben, Berechnungen oder Zeichnungen</strong>.
       Alle Daten gehen beim Schließen der App verloren. Bitte notiere wichtige Ergebnisse
       separat, bevor du die App beendest.</p>
     <button class="wok" onclick="dismissWarning()">Verstanden – App starten</button>
@@ -635,7 +636,7 @@
     <button id="fsModeRechner" onclick="fsSwitchTab('rechner')"><span>🧮</span>Rechner</button>
     <button id="fsModeKoord" onclick="fsSwitchTab('koordinaten')"><span>📐</span>Koordinaten</button>
     <button id="fsModeNotizen" onclick="fsSwitchTab('notizen')"><span>📝</span>Notizen</button>
-    <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Klasse</button>
+    <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Formeln +</button>
     <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
   </div>
   <button class="fsExit" onclick="closeFsMenuAndExit()">✕ Vollbild beenden</button>
@@ -727,7 +728,10 @@
 <div id="app" style="display:none">
   <header id="appHdr">
     <div class="logo">🧮</div>
-    <h1>Rechner by XTeam</h1>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <h1>Rechner +</h1>
+      <span style="font-size:10px;color:var(--dim);line-height:1;margin-top:1px">by xmenu</span>
+    </div>
     <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
   </header>
 
@@ -1028,11 +1032,12 @@
       <button class="sbtn add-note-btn" onclick="addNote()">+ Neue Notiz</button>
     </div>
 
-    <!-- ════════ TAB: KLASSE ════════ -->
+    <!-- ════════ TAB: FORMELN + ════════ -->
     <div id="tabKlasse" class="panel">
       <!-- Klasse sub-tabs -->
       <div class="stabs">
         <button class="stab active" onclick="switchKlasseSub('kFormeln')">Formeln</button>
+        <button class="stab" onclick="switchKlasseSub('kVorlagen')">Vorlagen</button>
         <button class="stab" onclick="switchKlasseSub('kGeometrie')">Geometrie</button>
         <button class="stab" onclick="switchKlasseSub('kPhysik')">Physik</button>
       </div>
@@ -1074,6 +1079,194 @@
           <input class="mi" id="statInput" type="text" placeholder="z.B. 4, 7, 2, 9, 5" autocorrect="off">
           <button class="sbtn" style="margin-top:8px" onclick="calcStat()">📊 Berechnen</button>
           <div class="sol" id="statSol" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Geometrie -->
+      <div id="kVorlagen" class="spanel" style="overflow-y:auto; padding:14px; gap:10px">
+        <div class="ig">
+          <div class="sect">📐 Quadratische Gleichung  ax²+bx+c=0</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtQa" type="number" placeholder="a" style="flex:1" oninput="calcVorlagen('quad')">
+            <input class="mi" id="vtQb" type="number" placeholder="b" style="flex:1" oninput="calcVorlagen('quad')">
+            <input class="mi" id="vtQc" type="number" placeholder="c" style="flex:1" oninput="calcVorlagen('quad')">
+          </div>
+          <div class="ures vis" id="vtQRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📏 Lineare Gleichung  ax+b=0</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtLa" type="number" placeholder="a" style="flex:1" oninput="calcVorlagen('lin')">
+            <input class="mi" id="vtLb" type="number" placeholder="b" style="flex:1" oninput="calcVorlagen('lin')">
+          </div>
+          <div class="ures vis" id="vtLRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📍 Abstand zweier Punkte</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <input class="mi" id="vtDx1" type="number" placeholder="x₁" style="flex:1;min-width:56px" oninput="calcVorlagen('dist')">
+            <input class="mi" id="vtDy1" type="number" placeholder="y₁" style="flex:1;min-width:56px" oninput="calcVorlagen('dist')">
+            <input class="mi" id="vtDx2" type="number" placeholder="x₂" style="flex:1;min-width:56px" oninput="calcVorlagen('dist')">
+            <input class="mi" id="vtDy2" type="number" placeholder="y₂" style="flex:1;min-width:56px" oninput="calcVorlagen('dist')">
+          </div>
+          <div class="ures vis" id="vtDRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🔢 Mittelpunkt zweier Punkte</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <input class="mi" id="vtMx1" type="number" placeholder="x₁" style="flex:1;min-width:56px" oninput="calcVorlagen('mid')">
+            <input class="mi" id="vtMy1" type="number" placeholder="y₁" style="flex:1;min-width:56px" oninput="calcVorlagen('mid')">
+            <input class="mi" id="vtMx2" type="number" placeholder="x₂" style="flex:1;min-width:56px" oninput="calcVorlagen('mid')">
+            <input class="mi" id="vtMy2" type="number" placeholder="y₂" style="flex:1;min-width:56px" oninput="calcVorlagen('mid')">
+          </div>
+          <div class="ures vis" id="vtMRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📊 Prozentrechnung  (Prozentwert)</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtPG" type="number" placeholder="Grundwert" style="flex:2" oninput="calcVorlagen('pct')">
+            <input class="mi" id="vtPP" type="number" placeholder="%" style="flex:1" oninput="calcVorlagen('pct')">
+          </div>
+          <div class="ures vis" id="vtPRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📈 Prozentuale Änderung</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtCO" type="number" placeholder="Alt" style="flex:1" oninput="calcVorlagen('chg')">
+            <input class="mi" id="vtCN" type="number" placeholder="Neu" style="flex:1" oninput="calcVorlagen('chg')">
+          </div>
+          <div class="ures vis" id="vtCRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">💰 Einfache Zinsen  I = P·r·t</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtSIP" type="number" placeholder="Kapital P" style="flex:2" oninput="calcVorlagen('si')">
+            <input class="mi" id="vtSIR" type="number" placeholder="Zins r%" style="flex:1" oninput="calcVorlagen('si')">
+            <input class="mi" id="vtSIT" type="number" placeholder="Jahre t" style="flex:1" oninput="calcVorlagen('si')">
+          </div>
+          <div class="ures vis" id="vtSIRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📦 Zinseszins  A = P·(1+r)^t</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtCIP" type="number" placeholder="Kapital P" style="flex:2" oninput="calcVorlagen('ci')">
+            <input class="mi" id="vtCIR" type="number" placeholder="Zins r%" style="flex:1" oninput="calcVorlagen('ci')">
+            <input class="mi" id="vtCIT" type="number" placeholder="Jahre t" style="flex:1" oninput="calcVorlagen('ci')">
+          </div>
+          <div class="ures vis" id="vtCIRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📐 Pythagoras  c²=a²+b²</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtPya" type="number" placeholder="a" style="flex:1" oninput="calcVorlagen('pyth')">
+            <input class="mi" id="vtPyb" type="number" placeholder="b" style="flex:1" oninput="calcVorlagen('pyth')">
+          </div>
+          <div class="ures vis" id="vtPyRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">⭕ Kreis  A=πr², U=2πr</div>
+          <input class="mi" id="vtCR" type="number" placeholder="Radius r" oninput="calcVorlagen('circ')">
+          <div class="ures vis" id="vtCRRes" style="display:block;min-height:36px;margin-top:6px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🏥 BMI  Gewicht / Größe²</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtBMIw" type="number" placeholder="Gewicht (kg)" style="flex:2" oninput="calcVorlagen('bmi')">
+            <input class="mi" id="vtBMIh" type="number" placeholder="Größe (m)" style="flex:1" oninput="calcVorlagen('bmi')">
+          </div>
+          <div class="ures vis" id="vtBMIRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">⚡ Ohmsches Gesetz  U=R·I</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtOhmU" type="number" placeholder="U (V) leer lassen" style="flex:1" oninput="calcVorlagen('ohm')">
+            <input class="mi" id="vtOhmR" type="number" placeholder="R (Ω)" style="flex:1" oninput="calcVorlagen('ohm')">
+            <input class="mi" id="vtOhmI" type="number" placeholder="I (A)" style="flex:1" oninput="calcVorlagen('ohm')">
+          </div>
+          <div class="ures vis" id="vtOhmRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🚀 Geschwindigkeit  v=s/t</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtVs" type="number" placeholder="Strecke s (m)" style="flex:2" oninput="calcVorlagen('speed')">
+            <input class="mi" id="vtVt" type="number" placeholder="Zeit t (s)" style="flex:1" oninput="calcVorlagen('speed')">
+          </div>
+          <div class="ures vis" id="vtVRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🔥 Kinetische Energie  E=½mv²</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtKEm" type="number" placeholder="Masse m (kg)" style="flex:1" oninput="calcVorlagen('ke')">
+            <input class="mi" id="vtKEv" type="number" placeholder="v (m/s)" style="flex:1" oninput="calcVorlagen('ke')">
+          </div>
+          <div class="ures vis" id="vtKERes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🌍 Potenzielle Energie  E=mgh</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtPEm" type="number" placeholder="m (kg)" style="flex:1" oninput="calcVorlagen('pe')">
+            <input class="mi" id="vtPEh" type="number" placeholder="h (m)" style="flex:1" oninput="calcVorlagen('pe')">
+          </div>
+          <div class="ures vis" id="vtPERes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🌡️ Temperatur-Umrechnung</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtTempIn" type="number" placeholder="Wert" style="flex:2" oninput="calcVorlagen('temp')">
+            <select class="mi" id="vtTempUnit" style="flex:1;font-size:15px" onchange="calcVorlagen('temp')">
+              <option value="C">°C →</option>
+              <option value="F">°F →</option>
+              <option value="K">K →</option>
+            </select>
+          </div>
+          <div class="ures vis" id="vtTempRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📉 Gewinn/Verlust in %</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtGLbuy" type="number" placeholder="Kaufpreis" style="flex:1" oninput="calcVorlagen('gl')">
+            <input class="mi" id="vtGLsell" type="number" placeholder="Verkaufspreis" style="flex:1" oninput="calcVorlagen('gl')">
+          </div>
+          <div class="ures vis" id="vtGLRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">📦 Zylinder  V=πr²h</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtCylR" type="number" placeholder="Radius r" style="flex:1" oninput="calcVorlagen('cyl')">
+            <input class="mi" id="vtCylH" type="number" placeholder="Höhe h" style="flex:1" oninput="calcVorlagen('cyl')">
+          </div>
+          <div class="ures vis" id="vtCylRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🌐 Kugelvolumen  V=(4/3)πr³</div>
+          <input class="mi" id="vtSphR" type="number" placeholder="Radius r" oninput="calcVorlagen('sph')">
+          <div class="ures vis" id="vtSphRes" style="display:block;min-height:36px;margin-top:6px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🔺 Dreieck Fläche  A=(g·h)/2</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtTriG" type="number" placeholder="Grundlinie g" style="flex:1" oninput="calcVorlagen('tri')">
+            <input class="mi" id="vtTriH" type="number" placeholder="Höhe h" style="flex:1" oninput="calcVorlagen('tri')">
+          </div>
+          <div class="ures vis" id="vtTriRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🔢 Steigung  m=(y₂−y₁)/(x₂−x₁)</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <input class="mi" id="vtSlx1" type="number" placeholder="x₁" style="flex:1;min-width:56px" oninput="calcVorlagen('slope')">
+            <input class="mi" id="vtSly1" type="number" placeholder="y₁" style="flex:1;min-width:56px" oninput="calcVorlagen('slope')">
+            <input class="mi" id="vtSlx2" type="number" placeholder="x₂" style="flex:1;min-width:56px" oninput="calcVorlagen('slope')">
+            <input class="mi" id="vtSly2" type="number" placeholder="y₂" style="flex:1;min-width:56px" oninput="calcVorlagen('slope')">
+          </div>
+          <div class="ures vis" id="vtSlRes" style="display:block;min-height:36px"></div>
+        </div>
+        <div class="ig">
+          <div class="sect">🔵 Kreissektor  (Bogenlänge & Fläche)</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="mi" id="vtSecR" type="number" placeholder="Radius r" style="flex:1" oninput="calcVorlagen('sec')">
+            <input class="mi" id="vtSecA" type="number" placeholder="Winkel α (°)" style="flex:1" oninput="calcVorlagen('sec')">
+          </div>
+          <div class="ures vis" id="vtSecRes" style="display:block;min-height:36px"></div>
         </div>
       </div>
 
@@ -1199,7 +1392,7 @@
       <span class="ni">📝</span>Notizen
     </button>
     <button class="nb" id="nbKlasse" onclick="switchTab('klasse')">
-      <span class="ni">🎓</span>Klasse
+      <span class="ni">🎓</span>Formeln +
     </button>
     <button class="nb" id="nbBild" onclick="switchTab('bild')">
       <span class="ni">📷</span>Bild
@@ -2933,11 +3126,135 @@ function initKlasse() {
   setPhysMode('kraft');
 }
 
+function calcVorlagen(type) {
+  function v(id) { return parseFloat(document.getElementById(id).value); }
+  function sv(id) { return document.getElementById(id).value; }
+  function show(id, html) { const el = document.getElementById(id); if(el){ el.innerHTML = html; el.style.display='block'; } }
+  function fmt(n) { return isFinite(n) ? (Math.abs(n) < 0.001 && n !== 0 ? n.toExponential(4) : parseFloat(n.toPrecision(8)).toString()) : '—'; }
+  if (type === 'quad') {
+    const a=v('vtQa'),b=v('vtQb'),c=v('vtQc');
+    if (isNaN(a)||isNaN(b)||isNaN(c)||a===0) { show('vtQRes','<span style="color:var(--dim)">a, b, c eingeben (a ≠ 0)</span>'); return; }
+    const D=b*b-4*a*c;
+    if (D>0) show('vtQRes',`x₁ = <b>${fmt((-b+Math.sqrt(D))/(2*a))}</b> &nbsp; x₂ = <b>${fmt((-b-Math.sqrt(D))/(2*a))}</b>  &nbsp;<small>(D=${fmt(D)})</small>`);
+    else if(D===0) show('vtQRes',`x = <b>${fmt(-b/(2*a))}</b> &nbsp;<small>(doppelte Lösung)</small>`);
+    else show('vtQRes',`<span style="color:var(--dim)">Keine reellen Lösungen (D=${fmt(D)} &lt; 0)</span>`);
+  } else if (type === 'lin') {
+    const a=v('vtLa'),b=v('vtLb');
+    if (isNaN(a)||isNaN(b)) { show('vtLRes','<span style="color:var(--dim)">a und b eingeben</span>'); return; }
+    if (a===0) { show('vtLRes', b===0 ? '<span style="color:var(--dim)">Unendlich viele Lösungen</span>' : '<span style="color:var(--dim)">Keine Lösung</span>'); return; }
+    show('vtLRes',`x = <b>${fmt(-b/a)}</b>`);
+  } else if (type === 'dist') {
+    const x1=v('vtDx1'),y1=v('vtDy1'),x2=v('vtDx2'),y2=v('vtDy2');
+    if ([x1,y1,x2,y2].some(isNaN)) { show('vtDRes','<span style="color:var(--dim)">Alle 4 Werte eingeben</span>'); return; }
+    show('vtDRes',`d = <b>${fmt(Math.sqrt((x2-x1)**2+(y2-y1)**2))}</b>`);
+  } else if (type === 'mid') {
+    const x1=v('vtMx1'),y1=v('vtMy1'),x2=v('vtMx2'),y2=v('vtMy2');
+    if ([x1,y1,x2,y2].some(isNaN)) { show('vtMRes','<span style="color:var(--dim)">Alle 4 Werte eingeben</span>'); return; }
+    show('vtMRes',`M = (<b>${fmt((x1+x2)/2)}</b> | <b>${fmt((y1+y2)/2)}</b>)`);
+  } else if (type === 'pct') {
+    const G=v('vtPG'),p=v('vtPP');
+    if (isNaN(G)||isNaN(p)) { show('vtPRes','<span style="color:var(--dim)">Grundwert und % eingeben</span>'); return; }
+    show('vtPRes',`Prozentwert = <b>${fmt(G*p/100)}</b> &nbsp; Gesamtwert = <b>${fmt(G*(1+p/100))}</b>`);
+  } else if (type === 'chg') {
+    const o=v('vtCO'),n=v('vtCN');
+    if (isNaN(o)||isNaN(n)||o===0) { show('vtCRes','<span style="color:var(--dim)">Alten und neuen Wert eingeben</span>'); return; }
+    const ch=(n-o)/Math.abs(o)*100;
+    show('vtCRes',`Änderung = <b>${fmt(ch)} %</b> (${ch>=0?'▲':'▼'})`);
+  } else if (type === 'si') {
+    const P=v('vtSIP'),r=v('vtSIR'),t=v('vtSIT');
+    if (isNaN(P)||isNaN(r)||isNaN(t)) { show('vtSIRes','<span style="color:var(--dim)">P, r und t eingeben</span>'); return; }
+    const I=P*r/100*t;
+    show('vtSIRes',`Zinsen I = <b>${fmt(I)}</b> &nbsp; Endkapital = <b>${fmt(P+I)}</b>`);
+  } else if (type === 'ci') {
+    const P=v('vtCIP'),r=v('vtCIR'),t=v('vtCIT');
+    if (isNaN(P)||isNaN(r)||isNaN(t)) { show('vtCIRes','<span style="color:var(--dim)">P, r und t eingeben</span>'); return; }
+    const A=P*Math.pow(1+r/100,t);
+    show('vtCIRes',`Endkapital A = <b>${fmt(A)}</b> &nbsp; Gewinn = <b>${fmt(A-P)}</b>`);
+  } else if (type === 'pyth') {
+    const a=v('vtPya'),b=v('vtPyb');
+    if (isNaN(a)||isNaN(b)) { show('vtPyRes','<span style="color:var(--dim)">a und b eingeben</span>'); return; }
+    show('vtPyRes',`c = <b>${fmt(Math.sqrt(a*a+b*b))}</b>`);
+  } else if (type === 'circ') {
+    const r=v('vtCR');
+    if (isNaN(r)) { show('vtCRRes','<span style="color:var(--dim)">Radius eingeben</span>'); return; }
+    show('vtCRRes',`Fläche A = <b>${fmt(Math.PI*r*r)}</b> &nbsp; Umfang U = <b>${fmt(2*Math.PI*r)}</b>`);
+  } else if (type === 'bmi') {
+    const w=v('vtBMIw'),h=v('vtBMIh');
+    if (isNaN(w)||isNaN(h)||h===0) { show('vtBMIRes','<span style="color:var(--dim)">Gewicht (kg) und Größe (m) eingeben</span>'); return; }
+    const bmi=w/(h*h);
+    const cat=bmi<18.5?'Untergewicht':bmi<25?'Normalgewicht':bmi<30?'Übergewicht':'Adipositas';
+    show('vtBMIRes',`BMI = <b>${fmt(bmi)}</b> &nbsp; <small>(${cat})</small>`);
+  } else if (type === 'ohm') {
+    const Ustr=document.getElementById('vtOhmU').value.trim();
+    const Rstr=document.getElementById('vtOhmR').value.trim();
+    const Istr=document.getElementById('vtOhmI').value.trim();
+    const U=parseFloat(Ustr),R=parseFloat(Rstr),I=parseFloat(Istr);
+    const hasU=Ustr!=='',hasR=Rstr!=='',hasI=Istr!=='';
+    if (!hasR&&!hasI) { show('vtOhmRes','<span style="color:var(--dim)">Mindestens 2 Werte eingeben (leer=gesucht)</span>'); return; }
+    if (!hasU&&hasR&&hasI) show('vtOhmRes',`U = <b>${fmt(R*I)} V</b>`);
+    else if (hasU&&!hasR&&hasI&&I!==0) show('vtOhmRes',`R = <b>${fmt(U/I)} Ω</b>`);
+    else if (hasU&&hasR&&!hasI&&R!==0) show('vtOhmRes',`I = <b>${fmt(U/R)} A</b>`);
+    else show('vtOhmRes','<span style="color:var(--dim)">Genau einen Wert leer lassen</span>');
+  } else if (type === 'speed') {
+    const s=v('vtVs'),t=v('vtVt');
+    if (isNaN(s)||isNaN(t)||t===0) { show('vtVRes','<span style="color:var(--dim)">Strecke und Zeit eingeben</span>'); return; }
+    const vms=s/t;
+    show('vtVRes',`v = <b>${fmt(vms)} m/s</b> &nbsp; = <b>${fmt(vms*3.6)} km/h</b>`);
+  } else if (type === 'ke') {
+    const m=v('vtKEm'),vel=v('vtKEv');
+    if (isNaN(m)||isNaN(vel)) { show('vtKERes','<span style="color:var(--dim)">m und v eingeben</span>'); return; }
+    show('vtKERes',`E_kin = <b>${fmt(0.5*m*vel*vel)} J</b>`);
+  } else if (type === 'pe') {
+    const m=v('vtPEm'),h=v('vtPEh');
+    if (isNaN(m)||isNaN(h)) { show('vtPERes','<span style="color:var(--dim)">m und h eingeben</span>'); return; }
+    show('vtPERes',`E_pot = <b>${fmt(m*9.81*h)} J</b>`);
+  } else if (type === 'temp') {
+    const val=v('vtTempIn'), unit=sv('vtTempUnit');
+    if (isNaN(val)) { show('vtTempRes','<span style="color:var(--dim)">Temperaturwert eingeben</span>'); return; }
+    let C,F,K;
+    if(unit==='C'){C=val;F=C*9/5+32;K=C+273.15;}
+    else if(unit==='F'){F=val;C=(F-32)*5/9;K=C+273.15;}
+    else{K=val;C=K-273.15;F=C*9/5+32;}
+    show('vtTempRes',`°C = <b>${fmt(C)}</b> &nbsp; °F = <b>${fmt(F)}</b> &nbsp; K = <b>${fmt(K)}</b>`);
+  } else if (type === 'gl') {
+    const buy=v('vtGLbuy'),sell=v('vtGLsell');
+    if (isNaN(buy)||isNaN(sell)||buy===0) { show('vtGLRes','<span style="color:var(--dim)">Kauf- und Verkaufspreis eingeben</span>'); return; }
+    const pct=(sell-buy)/buy*100;
+    show('vtGLRes',`${pct>=0?'Gewinn':'Verlust'} = <b>${fmt(Math.abs(pct))} %</b> &nbsp; (${fmt(sell-buy)})`);
+  } else if (type === 'cyl') {
+    const r=v('vtCylR'),h=v('vtCylH');
+    if (isNaN(r)||isNaN(h)) { show('vtCylRes','<span style="color:var(--dim)">r und h eingeben</span>'); return; }
+    show('vtCylRes',`V = <b>${fmt(Math.PI*r*r*h)}</b> &nbsp; Mantelfläche = <b>${fmt(2*Math.PI*r*h)}</b>`);
+  } else if (type === 'sph') {
+    const r=v('vtSphR');
+    if (isNaN(r)) { show('vtSphRes','<span style="color:var(--dim)">Radius eingeben</span>'); return; }
+    show('vtSphRes',`V = <b>${fmt(4/3*Math.PI*r*r*r)}</b> &nbsp; O = <b>${fmt(4*Math.PI*r*r)}</b>`);
+  } else if (type === 'tri') {
+    const g=v('vtTriG'),h=v('vtTriH');
+    if (isNaN(g)||isNaN(h)) { show('vtTriRes','<span style="color:var(--dim)">g und h eingeben</span>'); return; }
+    show('vtTriRes',`Fläche A = <b>${fmt(g*h/2)}</b>`);
+  } else if (type === 'slope') {
+    const x1=v('vtSlx1'),y1=v('vtSly1'),x2=v('vtSlx2'),y2=v('vtSly2');
+    if ([x1,y1,x2,y2].some(isNaN)) { show('vtSlRes','<span style="color:var(--dim)">Alle 4 Werte eingeben</span>'); return; }
+    if (x2===x1) { show('vtSlRes','<span style="color:var(--dim)">Vertikale Gerade (m undefiniert)</span>'); return; }
+    const m=(y2-y1)/(x2-x1);
+    const b2=y1-m*x1;
+    show('vtSlRes',`m = <b>${fmt(m)}</b> &nbsp; Gleichung: y = ${fmt(m)}x + ${fmt(b2)}`);
+  } else if (type === 'sec') {
+    const r=v('vtSecR'),alpha=v('vtSecA');
+    if (isNaN(r)||isNaN(alpha)) { show('vtSecRes','<span style="color:var(--dim)">r und α eingeben</span>'); return; }
+    const rad=alpha*Math.PI/180;
+    show('vtSecRes',`Bogenlänge = <b>${fmt(r*rad)}</b> &nbsp; Sektorfläche = <b>${fmt(0.5*r*r*rad)}</b>`);
+  }
+}
+
+
+
 function switchKlasseSub(id) {
   document.querySelectorAll('#tabKlasse .spanel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('#tabKlasse .stab').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const tabs = ['kFormeln','kGeometrie','kPhysik'];
+  const tabs = ['kFormeln','kVorlagen','kGeometrie','kPhysik'];
   document.querySelectorAll('#tabKlasse .stab')[tabs.indexOf(id)].classList.add('active');
 }
 
