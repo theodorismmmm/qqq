@@ -191,6 +191,8 @@
     #cvs.panning { cursor: grab; }
     #cvs.panning.dragging { cursor: grabbing; }
     #rtoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); right: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
+    #rtoolbar.collapsed > *:not(#rtoolbarCollapseBtn) { display: none !important; }
+    #rtoolbarCollapseBtn { flex-shrink: 0; }
     #ltoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
     .tbtn { width: 42px; height: 42px; background: var(--card); backdrop-filter: blur(8px);
       border: 1px solid var(--bdr); border-radius: 10px; color: var(--txt); font-size: 17px; cursor: pointer;
@@ -1362,6 +1364,7 @@
 
       <!-- Right toolbar -->
       <div id="rtoolbar">
+        <button class="tbtn" id="rtoolbarCollapseBtn" title="Werkzeuge ein/ausblenden" onclick="toggleRtoolbar()">‹</button>
         <button class="tbtn" title="Vergrößern" onclick="zoomBy(1.25)">+</button>
         <button class="tbtn" title="Verkleinern" onclick="zoomBy(0.8)">−</button>
         <button class="tbtn" title="Ansicht zurücksetzen" onclick="resetView()">⊙</button>
@@ -3858,6 +3861,17 @@ function mcInput(ch) {
 function updateMcDisplay() {
   document.getElementById('mcExpr').textContent = mc.expr || '';
   document.getElementById('mcRes').textContent = mc.result;
+}
+
+/* ══════════════════════════════════════════════
+   RTOOLBAR COLLAPSE
+══════════════════════════════════════════════ */
+function toggleRtoolbar() {
+  const tb = document.getElementById('rtoolbar');
+  const btn = document.getElementById('rtoolbarCollapseBtn');
+  const collapsed = tb.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '›' : '‹';
+  btn.title = collapsed ? 'Werkzeuge anzeigen' : 'Werkzeuge ausblenden';
 }
 
 /* ══════════════════════════════════════════════
