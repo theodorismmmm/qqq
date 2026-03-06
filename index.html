@@ -186,13 +186,11 @@
 
     /* ─── Coordinate System ─── */
     #tabKoord { overflow: hidden; }
-    #cvs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    #cvs { position: absolute; top: var(--csys-bar-h); left: 0; width: 100%; height: calc(100% - var(--csys-bar-h)); touch-action: none; cursor: crosshair; }
     #cvs.panning { cursor: grab; }
     #cvs.panning.dragging { cursor: grabbing; }
-    #rtoolbar { position: absolute; top: 12px; right: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 10;
-      overflow-y: auto; max-height: calc(100% - 24px); -ms-overflow-style: none; scrollbar-width: none; }
-    #rtoolbar::-webkit-scrollbar { display: none; }
-    #ltoolbar { position: absolute; top: 12px; left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 10; }
+    #rtoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); right: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
+    #ltoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
     .tbtn { width: 42px; height: 42px; background: var(--card); backdrop-filter: blur(8px);
       border: 1px solid var(--bdr); border-radius: 10px; color: var(--txt); font-size: 17px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; transition: all .2s; }
@@ -389,9 +387,9 @@
     #fsMenu .fsExit:active { opacity: .7; }
 
     /* ─── Ruler on canvas ─── */
-    #rulerH { position: absolute; top: 0; left: 20px; right: 0; height: 20px; pointer-events: none; z-index: 4; display: none; }
-    #rulerV { position: absolute; top: 20px; left: 0; width: 20px; bottom: 0; pointer-events: none; z-index: 4; display: none; }
-    #rulerCorner { position: absolute; top: 0; left: 0; width: 20px; height: 20px;
+    #rulerH { position: absolute; top: var(--csys-bar-h); left: 20px; right: 0; height: 20px; pointer-events: none; z-index: 4; display: none; }
+    #rulerV { position: absolute; top: calc(var(--csys-bar-h) + 20px); left: 0; width: 20px; bottom: 0; pointer-events: none; z-index: 4; display: none; }
+    #rulerCorner { position: absolute; top: var(--csys-bar-h); left: 0; width: 20px; height: 20px;
       background: var(--bg2); z-index: 5; pointer-events: none;
       border-bottom: 1px solid var(--bdr); border-right: 1px solid var(--bdr); display: none; }
     .ruler-visible #rulerH, .ruler-visible #rulerV, .ruler-visible #rulerCorner { display: block; }
@@ -726,6 +724,24 @@
     #glossaryTooltip .gt-term { font-size: 11px; font-weight: 700; color: #7ab3f0; text-transform: uppercase;
       letter-spacing: .5px; margin-bottom: 4px; }
     #glossaryTooltip .gt-def { font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+    /* ─── Multiple Coordinate Systems tab bar ─── */
+    :root { --csys-bar-h: 36px; }
+    #coordSysTabs .csys-tab { padding: 4px 10px; border: none; border-radius: 7px; background: var(--btn);
+      color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; white-space: nowrap;
+      transition: all .2s; }
+    #coordSysTabs .csys-tab.active { background: var(--acc); color: white; }
+    #coordSysBar { scrollbar-width: none; }
+    #coordSysBar::-webkit-scrollbar { display: none; }
+    .mk.mk-eq { background: #226622; color: white; }
+
+    /* ─── TV Mode canvas ─── */
+    #tvCoordCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .tv-calc-display { color: white; font-size: 42px; font-weight: 300; text-align: right; padding: 24px;
+      font-family: 'Courier New', monospace; }
+    .tv-calc-expr { font-size: 18px; color: #888; text-align: right; padding: 0 24px; min-height: 22px; }
+    .tv-timer-display { font-size: 120px; font-weight: 200; text-align: center; color: white;
+      font-family: 'Courier New', monospace; letter-spacing: 4px; margin-top: 60px; }
+    .tv-timer-label { font-size: 24px; color: #888; text-align: center; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -1269,6 +1285,11 @@
 
     <!-- ════════ TAB: KOORDINATENSYSTEM ════════ -->
     <div id="tabKoord" class="panel">
+      <!-- Multiple coordinate systems tab bar -->
+      <div id="coordSysBar" style="position:absolute;top:0;left:0;right:0;z-index:11;display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--bdr);padding:0 6px;height:var(--csys-bar-h);gap:4px;overflow-x:auto">
+        <div id="coordSysTabs" style="display:flex;gap:4px;flex:1;overflow-x:auto"></div>
+        <button onclick="addCoordSystem()" title="Neues Koordinatensystem" style="flex-shrink:0;width:28px;height:28px;background:var(--acc);border:none;border-radius:7px;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+      </div>
       <canvas id="cvs"></canvas>
 
       <!-- Right toolbar -->
@@ -1281,6 +1302,10 @@
         <button class="tbtn" id="rulerBtn" title="Koordinatenlineal ein/aus" onclick="toggleRuler()">📏</button>
         <button class="tbtn" id="physRulerBtn" title="Physisches Lineal für Geraden" onclick="togglePhysRuler()">📐</button>
         <button class="tbtn" id="quadBtn" title="Quadrant-Ansicht" onclick="toggleQuadPanel()">⊞</button>
+        <button class="tbtn" id="lcQuickBtn" title="Linienverbinder ein/aus" onclick="toggleLineConnectModeQuick()">🔗</button>
+        <button class="tbtn" title="Mini-Timer öffnen" onclick="openFloatingTimer()">⏱️</button>
+        <button class="tbtn" title="Mini-Rechner öffnen" onclick="openFloatingCalc()">🧮</button>
+        <button class="tbtn" id="tvModeBtn" title="TV-Modus / Apple TV Präsentation" onclick="openTvMode()">📺</button>
       </div>
 
       <!-- Left draw toolbar -->
@@ -2124,6 +2149,7 @@ function launchApp() {
   }
   initCoordCanvas();
   initLcColorRow();
+  renderCoordSysTabs();   // initialize multiple coord system tabs
   bildSetupDropZone();
   initPhysRulerDrag();
   // Hide loading screen when app is ready
@@ -2588,6 +2614,124 @@ const coord = {
   pinchDist: 0,
   nextId: 1,
 };
+
+/* ══════════════════════════════════════════════
+   MULTIPLE COORDINATE SYSTEMS
+══════════════════════════════════════════════ */
+// Each entry is a serializable snapshot of the coord state.
+// Index 0 starts as null because the live `coord` object IS system 0 – it gets snapshotted on first switch.
+let coordSystems = [null]; // index 0 = "live" coord (snapshotted on first switch away from it)
+let coordSystemNames = ['System 1'];
+let activeCoordIdx = 0;
+
+function _snapshotCoord() {
+  return {
+    ox: coord.ox, oy: coord.oy, scale: coord.scale,
+    functions: JSON.parse(JSON.stringify(coord.functions)),
+    points: JSON.parse(JSON.stringify(coord.points)),
+    strokes: JSON.parse(JSON.stringify(coord.strokes)),
+    connectors: JSON.parse(JSON.stringify(coord.connectors)),
+    drawMode: coord.drawMode,
+    drawColor: coord.drawColor,
+    showGrid: coord.showGrid,
+    showLabels: coord.showLabels,
+    showAxes: coord.showAxes,
+    nextId: coord.nextId,
+  };
+}
+
+function _applySnapshot(snap) {
+  coord.ox = snap.ox; coord.oy = snap.oy; coord.scale = snap.scale;
+  coord.functions = JSON.parse(JSON.stringify(snap.functions));
+  coord.points = JSON.parse(JSON.stringify(snap.points));
+  coord.strokes = JSON.parse(JSON.stringify(snap.strokes));
+  coord.connectors = JSON.parse(JSON.stringify(snap.connectors));
+  coord.drawMode = snap.drawMode;
+  coord.drawColor = snap.drawColor;
+  coord.showGrid = snap.showGrid;
+  coord.showLabels = snap.showLabels;
+  coord.showAxes = snap.showAxes;
+  coord.nextId = snap.nextId;
+  coord.currentConnector = null;
+  coord.lineConnectMode = false;
+  coord.currentStroke = null;
+}
+
+function renderCoordSysTabs() {
+  const container = document.getElementById('coordSysTabs');
+  if (!container) return;
+  container.innerHTML = '';
+  coordSystemNames.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'csys-tab' + (i === activeCoordIdx ? ' active' : '');
+    btn.textContent = name;
+    btn.title = 'Zu ' + name + ' wechseln';
+    btn.addEventListener('click', () => switchCoordSystem(i));
+    // Long-press to rename
+    let pressTimer;
+    btn.addEventListener('pointerdown', () => {
+      pressTimer = setTimeout(() => renameCoordSystem(i), 600);
+    });
+    btn.addEventListener('pointerup', () => clearTimeout(pressTimer));
+    btn.addEventListener('pointercancel', () => clearTimeout(pressTimer));
+    container.appendChild(btn);
+  });
+}
+
+function switchCoordSystem(idx) {
+  if (idx === activeCoordIdx) return;
+  // Save current
+  coordSystems[activeCoordIdx] = _snapshotCoord();
+  activeCoordIdx = idx;
+  // Load new
+  if (coordSystems[idx]) {
+    _applySnapshot(coordSystems[idx]);
+  }
+  renderCoordSysTabs();
+  renderFnList();
+  renderPtList();
+  renderLcConnectors();
+  renderLcPointList();
+  // Sync settings UI
+  document.getElementById('gridStep') && (document.getElementById('gridStep').value = 1);
+  setDrawMode(coord.drawMode);
+  document.getElementById('togGrid').classList.toggle('active', coord.showGrid);
+  document.getElementById('togLabels').classList.toggle('active', coord.showLabels);
+  document.getElementById('togAxes').classList.toggle('active', coord.showAxes);
+  drawCanvas();
+}
+
+function addCoordSystem() {
+  // Save current
+  coordSystems[activeCoordIdx] = _snapshotCoord();
+  // Create new empty system
+  const newSnap = {
+    ox: 0, oy: 0, scale: 50,
+    functions: [], points: [], strokes: [], connectors: [],
+    drawMode: 'none', drawColor: '#cc0000',
+    showGrid: true, showLabels: true, showAxes: true, nextId: 1,
+  };
+  const newIdx = coordSystems.length;
+  coordSystems.push(newSnap);
+  coordSystemNames.push('System ' + (newIdx + 1));
+  activeCoordIdx = newIdx;
+  _applySnapshot(newSnap);
+  resizeCanvas();  // re-center origin
+  renderCoordSysTabs();
+  renderFnList();
+  renderPtList();
+  renderLcConnectors();
+  drawCanvas();
+}
+
+function renameCoordSystem(idx) {
+  const name = prompt('Name für dieses Koordinatensystem:', coordSystemNames[idx]);
+  if (name && name.trim()) {
+    coordSystemNames[idx] = name.trim();
+    renderCoordSysTabs();
+  }
+}
+
 
 function initCoordCanvas() {
   const cvs = document.getElementById('cvs');
@@ -3280,9 +3424,17 @@ function toggleLineConnectMode() {
   } else {
     hint.textContent = 'Verbinder deaktiviert. Klicke "Aktivieren" um Punkte zu verbinden.';
   }
+  // Sync quick button state
+  const qbtn = document.getElementById('lcQuickBtn');
+  if (qbtn) qbtn.classList.toggle('act', coord.lineConnectMode);
   // Reset canvas cursor
   const cvs = document.getElementById('cvs');
   if (cvs) cvs.style.cursor = 'crosshair';
+}
+
+// Quick toggle from toolbar button (syncs with sidebar toggle)
+function toggleLineConnectModeQuick() {
+  toggleLineConnectMode();
 }
 
 function renderLcPointList() {
@@ -5027,15 +5179,27 @@ function _setPointKbdPadding(on) {
 
 function mkInsert(ch) {
   if (!_mkTarget) return;
+  // selectionStart/selectionEnd are null for type="number" inputs in most browsers
+  // Fall back to end-of-value when null
+  function getSel() {
+    const s = _mkTarget.selectionStart;
+    const e = _mkTarget.selectionEnd;
+    const len = _mkTarget.value.length;
+    return { s: s != null ? s : len, e: e != null ? e : len };
+  }
+  function trySetSel(pos) {
+    // setSelectionRange throws on type="number" inputs — silently ignore (expected browser behaviour)
+    try { _mkTarget.setSelectionRange(pos, pos); } catch (_selErr) { /* intentional: number inputs */ }
+  }
   if (ch === '⌫') {
     const v = _mkTarget.value;
-    const s = _mkTarget.selectionStart, e = _mkTarget.selectionEnd;
+    const { s, e } = getSel();
     if (s !== e) {
       _mkTarget.value = v.slice(0, s) + v.slice(e);
-      _mkTarget.setSelectionRange(s, s);
+      trySetSel(s);
     } else if (s > 0) {
-      _mkTarget.value = v.slice(0, s-1) + v.slice(s);
-      _mkTarget.setSelectionRange(s-1, s-1);
+      _mkTarget.value = v.slice(0, s - 1) + v.slice(s);
+      trySetSel(s - 1);
     }
     _mkTarget.dispatchEvent(new Event('input', { bubbles: true }));
     _mkTarget.focus({ preventScroll: true });
@@ -5047,12 +5211,12 @@ function mkInsert(ch) {
     if (confirmAction === 'solve') solveEquation();
     else if (confirmAction === 'fraction') solveFraction();
   } else {
-    const pos = _mkTarget.selectionStart || _mkTarget.value.length;
     const v = _mkTarget.value;
+    const { s, e } = getSel();
     const ins = ch === '√' ? 'sqrt(' : ch;
-    _mkTarget.value = v.slice(0, pos) + ins + v.slice(_mkTarget.selectionEnd || pos);
-    const newPos = pos + ins.length;
-    _mkTarget.setSelectionRange(newPos, newPos);
+    _mkTarget.value = v.slice(0, s) + ins + v.slice(e);
+    const newPos = s + ins.length;
+    trySetSel(newPos);
     _mkTarget.dispatchEvent(new Event('input', { bubbles: true }));
     _mkTarget.focus({ preventScroll: true });
   }
@@ -5580,6 +5744,111 @@ function initFloatingDrag(widgetId, handleId) {
 }
 
 /* ══════════════════════════════════════════════
+   TV MODE (Apple TV / Presentation Mode)
+══════════════════════════════════════════════ */
+let _tvContent = 'coord';
+let _tvCoordCanvas = null;
+let _tvAnimFrame = null;
+
+function openTvMode() {
+  document.getElementById('tvOverlay').style.display = 'flex';
+  tvSetContent(_tvContent);
+}
+
+function closeTvMode() {
+  document.getElementById('tvOverlay').style.display = 'none';
+  if (_tvAnimFrame) { cancelAnimationFrame(_tvAnimFrame); _tvAnimFrame = null; }
+}
+
+function tvSetContent(type) {
+  _tvContent = type;
+  if (_tvAnimFrame) { cancelAnimationFrame(_tvAnimFrame); _tvAnimFrame = null; }
+  const contentEl = document.getElementById('tvContent');
+  contentEl.innerHTML = '';
+
+  // Update button styles
+  ['coord','calc','timer'].forEach(t => {
+    const b = document.getElementById('tvBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (b) b.style.background = t === type ? '#cc0000' : '#333';
+  });
+
+  if (type === 'coord') {
+    // Mirror the coordinate canvas into a new canvas in TV overlay
+    const cvsTv = document.createElement('canvas');
+    cvsTv.id = 'tvCoordCanvas';
+    cvsTv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+    contentEl.appendChild(cvsTv);
+    _tvCoordCanvas = cvsTv;
+    // Draw loop: copy from source canvas
+    function tvDraw() {
+      const src = document.getElementById('cvs');
+      if (src && cvsTv.parentNode) {
+        const dpr = window.devicePixelRatio || 1;
+        const W = contentEl.offsetWidth;
+        const H = contentEl.offsetHeight;
+        if (cvsTv.width !== W * dpr || cvsTv.height !== H * dpr) {
+          cvsTv.width = W * dpr;
+          cvsTv.height = H * dpr;
+          cvsTv.style.width = W + 'px';
+          cvsTv.style.height = H + 'px';
+        }
+        const ctx = cvsTv.getContext('2d');
+        ctx.save();
+        ctx.clearRect(0, 0, cvsTv.width, cvsTv.height);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, cvsTv.width, cvsTv.height);
+        // Draw scaled coordinate canvas
+        const srcW = src.width / dpr;
+        const srcH = src.height / dpr;
+        const scale = Math.min(W / srcW, H / srcH);
+        const dx = (W - srcW * scale) / 2;
+        const dy = (H - srcH * scale) / 2;
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(src, dx, dy, srcW * scale, srcH * scale);
+        ctx.restore();
+      }
+      _tvAnimFrame = requestAnimationFrame(tvDraw);
+    }
+    tvDraw();
+
+  } else if (type === 'calc') {
+    contentEl.style.background = '#1a1a2e';
+    const expr = document.getElementById('calcExpr');
+    const res  = document.getElementById('calcRes');
+    function tvCalcDraw() {
+      if (!contentEl.parentNode) return;
+      contentEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:40px">
+          <div class="tv-calc-expr">${escHtml(expr ? expr.textContent : '')}</div>
+          <div class="tv-calc-display">${escHtml(res ? res.textContent : '0')}</div>
+        </div>`;
+      _tvAnimFrame = requestAnimationFrame(tvCalcDraw);
+    }
+    tvCalcDraw();
+
+  } else if (type === 'timer') {
+    contentEl.style.background = '#0a0a1a';
+    function tvTimerDraw() {
+      if (!contentEl.parentNode) return;
+      const disp = document.getElementById('ftTimerDisplay');
+      const lbl  = document.getElementById('ftTimerLabel');
+      const fill = document.getElementById('ftTimerFill');
+      const pct  = fill ? parseFloat(fill.style.width) : 100;
+      contentEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0">
+          <div class="tv-timer-display" style="color:${pct < 10 ? '#cc0000' : '#fff'}">${disp ? escHtml(disp.textContent) : '00:00'}</div>
+          <div class="tv-timer-label">${lbl ? escHtml(lbl.textContent) : ''}</div>
+          <div style="margin-top:30px;width:60%;height:8px;background:#222;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct < 10 ? '#cc0000' : '#2e7d32'};border-radius:4px;transition:width .5s"></div>
+          </div>
+        </div>`;
+      _tvAnimFrame = requestAnimationFrame(tvTimerDraw);
+    }
+    tvTimerDraw();
+  }
+}
+
+/* ══════════════════════════════════════════════
    HANDBUCH (HANDBOOK)
 ══════════════════════════════════════════════ */
 const GLOSSAR = {
@@ -5858,8 +6127,9 @@ function renderMkVarBtns() {
     <button class="mk" onclick="mkInsert('%')">%</button>
   </div>
   <div class="mkrow">
-    <button class="mk mk-wide" onclick="mkInsert('0')">0</button>
+    <button class="mk" onclick="mkInsert('0')">0</button>
     <button class="mk" onclick="mkInsert('.')">.</button>
+    <button class="mk mk-op mk-eq" onclick="mkInsert('=')"> = </button>
     <button class="mk mk-frac" onclick="openFracPicker()">½</button>
     <button class="mk" onclick="mkInsert('√')">√</button>
     <button class="mk" onclick="mkInsert('π')">π</button>
@@ -5910,6 +6180,31 @@ function renderMkVarBtns() {
   </div>
   <div style="display:flex;gap:8px">
     <button onclick="closeVarPicker()" style="flex:1;padding:12px;background:#2a2a4a;border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Schließen</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TV MODE OVERLAY (Apple TV / Presentation)
+══════════════════════════════════════════ -->
+<div id="tvOverlay" style="position:fixed;inset:0;background:#000;z-index:10000;display:none;flex-direction:column">
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:#111;border-bottom:1px solid #333;flex-shrink:0">
+    <span style="font-size:20px">📺</span>
+    <span style="font-size:15px;font-weight:700;color:#fff;flex:1">TV-Modus</span>
+    <!-- Content selector -->
+    <div style="display:flex;gap:6px">
+      <button id="tvBtnCoord" onclick="tvSetContent('coord')" style="padding:6px 12px;background:#cc0000;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📐 Koordinaten</button>
+      <button id="tvBtnCalc" onclick="tvSetContent('calc')" style="padding:6px 12px;background:#333;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🧮 Rechner</button>
+      <button id="tvBtnTimer" onclick="tvSetContent('timer')" style="padding:6px 12px;background:#333;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⏱️ Timer</button>
+    </div>
+    <button onclick="closeTvMode()" style="padding:6px 12px;background:#444;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✕ Schließen</button>
+  </div>
+  <!-- Content area -->
+  <div id="tvContent" style="flex:1;position:relative;overflow:hidden"></div>
+  <!-- AirPlay hint -->
+  <div style="padding:8px 16px;background:#111;border-top:1px solid #222;display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <span style="font-size:18px">📱</span>
+    <span style="font-size:12px;color:#888;line-height:1.4"><strong style="color:#aaa">Apple TV:</strong> Streiche von unten (iPhone) oder oben (iPad) → Bildschirmsynchronisierung → Apple TV wählen. Dann wird dieser Bildschirm auf dem Apple TV angezeigt.</span>
   </div>
 </div>
 
