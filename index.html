@@ -496,6 +496,76 @@
     .bild-raw { margin: 0 14px 14px; background: var(--bg2); border-radius: var(--r); padding: 10px 12px;
       font-size: 12px; color: var(--dim); white-space: pre-wrap; word-break: break-all;
       max-height: 140px; overflow-y: auto; border: 1px solid var(--bdr); }
+    .bild-ocr-notice { margin: 0 14px 10px; padding: 9px 13px; background: #fff8e1;
+      border: 1px solid #f9a825; border-radius: var(--r); font-size: 12px; color: #795548;
+      display: flex; align-items: center; gap: 7px; }
+    .bild-agent-bar { margin: 0 14px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .bild-agent-bar button { flex: 1; min-width: 140px; padding: 10px 12px; background: var(--acc);
+      border: none; border-radius: var(--r); color: white; font-size: 13px; font-weight: 600;
+      font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .bild-agent-bar button:active { opacity: .8; }
+
+    /* ─── Math Agent ─── */
+    #tabAgent { overflow-y: auto; padding-bottom: 20px; }
+    .agent-hdr { padding: 12px 14px 10px; display: flex; gap: 8px; flex-shrink: 0; position: sticky; top: 0;
+      background: var(--bg); border-bottom: 1px solid var(--bdr); z-index: 5; flex-wrap: wrap; }
+    .agent-hdr-title { font-size: 16px; font-weight: 700; color: var(--txt); flex: 1; min-width: 120px; display: flex; align-items: center; gap: 6px; }
+    .agent-add-task { padding: 9px 16px; background: var(--btn); border: none; border-radius: var(--r);
+      color: var(--txt); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; }
+    .agent-add-task:active { background: var(--btn2); }
+    .agent-run-btn { padding: 9px 16px; background: var(--acc); border: none; border-radius: var(--r);
+      color: white; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 5px; }
+    .agent-run-btn:active { opacity: .8; }
+    .agent-counter { font-size: 11px; color: var(--dim); padding: 0 4px; }
+    .agent-tasks-wrap { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .agent-task-card { background: var(--bg2); border-radius: var(--r); border: 1px solid var(--bdr); overflow: hidden; }
+    .agent-task-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      background: var(--card); border-bottom: 1px solid var(--bdr); }
+    .agent-task-name { font-size: 14px; font-weight: 700; color: var(--txt); flex: 1;
+      background: none; border: none; outline: none; font-family: inherit; -webkit-user-select: text; user-select: text; }
+    .agent-task-del { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 2px 6px; }
+    .agent-task-del:active { color: var(--acc); }
+    .agent-items-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .agent-item-row { display: flex; gap: 6px; align-items: center; }
+    .agent-item-input { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+      color: var(--txt); font-size: 14px; padding: 9px 11px; font-family: 'Courier New', monospace;
+      outline: none; -webkit-user-select: text; user-select: text; }
+    .agent-item-input:focus { border-color: var(--acc); }
+    .agent-item-del { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+    .agent-item-del:active { color: var(--acc); }
+    .agent-add-item { margin: 4px 8px 10px; padding: 8px; background: none; border: 1px dashed var(--bdr);
+      border-radius: 8px; color: var(--dim); font-size: 13px; font-family: inherit; cursor: pointer; width: calc(100% - 16px);
+      text-align: center; }
+    .agent-add-item:active { background: var(--bg2); border-color: var(--acc); color: var(--acc); }
+    .agent-empty { text-align: center; padding: 32px 16px; color: var(--dim); font-size: 14px; }
+    .agent-status-bar { margin: 0 14px 8px; padding: 10px 14px; background: var(--bg2);
+      border-radius: var(--r); font-size: 13px; color: var(--dim); display: none; }
+    .agent-status-bar.vis { display: block; }
+    .agent-progress { height: 4px; background: var(--bdr); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .agent-progress-bar { height: 100%; background: var(--acc); border-radius: 2px; transition: width .3s; }
+    .agent-results-wrap { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+    .agent-res-task { background: var(--bg2); border-radius: var(--r); border: 1px solid var(--bdr); overflow: hidden; }
+    .agent-res-task-title { padding: 10px 14px; background: var(--card); border-bottom: 1px solid var(--bdr);
+      font-size: 13px; font-weight: 700; color: var(--txt); display: flex; align-items: center; gap: 6px; }
+    .agent-res-item { padding: 12px 14px; border-bottom: 1px solid var(--bdr); }
+    .agent-res-item:last-child { border-bottom: none; }
+    .agent-res-eq { font-size: 13px; font-family: 'Courier New', monospace; color: var(--dim); margin-bottom: 8px; }
+    .agent-res-steps { font-size: 12px; color: var(--dim); }
+    .agent-res-steps .solstep { padding: 5px 0; }
+    .agent-res-steps .ssn { width: 18px; height: 18px; font-size: 10px; }
+    .agent-res-steps .ssd { font-size: 11px; }
+    .agent-res-steps .ssm { font-size: 13px; }
+    .agent-res-answer { margin-top: 8px; padding: 10px 12px; background: var(--card); border-radius: 8px;
+      border-left: 4px solid var(--acc3); }
+    .agent-res-answer .rl { font-size: 11px; color: var(--dim); margin-bottom: 2px; }
+    .agent-res-answer .rv { font-size: 17px; font-weight: 700; color: var(--acc3); font-family: 'Courier New', monospace; }
+    .agent-res-coord-btn { margin-top: 8px; padding: 7px 12px; background: var(--btn); border: none;
+      border-radius: 8px; color: var(--txt); font-size: 12px; font-family: inherit; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; }
+    .agent-res-coord-btn:active { background: var(--acc); color: white; }
+    .agent-res-error { margin-top: 8px; padding: 8px 12px; background: #fff0f0; border-radius: 8px;
+      border-left: 4px solid var(--acc); color: var(--acc); font-size: 12px; }
 
     /* ─── Unit Converter ─── */
     .urow { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
@@ -645,6 +715,7 @@
     <button id="fsModeNotizen" onclick="fsSwitchTab('notizen')"><span>📝</span>Notizen</button>
     <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Formeln +</button>
     <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
+    <button id="fsModeAgent" onclick="fsSwitchTab('agent')"><span>🤖</span>Agent</button>
   </div>
   <button class="fsExit" onclick="closeFsMenuAndExit()">✕ Vollbild beenden</button>
 </div>
@@ -1495,6 +1566,31 @@
       <div id="bildResults"></div>
     </div><!-- end tabBild -->
 
+    <!-- ════════ TAB: MATH AGENT ════════ -->
+    <div id="tabAgent" class="panel">
+      <div class="agent-hdr">
+        <div class="agent-hdr-title">🤖 Math Agent</div>
+        <span class="agent-counter" id="agentCounter">0 / 50</span>
+        <button class="agent-add-task" onclick="agentAddTask()">+ Aufgabe</button>
+        <button class="agent-run-btn" id="agentRunBtn" onclick="agentRun()">▶ Agent starten</button>
+      </div>
+      <!-- Status / progress -->
+      <div class="agent-status-bar" id="agentStatus">
+        <span id="agentStatusText">Bereit</span>
+        <div class="agent-progress"><div class="agent-progress-bar" id="agentProgressBar" style="width:0%"></div></div>
+      </div>
+      <!-- Task list -->
+      <div class="agent-tasks-wrap" id="agentTasksWrap">
+        <div class="agent-empty" id="agentEmpty">
+          <div style="font-size:32px;margin-bottom:8px">🤖</div>
+          <div>Noch keine Aufgaben.</div>
+          <div style="font-size:12px;margin-top:4px;color:var(--dim)">Tippe auf „+ Aufgabe" um zu beginnen.</div>
+        </div>
+      </div>
+      <!-- Results -->
+      <div id="agentResultsWrap"></div>
+    </div><!-- end tabAgent -->
+
   </div><!-- content -->
 
   <nav id="nav">
@@ -1512,6 +1608,9 @@
     </button>
     <button class="nb" id="nbBild" onclick="switchTab('bild')">
       <span class="ni">📷</span>Bild
+    </button>
+    <button class="nb" id="nbAgent" onclick="switchTab('agent')">
+      <span class="ni">🤖</span>Agent
     </button>
   </nav>
 </div><!-- app -->
@@ -1604,11 +1703,13 @@ function switchTab(tab) {
   document.getElementById('tabNotizen').classList.toggle('active', tab === 'notizen');
   document.getElementById('tabKlasse').classList.toggle('active', tab === 'klasse');
   document.getElementById('tabBild').classList.toggle('active', tab === 'bild');
+  document.getElementById('tabAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('nbRechner').classList.toggle('active', tab === 'rechner');
   document.getElementById('nbKoord').classList.toggle('active', tab === 'koordinaten');
   document.getElementById('nbNotizen').classList.toggle('active', tab === 'notizen');
   document.getElementById('nbKlasse').classList.toggle('active', tab === 'klasse');
   document.getElementById('nbBild').classList.toggle('active', tab === 'bild');
+  document.getElementById('nbAgent').classList.toggle('active', tab === 'agent');
   if (tab === 'koordinaten') { resizeCanvas(); applyRangeSettings(); }
   if (tab === 'klasse') { initKlasse(); }
 }
@@ -2878,8 +2979,8 @@ function toggleHideUI() {
 ══════════════════════════════════════════════ */
 function openFsMenu() {
   // Highlight the currently active tab button
-  const tabs = ['rechner','koordinaten','notizen','klasse','bild'];
-  const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild'];
+  const tabs = ['rechner','koordinaten','notizen','klasse','bild','agent'];
+  const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild','fsModeAgent'];
   ids.forEach((id, i) => {
     document.getElementById(id).classList.toggle('active', tabs[i] === currentTab);
   });
@@ -3824,6 +3925,9 @@ function bildParseAndShow(rawText) {
     return;
   }
 
+  // Show OCR accuracy notice
+  html += `<div class="bild-ocr-notice">⚠️ Erkannter Text kann Fehler enthalten – bitte Ergebnisse prüfen.</div>`;
+
   if (equations.length > 0) {
     html += `<div class="bild-sec-title">Erkannte Gleichungen (${equations.length})</div>`;
     equations.forEach((eq, idx) => {
@@ -3843,6 +3947,7 @@ function bildParseAndShow(rawText) {
           <button class="bi-btn" onclick="bildSendToSolver(${idx})">→ Gleichungslöser</button>
           <button class="bi-btn" onclick="bildSendToCalc(${idx})">→ Rechner</button>
           ${fnExpr !== null ? `<button class="bi-btn" onclick="bildSendToCoordFn(${idx})">→ Koordinatensystem</button>` : ''}
+          <button class="bi-btn" onclick="bildSendToAgent(${idx})">→ Agent</button>
           <button class="bi-btn" onclick="bildCopyEq(${idx})">📋 Kopieren</button>
         </div>
       </div>`;
@@ -3861,6 +3966,13 @@ function bildParseAndShow(rawText) {
         </div>
       </div>`;
     });
+  }
+
+  // "Add all to agent" bar at the bottom
+  if (equations.length > 0) {
+    html += `<div class="bild-agent-bar">
+      <button onclick="bildSendAllToAgent()">🤖 Alle Gleichungen zum Agent hinzufügen</button>
+    </div>`;
   }
 
   resultsEl.innerHTML = html;
@@ -3967,6 +4079,254 @@ function bildSendToCoordFn(idx) {
   const color = COLORS[colorIdx % COLORS.length]; colorIdx++;
   const id = coord.nextId++;
   coord.functions.push({ expr, color, id, raw: eq });
+  switchTab('koordinaten');
+  setTimeout(() => { renderFnList(); resizeCanvas(); drawCoord(); }, 120);
+}
+
+/* ─ Send single OCR equation to agent ─ */
+function bildSendToAgent(idx) {
+  const eq = bildDetectedEqs[idx];
+  if (!eq) return;
+  agentAddTask();
+  const taskIdx = agentTasks.length - 1;
+  agentTasks[taskIdx].items[0] = eq;
+  agentRenderTasks();
+  switchTab('agent');
+}
+
+/* ─ Send all OCR equations to agent as one task ─ */
+function bildSendAllToAgent() {
+  if (!bildDetectedEqs.length) return;
+  agentAddTask();
+  const taskIdx = agentTasks.length - 1;
+  agentTasks[taskIdx].name = 'OCR-Aufgaben';
+  // Fill up to 50 total items
+  const space = 50 - agentTotalItems();
+  const eqs = bildDetectedEqs.slice(0, Math.max(0, space));
+  if (eqs.length === 0) { agentTasks.pop(); agentRenderTasks(); switchTab('agent'); return; }
+  agentTasks[taskIdx].items = eqs.slice();
+  agentRenderTasks();
+  switchTab('agent');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MATH AGENT
+═══════════════════════════════════════════════════════ */
+const AGENT_MAX = 50;
+
+// Data model: array of task objects, each with { name, items[] }
+let agentTasks = [];
+// Stored results after run: array of { taskIdx, itemIdx, eq, steps, error }
+let agentResultData = [];
+
+function agentTotalItems() {
+  return agentTasks.reduce((s, t) => s + t.items.length, 0);
+}
+
+function agentAddTask() {
+  if (agentTotalItems() >= AGENT_MAX) return;
+  const n = agentTasks.length + 1;
+  agentTasks.push({ name: 'Aufgabe ' + n, items: [''] });
+  agentRenderTasks();
+}
+
+function agentRemoveTask(taskIdx) {
+  agentTasks.splice(taskIdx, 1);
+  agentRenderTasks();
+}
+
+function agentAddItem(taskIdx) {
+  if (agentTotalItems() >= AGENT_MAX) return;
+  agentTasks[taskIdx].items.push('');
+  agentRenderTasks();
+}
+
+function agentRemoveItem(taskIdx, itemIdx) {
+  agentTasks[taskIdx].items.splice(itemIdx, 1);
+  if (agentTasks[taskIdx].items.length === 0) agentTasks[taskIdx].items = [''];
+  agentRenderTasks();
+}
+
+function agentUpdateItem(taskIdx, itemIdx, value) {
+  if (agentTasks[taskIdx]) agentTasks[taskIdx].items[itemIdx] = value;
+  // Update counter
+  document.getElementById('agentCounter').textContent = agentTotalItems() + ' / ' + AGENT_MAX;
+}
+
+function agentUpdateTaskName(taskIdx, value) {
+  if (agentTasks[taskIdx]) agentTasks[taskIdx].name = value;
+}
+
+function agentRenderTasks() {
+  const wrap = document.getElementById('agentTasksWrap');
+  const empty = document.getElementById('agentEmpty');
+  const total = agentTotalItems();
+  document.getElementById('agentCounter').textContent = total + ' / ' + AGENT_MAX;
+
+  if (agentTasks.length === 0) {
+    empty.style.display = '';
+    wrap.querySelectorAll('.agent-task-card').forEach(el => el.remove());
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Re-build all task cards
+  wrap.querySelectorAll('.agent-task-card').forEach(el => el.remove());
+  agentTasks.forEach((task, ti) => {
+    const card = document.createElement('div');
+    card.className = 'agent-task-card';
+    card.id = 'agentCard_' + ti;
+
+    let itemsHtml = task.items.map((item, ii) => `
+      <div class="agent-item-row">
+        <input class="agent-item-input" type="text" placeholder="Gleichung oder Aufgabe, z.B. 2x+3=7"
+          value="${escHtml(item)}"
+          oninput="agentUpdateItem(${ti},${ii},this.value)"
+          onblur="agentUpdateItem(${ti},${ii},this.value)">
+        <button class="agent-item-del" onclick="agentRemoveItem(${ti},${ii})" title="Entfernen">✕</button>
+      </div>`).join('');
+
+    const canAdd = total < AGENT_MAX;
+    card.innerHTML = `
+      <div class="agent-task-head">
+        <input class="agent-task-name" type="text" value="${escHtml(task.name)}"
+          oninput="agentUpdateTaskName(${ti},this.value)"
+          onblur="agentUpdateTaskName(${ti},this.value)">
+        <button class="agent-task-del" onclick="agentRemoveTask(${ti})" title="Aufgabe löschen">🗑</button>
+      </div>
+      <div class="agent-items-list">${itemsHtml}</div>
+      <button class="agent-add-item" onclick="agentAddItem(${ti})" ${canAdd ? '' : 'disabled'}>
+        ${canAdd ? '+ Gleichung / Aufgabe hinzufügen' : 'Limit erreicht (50)'}
+      </button>`;
+    wrap.appendChild(card);
+  });
+}
+
+async function agentRun() {
+  if (agentTasks.length === 0) return;
+
+  const statusEl = document.getElementById('agentStatus');
+  const statusTxt = document.getElementById('agentStatusText');
+  const bar = document.getElementById('agentProgressBar');
+  const resultsWrap = document.getElementById('agentResultsWrap');
+  const runBtn = document.getElementById('agentRunBtn');
+
+  // Collect all items
+  const allItems = [];
+  agentTasks.forEach((task, ti) => {
+    task.items.forEach((item, ii) => {
+      if (item.trim()) allItems.push({ taskIdx: ti, itemIdx: ii, eq: item.trim() });
+    });
+  });
+
+  if (allItems.length === 0) return;
+
+  runBtn.disabled = true;
+  statusEl.classList.add('vis');
+  resultsWrap.innerHTML = '';
+  agentResultData = [];
+
+  const total = allItems.length;
+
+  // Solve each item with a tiny async delay so the UI stays responsive
+  for (let i = 0; i < allItems.length; i++) {
+    const { taskIdx, itemIdx, eq } = allItems[i];
+    statusTxt.textContent = `Löse ${i + 1} / ${total}: ${eq.length > 40 ? eq.slice(0, 40) + '…' : eq}`;
+    bar.style.width = Math.round(((i + 1) / total) * 100) + '%';
+
+    await new Promise(r => setTimeout(r, 0)); // yield to UI
+
+    let steps = null, error = null;
+    try {
+      // Try equation solver first
+      steps = parseAndSolve(eq);
+    } catch (e1) {
+      // Fall back to direct numeric evaluation
+      try {
+        const val = evalSafe(eq);
+        steps = [
+          { desc: 'Aufgabe', math: eq },
+          { desc: '✅ Ergebnis', math: String(round(val)), result: true }
+        ];
+      } catch (e2) {
+        error = e1.message || 'Unbekannter Fehler';
+      }
+    }
+    agentResultData.push({ taskIdx, itemIdx, eq, steps, error });
+  }
+
+  bar.style.width = '100%';
+  statusTxt.textContent = '✅ Fertig! ' + total + ' Aufgabe(n) gelöst.';
+  runBtn.disabled = false;
+
+  agentRenderResults();
+}
+
+function agentRenderResults() {
+  const wrap = document.getElementById('agentResultsWrap');
+  if (!agentResultData.length) { wrap.innerHTML = ''; return; }
+
+  // Group results by taskIdx
+  const byTask = {};
+  agentResultData.forEach(r => {
+    if (!byTask[r.taskIdx]) byTask[r.taskIdx] = [];
+    byTask[r.taskIdx].push(r);
+  });
+
+  let html = '<div class="agent-results-wrap">';
+  Object.keys(byTask).forEach(ti => {
+    const taskName = escHtml(agentTasks[ti] ? agentTasks[ti].name : ('Aufgabe ' + (Number(ti) + 1)));
+    html += `<div class="agent-res-task">
+      <div class="agent-res-task-title">📋 ${taskName}</div>`;
+    byTask[ti].forEach(r => {
+      const rIdx = agentResultData.indexOf(r);
+      html += `<div class="agent-res-item">
+        <div class="agent-res-eq">📌 ${escHtml(r.eq)}</div>`;
+      if (r.error) {
+        html += `<div class="agent-res-error">⚠️ ${escHtml(r.error)}</div>`;
+      } else if (r.steps) {
+        // Steps (excluding result step)
+        const regularSteps = r.steps.filter(s => !s.result);
+        const resultSteps = r.steps.filter(s => s.result);
+        if (regularSteps.length > 0) {
+          html += `<div class="agent-res-steps">`;
+          let num = 1;
+          regularSteps.forEach(s => {
+            html += `<div class="solstep">
+              <div class="ssn">${num++}</div>
+              <div><div class="ssd">${escHtml(s.desc)}</div><div class="ssm">${escHtml(s.math)}</div></div>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+        resultSteps.forEach(s => {
+          html += `<div class="agent-res-answer">
+            <div class="rl">${escHtml(s.desc)}</div>
+            <div class="rv">${escHtml(s.math)}</div>
+          </div>`;
+        });
+        // "Generate in coordinate system" button – only for plottable equations
+        const fnExpr = bildExtractFnExpr(r.eq);
+        if (fnExpr !== null) {
+          html += `<button class="agent-res-coord-btn" onclick="agentSendToCoord(${rIdx})">📐 Im Koordinatensystem generieren</button>`;
+        }
+      }
+      html += `</div>`; // end agent-res-item
+    });
+    html += `</div>`; // end agent-res-task
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function agentSendToCoord(rIdx) {
+  const r = agentResultData[rIdx];
+  if (!r) return;
+  const expr = bildExtractFnExpr(r.eq);
+  if (!expr) return;
+  const color = COLORS[colorIdx % COLORS.length]; colorIdx++;
+  const id = coord.nextId++;
+  coord.functions.push({ expr, color, id, raw: r.eq });
   switchTab('koordinaten');
   setTimeout(() => { renderFnList(); resizeCanvas(); drawCoord(); }, 120);
 }
