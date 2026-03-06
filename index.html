@@ -205,6 +205,7 @@
       transform: translateY(calc(100% - 50px)); transition: transform .3s ease;
       border-radius: 16px 16px 0 0; max-height: 72%; display: flex; flex-direction: column; }
     #kpanel.open { transform: translateY(0); }
+    #kpanel.hidden { transform: translateY(100%); pointer-events: none; }
     @media (orientation: landscape) and (max-height: 600px) {
       #kpanel { max-height: 90%; }
     }
@@ -212,6 +213,19 @@
       cursor: pointer; flex-shrink: 0; position: relative; }
     .hbar { width: 38px; height: 4px; background: var(--bdr); border-radius: 2px; }
     #khandle span { position: absolute; left: 16px; font-size: 13px; font-weight: 600; color: var(--txt); }
+    #kCloseBtn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      width: 28px; height: 28px; background: var(--btn); border: 1px solid var(--bdr);
+      border-radius: 8px; color: var(--dim); font-size: 14px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; z-index: 2;
+      font-family: inherit; line-height: 1; }
+    #kCloseBtn:active { background: var(--btn2); }
+    /* Floating "open panel" button shown when panel is fully hidden */
+    #kOpenBtn { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      z-index: 11; background: var(--acc); border: none; border-radius: 20px; color: white;
+      font-size: 12px; font-weight: 700; padding: 8px 18px; cursor: pointer; font-family: inherit;
+      display: none; align-items: center; gap: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+    #kOpenBtn.vis { display: flex; }
+    #kOpenBtn:active { opacity: .8; }
     .kcontent { overflow-y: auto; padding: 0 14px 16px; flex: 1; }
     .kcontent.kbd-open { padding-bottom: 270px; }
     .ptabs { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; margin-bottom: 12px; gap: 3px; }
@@ -1407,10 +1421,14 @@
       <div id="coordInfo">x=0.0 y=0.0</div>
 
       <!-- Slide-up Panel -->
+      <!-- Floating "open panel" button (shown when panel is fully hidden) -->
+      <button id="kOpenBtn" onclick="openPanelFromBtn()">📋 Panel öffnen</button>
+
       <div id="kpanel">
         <div id="khandle" onclick="togglePanel()">
           <div class="hbar"></div>
           <span>Funktionen &amp; Einstellungen</span>
+          <button id="kCloseBtn" onclick="event.stopPropagation();closePanelFully()" title="Panel verbergen">✕</button>
         </div>
         <div class="kcontent">
           <!-- Panel tabs -->
@@ -1483,7 +1501,7 @@
             </div>
 
             <!-- 3D Models – Premium -->
-            <div class="psect" style="margin-top:14px">3D-Modelle <span class="pro-badge">PRO</span></div>
+            <div class="psect" style="margin-top:14px">3D-Modelle <span class="pro-badge">PRO</span> <span style="background:#0055cc;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:20px;vertical-align:middle;margin-left:2px;letter-spacing:.5px">BETA</span></div>
             <div style="display:flex;flex-direction:column;gap:6px">
               <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Paraboloid &nbsp;<small>z = x²+y²</small></span><button class="vtpl-btn" onclick="open3DModel('paraboloid')">→ Öffnen</button></div>
               <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Sattelfläche &nbsp;<small>z = x²−y²</small></span><button class="vtpl-btn" onclick="open3DModel('saddle')">→ Öffnen</button></div>
@@ -3611,7 +3629,36 @@ function saveCanvas() {
 
 /* ─ Panel & settings ─ */
 function togglePanel() {
-  document.getElementById('kpanel').classList.toggle('open');
+  const p = document.getElementById('kpanel');
+  // If fully hidden, un-hide first (show as peek)
+  if (p.classList.contains('hidden')) {
+    openPanelFromBtn();
+    return;
+  }
+  p.classList.toggle('open');
+}
+
+function closePanelFully() {
+  const p = document.getElementById('kpanel');
+  p.classList.remove('open');
+  p.classList.add('hidden');
+  document.getElementById('kOpenBtn').classList.add('vis');
+}
+
+function openPanelFromBtn() {
+  const p = document.getElementById('kpanel');
+  p.classList.remove('hidden');
+  p.classList.add('open');
+  document.getElementById('kOpenBtn').classList.remove('vis');
+}
+
+function openPanelForInput() {
+  const p = document.getElementById('kpanel');
+  if (!p) return;
+  p.classList.remove('hidden');
+  p.classList.add('open');
+  const btn = document.getElementById('kOpenBtn');
+  if (btn) btn.classList.remove('vis');
 }
 
 function switchPTab(id) {
@@ -5309,7 +5356,7 @@ function openMathKbd(input) {
   // If editing point coordinate fields, ensure the inputs are scrolled above the keyboard
   if (_pointInputIds.includes(input.id)) {
     const kpanel = document.getElementById('kpanel');
-    if (kpanel) kpanel.classList.add('open');
+    if (kpanel) openPanelForInput();
     _setPointKbdPadding(true);
     setTimeout(() => { input.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 80);
   }
@@ -5374,7 +5421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ptNameEl.addEventListener('focus', () => {
       clearTimeout(_ptKbdTimer);
       const kpanel = document.getElementById('kpanel');
-      if (kpanel) kpanel.classList.add('open');
+      if (kpanel) openPanelForInput();
       _setPointKbdPadding(true);
       setTimeout(() => { ptNameEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 300);
     });
