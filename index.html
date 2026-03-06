@@ -660,6 +660,8 @@
 
 <!-- ══════════════════════════════════════════
      INSTALL SCREEN
+     (hidden by default; loading screen shows first,
+      then JS reveals this or the main app after animation)
 ══════════════════════════════════════════ -->
 <div id="installScreen" style="display:none">
   <div class="ic">∑</div>
@@ -958,7 +960,7 @@
         <div class="ig" style="margin:14px 14px 0">
           <div class="sect">Gleichung eingeben</div>
           <label>Lineare oder quadratische Gleichung (z.B. 2x+3=7 oder x^2+5x+6=0)</label>
-          <input class="mi" id="eqInput" type="text" placeholder="z.B.  2x + 3 = 7" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <input class="mi" id="eqInput" type="text" placeholder="z.B.  2x + 3 = 7" autocorrect="off" autocapitalize="off" spellcheck="false" data-mk-confirm="solve">
         </div>
         <div style="padding:0 14px 10px; margin-top:10px">
           <button class="sbtn" onclick="solveEquation()">🔍 Gleichung lösen</button>
@@ -4597,12 +4599,15 @@ function mkInsert(ch) {
       _mkTarget.value = v.slice(0, s-1) + v.slice(s);
       _mkTarget.setSelectionRange(s-1, s-1);
     }
+    _mkTarget.dispatchEvent(new Event('input', { bubbles: true }));
+    _mkTarget.focus({ preventScroll: true });
   } else if (ch === 'ENTER') {
+    // Use data-mk-confirm attribute for any "confirm" action to avoid hardcoding IDs
+    const confirmAction = _mkTarget.dataset.mkConfirm;
     _mkTarget.blur();
     closeMathKbd();
-    // Trigger solve/calculate if it's a known input
-    const id = _mkTarget.id;
-    if (id === 'eqInput') solveEquation();
+    if (confirmAction === 'solve') solveEquation();
+    else if (confirmAction === 'fraction') solveFraction();
   } else {
     const pos = _mkTarget.selectionStart || _mkTarget.value.length;
     const v = _mkTarget.value;
@@ -4610,9 +4615,9 @@ function mkInsert(ch) {
     _mkTarget.value = v.slice(0, pos) + ins + v.slice(_mkTarget.selectionEnd || pos);
     const newPos = pos + ins.length;
     _mkTarget.setSelectionRange(newPos, newPos);
+    _mkTarget.dispatchEvent(new Event('input', { bubbles: true }));
+    _mkTarget.focus({ preventScroll: true });
   }
-  _mkTarget.dispatchEvent(new Event('input', { bubbles: true }));
-  _mkTarget.focus({ preventScroll: true });
 }
 
 function openMathKbd(input) {
@@ -4728,7 +4733,17 @@ function renderPhysRuler() {
   ctx.strokeStyle = 'rgba(180,120,0,0.9)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(0, 0, L, H, 4) : ctx.rect(0, 0, L, H);
+  // roundRectCompat: draw rounded rect with fallback for older browsers
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(0, 0, L, H, 4);
+  } else {
+    const r = 4;
+    ctx.moveTo(r, 0); ctx.lineTo(L-r, 0); ctx.arcTo(L, 0, L, r, r);
+    ctx.lineTo(L, H-r); ctx.arcTo(L, H, L-r, H, r);
+    ctx.lineTo(r, H); ctx.arcTo(0, H, 0, H-r, r);
+    ctx.lineTo(0, r); ctx.arcTo(0, 0, r, 0, r);
+    ctx.closePath();
+  }
   ctx.fill(); ctx.stroke();
 
   // Tick marks every 10px (representing 1 grid unit equivalent)
