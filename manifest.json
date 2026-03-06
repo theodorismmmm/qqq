@@ -1,6 +1,6 @@
 {
-  "name": "Rechner by XTeam",
-  "short_name": "Rechner",
+  "name": "Rechner +",
+  "short_name": "Rechner +",
   "description": "Professioneller Taschenrechner mit Koordinatensystem, Gleichungslöser und Bruchrechnung",
   "start_url": ".",
   "display": "standalone",
