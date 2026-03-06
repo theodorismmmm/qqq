@@ -906,6 +906,9 @@
 
   <!-- Mini Calculator -->
   <div id="sdMiniCalc" class="sdpanel active">
+    <div style="padding:6px 10px 0;display:flex;justify-content:flex-end">
+      <button class="quick-access-btn" onclick="openFloatingCalc();closeSidebar()" title="Als schwebendes Fenster öffnen">🪟 Popup</button>
+    </div>
     <div class="mcwrap">
       <div class="mcdisp">
         <div class="mcexpr" id="mcExpr"></div>
@@ -941,6 +944,9 @@
 
   <!-- Sidebar Timer -->
   <div id="sdTimer" class="sdpanel">
+    <div style="padding:6px 10px 0;display:flex;justify-content:flex-end">
+      <button class="quick-access-btn" onclick="openFloatingTimer();closeSidebar()" title="Als schwebendes Fenster öffnen">🪟 Popup</button>
+    </div>
     <div class="timer-display" id="sdTimerDisplay">00:00</div>
     <div class="timer-label" id="sdTimerLabel">Bereit</div>
     <div class="timer-progress-track"><div class="timer-progress-fill" id="sdTimerFill" style="width:100%"></div></div>
@@ -1106,6 +1112,22 @@
 
       <!-- ── Grundrechner ── -->
       <div id="grundrechner" class="spanel active">
+        <!-- x and y variable inputs -->
+        <div id="calcVarRow" style="display:flex;gap:6px;padding:8px 10px 0;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Variablen:</span>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)">x =
+            <input id="calcVarX" type="number" value="0" step="any"
+              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
+              oninput="updateCalcVars()" title="Wert für x">
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)">y =
+            <input id="calcVarY" type="number" value="0" step="any"
+              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
+              oninput="updateCalcVars()" title="Wert für y">
+          </label>
+          <button onclick="calcInput('x')" class="cb sec" style="padding:3px 10px;font-size:13px;height:auto">x</button>
+          <button onclick="calcInput('y')" class="cb sec" style="padding:3px 10px;font-size:13px;height:auto">y</button>
+        </div>
         <div class="cdisp">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
             <button id="sciToggleBtn" onclick="toggleSciMode()">SCI</button>
@@ -1407,18 +1429,18 @@
 
           <!-- Tabelle -->
           <div id="pTabelle" class="psec">
-            <div class="psect">Wertetabelle</div>
+            <div class="psect">Wertetabelle <span style="font-size:10px;color:var(--dim);font-weight:400">(automatisch synchronisiert)</span></div>
             <div class="srow">
               <span class="slbl">x von</span>
-              <input class="sinput" id="tblXFrom" type="number" value="-5" step="1">
+              <input class="sinput" id="tblXFrom" type="number" value="-5" step="1" oninput="generateTable()">
             </div>
             <div class="srow">
               <span class="slbl">x bis</span>
-              <input class="sinput" id="tblXTo" type="number" value="5" step="1">
+              <input class="sinput" id="tblXTo" type="number" value="5" step="1" oninput="generateTable()">
             </div>
             <div class="srow">
               <span class="slbl">Schrittweite</span>
-              <input class="sinput" id="tblStep" type="number" value="1" min="0.001" step="0.5">
+              <input class="sinput" id="tblStep" type="number" value="1" min="0.001" step="0.5" oninput="generateTable()">
             </div>
             <button class="sbtn" style="margin-bottom:10px" onclick="generateTable()" aria-label="Tabelle erstellen">📊 Tabelle erstellen</button>
             <div class="errmsg" id="tblErr" style="display:none"></div>
@@ -2183,6 +2205,25 @@ function switchSub(id) {
 const calc = { expr: '', result: '0', history: [] };
 let calcAngleMode = 'deg';   // 'deg' | 'rad'
 let calcSciMode   = false;
+const calcVars = { x: 0, y: 0 };
+
+function updateCalcVars() {
+  calcVars.x = parseFloat(document.getElementById('calcVarX').value) || 0;
+  calcVars.y = parseFloat(document.getElementById('calcVarY').value) || 0;
+  // Keep kbVars in sync
+  if (typeof kbVars !== 'undefined') {
+    const kx = kbVars.find(v => v.name === 'x');
+    const ky = kbVars.find(v => v.name === 'y');
+    if (kx) kx.value = calcVars.x;
+    if (ky) ky.value = calcVars.y;
+    renderMkVarBtns();
+  }
+  // Refresh live preview if there's an expression
+  if (calc.expr) {
+    try { calc.result = String(evalSafe(calc.expr)); } catch { calc.result = '...'; }
+    updateCalcDisplay();
+  }
+}
 
 function calcInput(ch) {
   const last = calc.expr.slice(-1);
@@ -2247,10 +2288,21 @@ function formatNum(n) {
 }
 
 function evalSafe(expr) {
-  // Strip known function names then validate remaining chars
-  const stripped = expr
-    .replace(/asin|acos|atan|sqrt|log|exp|sin|cos|tan|ln/gi, '')
-    .replace(/[πe]/g, '0');
+  // Build variable map from kbVars (fallback to calcVars for x/y)
+  const varMap = {};
+  if (typeof kbVars !== 'undefined') {
+    kbVars.forEach(v => { varMap[v.name] = v.value; });
+  } else {
+    if (typeof calcVars !== 'undefined') {
+      varMap.x = calcVars.x;
+      varMap.y = calcVars.y;
+    }
+  }
+  // Build a stripped version for safety check, replacing known vars
+  let stripped = expr.replace(/asin|acos|atan|sqrt|log|exp|sin|cos|tan|ln/gi, '').replace(/[πe]/g, '0');
+  Object.keys(varMap).forEach(name => {
+    stripped = stripped.replace(new RegExp('\\b' + name + '\\b', 'g'), '0');
+  });
   if (!/^[0-9\s\+\-\*\/\.\(\)\^×÷%,]+$/.test(stripped)) throw new Error('unsafe');
   const ci = calcAngleMode === 'deg' ? `*${Math.PI}/180` : '';   // input → radians
   const co = calcAngleMode === 'deg' ? `*${180 / Math.PI}` : ''; // radians → output
@@ -2260,12 +2312,17 @@ function evalSafe(expr) {
     // Function replacements (longest first to avoid partial matches)
     .replace(/asin\(/gi, '_asin(').replace(/acos\(/gi, '_acos(').replace(/atan\(/gi, '_atan(')
     .replace(/sqrt\(/gi, 'Math.sqrt(')
-    .replace(/sin\(/gi,  '_sin(').replace(/cos\(/gi,  '_cos(').replace(/tan\(/gi,  '_tan(')
+    // Use negative lookbehind to avoid re-matching 'sin' inside already-replaced '_asin' etc.
+    .replace(/(?<!a)sin\(/gi, '_sin(').replace(/(?<!a)cos\(/gi, '_cos(').replace(/(?<!a)tan\(/gi, '_tan(')
     .replace(/log\(/gi,  'Math.log10(').replace(/ln\(/gi, 'Math.log(').replace(/exp\(/gi, 'Math.exp(')
     // Constant replacements
-    .replace(/π/g, String(Math.PI)).replace(/\be\b/g, String(Math.E))
-    // Percentage
-    .replace(/(\d)(%)/g, '($1/100)').replace(/(%)/g, '/100');
+    .replace(/π/g, String(Math.PI)).replace(/\be\b/g, String(Math.E));
+  // Replace variables (longer names first to avoid partial replacement)
+  Object.keys(varMap).sort((a, b) => b.length - a.length).forEach(name => {
+    e = e.replace(new RegExp('\\b' + name + '\\b', 'g'), `(${varMap[name]})`);
+  });
+  // Percentage
+  e = e.replace(/(\d)(%)/g, '($1/100)').replace(/(%)/g, '/100');
   // eslint-disable-next-line no-new-func
   return Function(`"use strict";
     const _sin=x=>Math.sin(x${ci});
@@ -2598,7 +2655,15 @@ function applyRangeSettings() {
     coord.ox = W / 2 - (xMin + xMax) / 2 * coord.scale;
     coord.oy = H / 2 + (yMin + yMax) / 2 * coord.scale;
   }
+  // Sync table range with coordinate system x-range
+  const tblFrom = document.getElementById('tblXFrom');
+  const tblTo   = document.getElementById('tblXTo');
+  if (tblFrom && tblTo) {
+    tblFrom.value = xMin;
+    tblTo.value   = xMax;
+  }
   drawCanvas();
+  autoSyncTable();
 }
 
 let _rafPending = false;
@@ -3059,6 +3124,7 @@ function addFunction() {
   document.getElementById('fnInput').value = '';
   renderFnList();
   drawCanvas();
+  autoSyncTable();
 }
 
 function renderFnList() {
@@ -3074,6 +3140,7 @@ function renderFnList() {
 function deleteFunction(id) {
   coord.functions = coord.functions.filter(f => f.id !== id);
   renderFnList(); drawCanvas();
+  autoSyncTable();
 }
 
 /* ─ Value Table ─ */
@@ -3129,6 +3196,14 @@ function generateTable() {
   output.innerHTML =
     '<div class="vt-wrap"><table class="vt"><thead>' +
     header + '</thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+/* Auto-sync table when pTabelle tab is active */
+function autoSyncTable() {
+  const tblPanel = document.getElementById('pTabelle');
+  if (tblPanel && tblPanel.classList.contains('active')) {
+    generateTable();
+  }
 }
 
 /* ─ Points ─ */
@@ -3312,6 +3387,7 @@ function switchPTab(id) {
   document.getElementById(id).classList.add('active');
   const tabs = ['pFunktionen','pPunkte','pVorlagen','pZeichnen','pTabelle','pEinst'];
   document.querySelectorAll('.ptab')[tabs.indexOf(id)].classList.add('active');
+  if (id === 'pTabelle') generateTable();
 }
 
 function toggleSetting(s) {
@@ -5443,6 +5519,7 @@ function initFloatingDrag(widgetId, handleId) {
     document.removeEventListener('touchend',  onEnd);
   }
   handle.addEventListener('mousedown', e => {
+    if (e.target.closest('.fw-close')) return;
     startX = e.clientX; startY = e.clientY;
     const rect = widget.getBoundingClientRect();
     startLeft = rect.left; startTop = rect.top;
@@ -5451,6 +5528,7 @@ function initFloatingDrag(widgetId, handleId) {
     e.preventDefault();
   });
   handle.addEventListener('touchstart', e => {
+    if (e.target.closest('.fw-close')) return;
     startX = e.touches[0].clientX; startY = e.touches[0].clientY;
     const rect = widget.getBoundingClientRect();
     startLeft = rect.left; startTop = rect.top;
@@ -5564,8 +5642,149 @@ window.addEventListener('load', () => {
     document.querySelectorAll('.hw').forEach(el => {
       el.addEventListener('click', e => { showGlossary(e, el.dataset.term); e.stopPropagation(); });
     });
+    renderMkVarBtns();
   }, 500);
 });
+
+/* ══════════════════════════════════════════════
+   KEYBOARD VARIABLES
+══════════════════════════════════════════════ */
+// kbVars: array of {name, value}
+const kbVars = [
+  { name: 'x', value: 0 },
+  { name: 'y', value: 0 }
+];
+
+function openVarPicker() {
+  renderVarPickerList();
+  document.getElementById('varPicker').style.transform = 'translateY(0)';
+}
+
+function closeVarPicker() {
+  document.getElementById('varPicker').style.transform = 'translateY(100%)';
+}
+
+function addKbVar() {
+  const nameEl = document.getElementById('varPickerName');
+  const valEl  = document.getElementById('varPickerVal');
+  const name = nameEl.value.trim();
+  const value = parseFloat(valEl.value);
+  // Validate: only alphanumeric+underscore, starting with letter, not a reserved/function name
+  const blocked = ['sin','cos','tan','asin','acos','atan','sqrt','log','ln','exp','pi','true','false','return'];
+  if (!name || !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name) || blocked.includes(name.toLowerCase())) {
+    nameEl.style.borderColor = '#cc0000';
+    setTimeout(() => nameEl.style.borderColor = '#3a3a6a', 1000);
+    return;
+  }
+  if (isNaN(value)) {
+    valEl.style.borderColor = '#cc0000';
+    setTimeout(() => valEl.style.borderColor = '#3a3a6a', 1000);
+    return;
+  }
+  const existing = kbVars.find(v => v.name === name);
+  if (existing) { existing.value = value; }
+  else { kbVars.push({ name, value }); }
+  // Sync x/y back to calcVars
+  kbVars.forEach(v => {
+    if (v.name === 'x' && typeof calcVars !== 'undefined') {
+      calcVars.x = v.value;
+      const el = document.getElementById('calcVarX');
+      if (el) el.value = v.value;
+    }
+    if (v.name === 'y' && typeof calcVars !== 'undefined') {
+      calcVars.y = v.value;
+      const el = document.getElementById('calcVarY');
+      if (el) el.value = v.value;
+    }
+  });
+  nameEl.value = '';
+  valEl.value  = '';
+  renderVarPickerList();
+  renderMkVarBtns();
+}
+
+function deleteKbVar(name) {
+  const idx = kbVars.findIndex(v => v.name === name);
+  if (idx !== -1) kbVars.splice(idx, 1);
+  renderVarPickerList();
+  renderMkVarBtns();
+}
+
+function renderVarPickerList() {
+  const list = document.getElementById('varPickerList');
+  if (!list) return;
+  if (kbVars.length === 0) {
+    list.innerHTML = '<div style="color:#666;font-size:13px;text-align:center">Noch keine Variablen definiert</div>';
+    return;
+  }
+  list.innerHTML = kbVars.map((v, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;background:#2a2a4a;border-radius:9px;padding:8px 12px">
+      <span style="font-weight:700;color:#fff;font-size:15px;min-width:40px">${escHtml(v.name)}</span>
+      <span style="color:#888">=</span>
+      <input type="number" value="${v.value}" step="any" data-varidx="${i}"
+        style="flex:1;background:#1a1a2e;border:1px solid #3a3a6a;border-radius:6px;color:#fff;font-size:14px;padding:5px 8px;outline:none;font-family:inherit"
+        class="vp-val-input">
+      <button data-insert-var="${i}"
+        style="background:#00885a;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">Einfügen</button>
+      <button data-delete-var="${i}"
+        style="background:#cc0000;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">✕</button>
+    </div>`
+  ).join('');
+  // Attach event listeners
+  list.querySelectorAll('.vp-val-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = parseInt(inp.dataset.varidx, 10);
+      if (!isNaN(idx) && kbVars[idx]) updateKbVar(kbVars[idx].name, inp.value);
+    });
+  });
+  list.querySelectorAll('[data-insert-var]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.insertVar, 10);
+      if (!isNaN(idx) && kbVars[idx]) mkInsert(kbVars[idx].name);
+    });
+  });
+  list.querySelectorAll('[data-delete-var]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.deleteVar, 10);
+      if (!isNaN(idx) && kbVars[idx]) deleteKbVar(kbVars[idx].name);
+    });
+  });
+}
+
+function updateKbVar(name, rawVal) {
+  const value = parseFloat(rawVal);
+  if (isNaN(value)) return;
+  const v = kbVars.find(v => v.name === name);
+  if (v) v.value = value;
+  // Keep calcVars in sync
+  if (name === 'x' && typeof calcVars !== 'undefined') {
+    calcVars.x = value;
+    const el = document.getElementById('calcVarX');
+    if (el) el.value = value;
+  }
+  if (name === 'y' && typeof calcVars !== 'undefined') {
+    calcVars.y = value;
+    const el = document.getElementById('calcVarY');
+    if (el) el.value = value;
+  }
+  renderMkVarBtns();
+}
+
+function renderMkVarBtns() {
+  const container = document.getElementById('mkVarBtns');
+  if (!container) return;
+  container.innerHTML = kbVars.map((v, i) =>
+    `<button class="mk" data-insert-var="${i}" style="background:#2244aa;font-size:13px;font-weight:700;max-width:60px" title="${escHtml(v.name)} = ${v.value}">${escHtml(v.name)}</button>`
+  ).join('');
+  container.querySelectorAll('[data-insert-var]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.insertVar, 10);
+      if (!isNaN(idx) && kbVars[idx]) mkInsert(kbVars[idx].name);
+    });
+  });
+}
+
+// kbVars initialization is complete above
 
 </script>
 
@@ -5605,6 +5824,11 @@ window.addEventListener('load', () => {
     <button class="mk" onclick="mkInsert('π')">π</button>
     <button class="mk mk-enter" onclick="mkInsert('ENTER')">✓ Fertig</button>
   </div>
+  <!-- Variables row -->
+  <div class="mkrow" id="mkVarRow" style="border-top:1px solid #2a2a4a;padding-top:5px">
+    <button class="mk" style="background:#2244aa;font-size:14px;font-weight:700" onclick="openVarPicker()">𝑥 Vars</button>
+    <div id="mkVarBtns" style="display:flex;flex:1;gap:5px;flex-wrap:wrap;justify-content:flex-start"></div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -5624,6 +5848,27 @@ window.addEventListener('load', () => {
   <div class="fp-actions">
     <button class="fp-btn" onclick="closeFracPicker()">Abbrechen</button>
     <button class="fp-btn ok" onclick="insertFraction()">½ Einfügen</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     VARIABLE PICKER
+══════════════════════════════════════════ -->
+<div id="varPicker" style="position:fixed;bottom:0;left:0;right:0;z-index:9020;
+  background:#1a1a2e;border-top:2px solid #2244aa;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));
+  transform:translateY(100%);transition:transform .25s ease">
+  <h4 style="font-size:13px;font-weight:700;color:#aaa;text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">Variablen</h4>
+  <div id="varPickerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:160px;overflow-y:auto"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <input id="varPickerName" type="text" placeholder="Name (z.B. a)" maxlength="8"
+      style="width:70px;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:9px;color:#fff;font-size:16px;text-align:center;padding:8px;outline:none;font-family:inherit">
+    <span style="color:#888">=</span>
+    <input id="varPickerVal" type="number" placeholder="Wert" step="any"
+      style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:9px;color:#fff;font-size:16px;padding:8px;outline:none;font-family:inherit">
+    <button onclick="addKbVar()" style="background:#2244aa;border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:inherit">+ Hinzufügen</button>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="closeVarPicker()" style="flex:1;padding:12px;background:#2a2a4a;border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Schließen</button>
   </div>
 </div>
 
