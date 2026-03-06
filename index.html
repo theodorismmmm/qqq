@@ -93,7 +93,8 @@
       font-size: 16px; font-weight: 600; padding: 13px; width: 100%; cursor: pointer; }
 
     /* ─── App Shell ─── */
-    #app { display: flex; flex-direction: column; height: 100%; padding-top: var(--st); }
+    #app { display: flex; flex-direction: column; height: 100%; padding-top: var(--st); transition: margin-left .28s ease; }
+    body.sidebar-open #app { margin-left: 280px; }
     #appHdr { height: var(--hdr); background: var(--bg2); border-bottom: 1px solid var(--bdr);
       display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; gap: 10px; }
     #appHdr .logo { width: 32px; height: 32px; background: var(--acc);
@@ -282,8 +283,6 @@
     ::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
 
     /* ─── Sidebar ─── */
-    #sideOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 199; display: none; }
-    #sideOverlay.show { display: block; }
     #sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; background: var(--bg2);
       border-right: 1px solid var(--bdr); z-index: 200; transition: left .28s ease; display: flex;
       flex-direction: column; padding-top: var(--st); }
@@ -333,11 +332,11 @@
     .lc-conn-del { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 13px; padding: 2px 4px; }
 
     /* ─── Sidebar Toggle Button ─── */
-    #sidebarToggle { position: fixed; left: 10px; top: calc(var(--st) + 8px); z-index: 198;
-      width: 36px; height: 36px; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: 9px; color: var(--txt); font-size: 18px; cursor: pointer;
+    #sidebarToggle { width: 36px; height: 36px; background: var(--card); border: 1px solid var(--bdr);
+      border-radius: 9px; color: var(--txt); font-size: 18px; cursor: pointer; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; transition: all .2s; }
     #sidebarToggle:active { opacity: .7; }
+    body.sidebar-open #sidebarToggle { background: var(--acc); color: white; border-color: var(--acc); }
 
     /* ─── Mini Calculator ─── */
     .mcwrap { padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
@@ -748,15 +747,6 @@
     #coordSysBar::-webkit-scrollbar { display: none; }
     .mk.mk-eq { background: #226622; color: white; }
 
-    /* ─── TV Mode canvas ─── */
-    #tvCoordCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .tv-calc-display { color: white; font-size: 42px; font-weight: 300; text-align: right; padding: 24px;
-      font-family: 'Courier New', monospace; }
-    .tv-calc-expr { font-size: 18px; color: #888; text-align: right; padding: 0 24px; min-height: 22px; }
-    .tv-timer-display { font-size: 120px; font-weight: 200; text-align: center; color: white;
-      font-family: 'Courier New', monospace; letter-spacing: 4px; margin-top: 60px; }
-    .tv-timer-label { font-size: 24px; color: #888; text-align: center; margin-top: 10px; }
-
     /* ─── Premium Modal ─── */
     #premiumOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 11000;
       display: none; align-items: flex-end; justify-content: center; padding: 16px; }
@@ -964,9 +954,7 @@
 <!-- ══════════════════════════════════════════
      SIDEBAR
 ══════════════════════════════════════════ -->
-<div id="sideOverlay" onclick="closeSidebar()"></div>
 <button id="restoreUIBtn" onclick="openFsMenu()" title="Menü" aria-label="Menü">☰</button>
-<button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
 <!-- ══════════════════════════════════════════
      FULLSCREEN POPUP MENU
@@ -1193,6 +1181,7 @@
 ══════════════════════════════════════════ -->
 <div id="app" style="display:none">
   <header id="appHdr">
+    <button id="sidebarToggle" onclick="toggleSidebar()" title="Sidebar ein/ausblenden" aria-label="Sidebar ein/ausblenden">☰</button>
     <div class="logo" style="font-size:20px;font-weight:900;color:white;font-family:inherit">M</div>
     <div style="display:flex;flex-direction:column;gap:0">
       <h1>MathSpaces</h1>
@@ -1384,7 +1373,6 @@
         <button class="tbtn" id="lcQuickBtn" title="Linienverbinder ein/aus" onclick="toggleLineConnectModeQuick()">🔗</button>
         <button class="tbtn" title="Mini-Timer öffnen" onclick="openFloatingTimer()">⏱️</button>
         <button class="tbtn" title="Mini-Rechner öffnen" onclick="openFloatingCalc()">🧮</button>
-        <button class="tbtn" id="tvModeBtn" title="TV-Modus / Apple TV Präsentation (Pro)" aria-label="TV-Modus – Premium Feature" onclick="openTvModePremium()">📺<span class="pro-badge">PRO</span></button>
       </div>
 
       <!-- Left draw toolbar -->
@@ -3814,15 +3802,20 @@ function closeFsMenuAndExit() {
 /* ══════════════════════════════════════════════
    SIDEBAR
 ══════════════════════════════════════════════ */
+function _onSidebarTransitionEnd() {
+  resizeCanvas();
+  if (typeof applyRangeSettings === 'function') applyRangeSettings();
+}
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
-  const ov = document.getElementById('sideOverlay');
   const open = sb.classList.toggle('open');
-  ov.classList.toggle('show', open);
+  document.body.classList.toggle('sidebar-open', open);
+  setTimeout(_onSidebarTransitionEnd, 290);
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sideOverlay').classList.remove('show');
+  document.body.classList.remove('sidebar-open');
+  setTimeout(_onSidebarTransitionEnd, 290);
 }
 function switchSideTab(id) {
   document.querySelectorAll('.sdpanel').forEach(p => p.classList.remove('active'));
@@ -5872,111 +5865,6 @@ function initFloatingDrag(widgetId, handleId) {
 }
 
 /* ══════════════════════════════════════════════
-   TV MODE (Apple TV / Presentation Mode)
-══════════════════════════════════════════════ */
-let _tvContent = 'coord';
-let _tvCoordCanvas = null;
-let _tvAnimFrame = null;
-
-function openTvMode() {
-  document.getElementById('tvOverlay').style.display = 'flex';
-  tvSetContent(_tvContent);
-}
-
-function closeTvMode() {
-  document.getElementById('tvOverlay').style.display = 'none';
-  if (_tvAnimFrame) { cancelAnimationFrame(_tvAnimFrame); _tvAnimFrame = null; }
-}
-
-function tvSetContent(type) {
-  _tvContent = type;
-  if (_tvAnimFrame) { cancelAnimationFrame(_tvAnimFrame); _tvAnimFrame = null; }
-  const contentEl = document.getElementById('tvContent');
-  contentEl.innerHTML = '';
-
-  // Update button styles
-  ['coord','calc','timer'].forEach(t => {
-    const b = document.getElementById('tvBtn' + t.charAt(0).toUpperCase() + t.slice(1));
-    if (b) b.style.background = t === type ? '#cc0000' : '#333';
-  });
-
-  if (type === 'coord') {
-    // Mirror the coordinate canvas into a new canvas in TV overlay
-    const cvsTv = document.createElement('canvas');
-    cvsTv.id = 'tvCoordCanvas';
-    cvsTv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
-    contentEl.appendChild(cvsTv);
-    _tvCoordCanvas = cvsTv;
-    // Draw loop: copy from source canvas
-    function tvDraw() {
-      const src = document.getElementById('cvs');
-      if (src && cvsTv.parentNode) {
-        const dpr = window.devicePixelRatio || 1;
-        const W = contentEl.offsetWidth;
-        const H = contentEl.offsetHeight;
-        if (cvsTv.width !== W * dpr || cvsTv.height !== H * dpr) {
-          cvsTv.width = W * dpr;
-          cvsTv.height = H * dpr;
-          cvsTv.style.width = W + 'px';
-          cvsTv.style.height = H + 'px';
-        }
-        const ctx = cvsTv.getContext('2d');
-        ctx.save();
-        ctx.clearRect(0, 0, cvsTv.width, cvsTv.height);
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, cvsTv.width, cvsTv.height);
-        // Draw scaled coordinate canvas
-        const srcW = src.width / dpr;
-        const srcH = src.height / dpr;
-        const scale = Math.min(W / srcW, H / srcH);
-        const dx = (W - srcW * scale) / 2;
-        const dy = (H - srcH * scale) / 2;
-        ctx.scale(dpr, dpr);
-        ctx.drawImage(src, dx, dy, srcW * scale, srcH * scale);
-        ctx.restore();
-      }
-      _tvAnimFrame = requestAnimationFrame(tvDraw);
-    }
-    tvDraw();
-
-  } else if (type === 'calc') {
-    contentEl.style.background = '#1a1a2e';
-    const expr = document.getElementById('calcExpr');
-    const res  = document.getElementById('calcRes');
-    function tvCalcDraw() {
-      if (!contentEl.parentNode) return;
-      contentEl.innerHTML = `
-        <div style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:40px">
-          <div class="tv-calc-expr">${escHtml(expr ? expr.textContent : '')}</div>
-          <div class="tv-calc-display">${escHtml(res ? res.textContent : '0')}</div>
-        </div>`;
-      _tvAnimFrame = requestAnimationFrame(tvCalcDraw);
-    }
-    tvCalcDraw();
-
-  } else if (type === 'timer') {
-    contentEl.style.background = '#0a0a1a';
-    function tvTimerDraw() {
-      if (!contentEl.parentNode) return;
-      const disp = document.getElementById('ftTimerDisplay');
-      const lbl  = document.getElementById('ftTimerLabel');
-      const fill = document.getElementById('ftTimerFill');
-      const pct  = fill ? parseFloat(fill.style.width) : 100;
-      contentEl.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0">
-          <div class="tv-timer-display" style="color:${pct < 10 ? '#cc0000' : '#fff'}">${disp ? escHtml(disp.textContent) : '00:00'}</div>
-          <div class="tv-timer-label">${lbl ? escHtml(lbl.textContent) : ''}</div>
-          <div style="margin-top:30px;width:60%;height:8px;background:#222;border-radius:4px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${pct < 10 ? '#cc0000' : '#2e7d32'};border-radius:4px;transition:width .5s"></div>
-          </div>
-        </div>`;
-      _tvAnimFrame = requestAnimationFrame(tvTimerDraw);
-    }
-    tvTimerDraw();
-  }
-}
-
-/* ══════════════════════════════════════════════
    HANDBUCH (HANDBOOK)
 ══════════════════════════════════════════════ */
 const GLOSSAR = {
@@ -6303,15 +6191,6 @@ function showProWelcome() {
   setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
 }
 
-// ── TV Mode Premium gate ───────────────────────
-function openTvModePremium() {
-  if (isPremium()) {
-    openTvMode();
-  } else {
-    showPremiumModal('TV-Modus ist ein Pro-Feature. Schalte es jetzt frei!');
-  }
-}
-
 /* ══════════════════════════════════════════════
    3D MODEL VIEWER
 ══════════════════════════════════════════════ */
@@ -6547,31 +6426,6 @@ function _3dDraw() {
 </div>
 
 <!-- ══════════════════════════════════════════
-     TV MODE OVERLAY (Apple TV / Presentation)
-══════════════════════════════════════════ -->
-<div id="tvOverlay" style="position:fixed;inset:0;background:#000;z-index:10000;display:none;flex-direction:column">
-  <!-- Top bar -->
-  <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:#111;border-bottom:1px solid #333;flex-shrink:0">
-    <span style="font-size:20px">📺</span>
-    <span style="font-size:15px;font-weight:700;color:#fff;flex:1">TV-Modus</span>
-    <!-- Content selector -->
-    <div style="display:flex;gap:6px">
-      <button id="tvBtnCoord" onclick="tvSetContent('coord')" style="padding:6px 12px;background:#cc0000;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📐 Koordinaten</button>
-      <button id="tvBtnCalc" onclick="tvSetContent('calc')" style="padding:6px 12px;background:#333;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🧮 Rechner</button>
-      <button id="tvBtnTimer" onclick="tvSetContent('timer')" style="padding:6px 12px;background:#333;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⏱️ Timer</button>
-    </div>
-    <button onclick="closeTvMode()" style="padding:6px 12px;background:#444;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✕ Schließen</button>
-  </div>
-  <!-- Content area -->
-  <div id="tvContent" style="flex:1;position:relative;overflow:hidden"></div>
-  <!-- AirPlay hint -->
-  <div style="padding:8px 16px;background:#111;border-top:1px solid #222;display:flex;align-items:center;gap:8px;flex-shrink:0">
-    <span style="font-size:18px">📱</span>
-    <span style="font-size:12px;color:#888;line-height:1.4"><strong style="color:#aaa">Apple TV:</strong> Streiche von unten (iPhone) oder oben (iPad) → Bildschirmsynchronisierung → Apple TV wählen. Dann wird dieser Bildschirm auf dem Apple TV angezeigt.</span>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
      PREMIUM MODAL
 ══════════════════════════════════════════ -->
 <div id="premiumOverlay" onclick="if(event.target===this)hidePremiumModal()">
@@ -6580,13 +6434,6 @@ function _3dDraw() {
     <div class="prem-title">Become a Premium Member</div>
     <div class="prem-sub" id="premiumSubText">Schalte alle Pro-Features frei</div>
     <div class="prem-benefits">
-      <div class="prem-benefit-row">
-        <div class="prem-benefit-icon">📺</div>
-        <div class="prem-benefit-body">
-          <div class="prem-benefit-title">TV-Modus</div>
-          <div class="prem-benefit-desc">Präsentiere auf Apple TV oder externen Bildschirmen</div>
-        </div>
-      </div>
       <div class="prem-benefit-row">
         <div class="prem-benefit-icon">🤖</div>
         <div class="prem-benefit-body">
