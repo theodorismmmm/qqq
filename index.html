@@ -742,6 +742,71 @@
     .tv-timer-display { font-size: 120px; font-weight: 200; text-align: center; color: white;
       font-family: 'Courier New', monospace; letter-spacing: 4px; margin-top: 60px; }
     .tv-timer-label { font-size: 24px; color: #888; text-align: center; margin-top: 10px; }
+
+    /* ─── Premium Modal ─── */
+    #premiumOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 11000;
+      display: none; align-items: flex-end; justify-content: center; padding: 16px; }
+    #premiumOverlay.open { display: flex; }
+    #premiumModal { background: var(--bg); border-radius: 24px 24px 20px 20px; padding: 28px 22px 24px;
+      width: 100%; max-width: 480px; animation: suUp .3s ease; }
+    .prem-crown { font-size: 48px; text-align: center; margin-bottom: 8px; }
+    .prem-title { font-size: 22px; font-weight: 800; text-align: center; color: var(--txt); margin-bottom: 4px; }
+    .prem-sub { font-size: 13px; color: var(--dim); text-align: center; margin-bottom: 20px; }
+    .prem-benefits { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .prem-benefit-row { display: flex; align-items: center; gap: 12px; background: var(--bg2);
+      border-radius: 12px; padding: 12px 14px; }
+    .prem-benefit-icon { font-size: 26px; flex-shrink: 0; }
+    .prem-benefit-body { flex: 1; }
+    .prem-benefit-title { font-size: 14px; font-weight: 700; color: var(--txt); }
+    .prem-benefit-desc { font-size: 12px; color: var(--dim); margin-top: 1px; }
+    .prem-join-btn { width: 100%; padding: 15px; background: #f5a623; border: none; border-radius: 14px;
+      color: white; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit;
+      margin-bottom: 10px; letter-spacing: .3px; }
+    .prem-join-btn:active { opacity: .85; }
+    .prem-notnow-btn { width: 100%; padding: 13px; background: var(--btn); border: none; border-radius: 14px;
+      color: var(--dim); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .prem-notnow-btn:active { opacity: .75; }
+
+    /* ─── Activation Modal ─── */
+    #activateOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12000;
+      display: none; align-items: center; justify-content: center; padding: 20px; }
+    #activateOverlay.open { display: flex; }
+    #activateModal { background: var(--bg); border-radius: 20px; padding: 28px 22px;
+      width: 100%; max-width: 400px; animation: suUp .3s ease; text-align: center; }
+    .act-icon { font-size: 52px; margin-bottom: 12px; }
+    .act-title { font-size: 20px; font-weight: 800; color: var(--txt); margin-bottom: 6px; }
+    .act-sub { font-size: 13px; color: var(--dim); margin-bottom: 20px; line-height: 1.5; }
+    .act-input { width: 100%; padding: 13px 16px; border: 2px solid var(--bdr); border-radius: 12px;
+      font-size: 16px; font-family: 'Courier New', monospace; background: var(--bg2); color: var(--txt);
+      text-align: center; letter-spacing: 2px; margin-bottom: 8px; outline: none; }
+    .act-input:focus { border-color: #f5a623; }
+    .act-error { font-size: 13px; color: #cc0000; min-height: 18px; margin-bottom: 12px; }
+    .act-confirm-btn { width: 100%; padding: 14px; background: #f5a623; border: none; border-radius: 12px;
+      color: white; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+      margin-bottom: 10px; }
+    .act-confirm-btn:active { opacity: .85; }
+    .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 12px;
+      color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+    /* ─── 3D Model Overlay ─── */
+    #model3dOverlay { position: fixed; inset: 0; background: #0a0a1a; z-index: 10500;
+      display: none; flex-direction: column; }
+    #model3dOverlay.open { display: flex; }
+    #model3dBar { height: 52px; background: #111; border-bottom: 1px solid #222; display: flex;
+      align-items: center; padding: 0 14px; gap: 12px; flex-shrink: 0; }
+    #model3dTitle { font-size: 15px; font-weight: 700; color: #fff; flex: 1; }
+    #model3dCanvas { flex: 1; width: 100%; }
+    #model3dHint { padding: 8px 14px; background: #111; border-top: 1px solid #222;
+      font-size: 12px; color: #555; text-align: center; flex-shrink: 0; }
+
+    /* ─── Crown badge for premium Vorlagen ─── */
+    .vtpl-crown { display: inline-flex; align-items: center; gap: 5px; }
+    .vtpl-crown-badge { font-size: 13px; }
+    .vtpl-row-premium .vtpl-btn { background: #f5a623; color: white; }
+    .vtpl-row-premium .vtpl-btn:active { opacity: .8; }
+    .pro-badge { display: inline-block; background: linear-gradient(135deg,#f5a623,#e08010);
+      color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 20px;
+      vertical-align: middle; margin-left: 4px; letter-spacing: .5px; }
   </style>
 </head>
 <body>
@@ -1305,7 +1370,7 @@
         <button class="tbtn" id="lcQuickBtn" title="Linienverbinder ein/aus" onclick="toggleLineConnectModeQuick()">🔗</button>
         <button class="tbtn" title="Mini-Timer öffnen" onclick="openFloatingTimer()">⏱️</button>
         <button class="tbtn" title="Mini-Rechner öffnen" onclick="openFloatingCalc()">🧮</button>
-        <button class="tbtn" id="tvModeBtn" title="TV-Modus / Apple TV Präsentation" onclick="openTvMode()">📺</button>
+        <button class="tbtn" id="tvModeBtn" title="TV-Modus / Apple TV Präsentation (Pro)" aria-label="TV-Modus – Premium Feature" onclick="openTvModePremium()">📺<span class="pro-badge">PRO</span></button>
       </div>
 
       <!-- Left draw toolbar -->
@@ -1415,6 +1480,16 @@
               <div class="vtpl-row"><span class="vtpl-lbl">⊙ Ursprung &nbsp;<small>(0, 0)</small></span><button class="vtpl-btn" onclick="insertCoordPoint(0,0,'O')">→ Einfügen</button></div>
               <div class="vtpl-row"><span class="vtpl-lbl">➕ Einheitspunkte &nbsp;<small>(1,0), (0,1)</small></span><button class="vtpl-btn" onclick="insertUnitPoints()">→ Einfügen</button></div>
               <div class="vtpl-row"><span class="vtpl-lbl">🔵 Einheitskreis-Punkte &nbsp;<small>N, E, S, W</small></span><button class="vtpl-btn" onclick="insertUnitCirclePoints()">→ Einfügen</button></div>
+            </div>
+
+            <!-- 3D Models – Premium -->
+            <div class="psect" style="margin-top:14px">3D-Modelle <span class="pro-badge">PRO</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Paraboloid &nbsp;<small>z = x²+y²</small></span><button class="vtpl-btn" onclick="open3DModel('paraboloid')">→ Öffnen</button></div>
+              <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Sattelfläche &nbsp;<small>z = x²−y²</small></span><button class="vtpl-btn" onclick="open3DModel('saddle')">→ Öffnen</button></div>
+              <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Kegel &nbsp;<small>z = √(x²+y²)</small></span><button class="vtpl-btn" onclick="open3DModel('cone')">→ Öffnen</button></div>
+              <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Sinus-Fläche &nbsp;<small>z = sin(x)·cos(y)</small></span><button class="vtpl-btn" onclick="open3DModel('sincos')">→ Öffnen</button></div>
+              <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Ebene &nbsp;<small>z = x+y</small></span><button class="vtpl-btn" onclick="open3DModel('plane')">→ Öffnen</button></div>
             </div>
           </div>
 
@@ -1915,7 +1990,7 @@
     <div id="tabAgent" class="panel">
       <div class="agent-hdr">
         <div class="agent-hdr-title">🤖 Math Agent</div>
-        <span class="agent-counter" id="agentCounter">0 / 50</span>
+        <span class="agent-counter" id="agentCounter">0 / 5</span>
         <button class="agent-add-task" onclick="agentAddTask()">+ Aufgabe</button>
         <button class="agent-run-btn" id="agentRunBtn" onclick="agentRun()">▶ Agent starten</button>
       </div>
@@ -4797,8 +4872,8 @@ function bildSendAllToAgent() {
   agentAddTask();
   const taskIdx = agentTasks.length - 1;
   agentTasks[taskIdx].name = 'OCR-Aufgaben';
-  // Fill up to 50 total items
-  const space = 50 - agentTotalItems();
+  // Fill up to max total items
+  const space = agentGetMax() - agentTotalItems();
   const eqs = bildDetectedEqs.slice(0, Math.max(0, space));
   if (eqs.length === 0) { agentTasks.pop(); agentRenderTasks(); switchTab('agent'); return; }
   agentTasks[taskIdx].items = eqs.slice();
@@ -4821,7 +4896,11 @@ function agentTotalItems() {
 }
 
 function agentAddTask() {
-  if (agentTotalItems() >= AGENT_MAX) return;
+  const max = agentGetMax();
+  if (agentTasks.length >= max) {
+    showPremiumModal('Als Free-Nutzer kannst du maximal 5 Aufgaben erstellen. Werde Premium für bis zu 50!');
+    return;
+  }
   const n = agentTasks.length + 1;
   agentTasks.push({ name: 'Aufgabe ' + n, items: [''] });
   agentRenderTasks();
@@ -4833,7 +4912,7 @@ function agentRemoveTask(taskIdx) {
 }
 
 function agentAddItem(taskIdx) {
-  if (agentTotalItems() >= AGENT_MAX) return;
+  if (agentTotalItems() >= agentGetMax()) return;
   agentTasks[taskIdx].items.push('');
   agentRenderTasks();
 }
@@ -4847,7 +4926,8 @@ function agentRemoveItem(taskIdx, itemIdx) {
 function agentUpdateItem(taskIdx, itemIdx, value) {
   if (agentTasks[taskIdx]) agentTasks[taskIdx].items[itemIdx] = value;
   // Update counter
-  document.getElementById('agentCounter').textContent = agentTotalItems() + ' / ' + AGENT_MAX;
+  const max = agentGetMax();
+  document.getElementById('agentCounter').textContent = agentTotalItems() + ' / ' + max;
 }
 
 function agentUpdateTaskName(taskIdx, value) {
@@ -4858,7 +4938,8 @@ function agentRenderTasks() {
   const wrap = document.getElementById('agentTasksWrap');
   const empty = document.getElementById('agentEmpty');
   const total = agentTotalItems();
-  document.getElementById('agentCounter').textContent = total + ' / ' + AGENT_MAX;
+  const max = agentGetMax();
+  document.getElementById('agentCounter').textContent = total + ' / ' + max;
 
   if (agentTasks.length === 0) {
     empty.style.display = '';
@@ -4883,7 +4964,7 @@ function agentRenderTasks() {
         <button class="agent-item-del" onclick="agentRemoveItem(${ti},${ii})" title="Entfernen">✕</button>
       </div>`).join('');
 
-    const canAdd = total < AGENT_MAX;
+    const canAdd = total < max;
     card.innerHTML = `
       <div class="agent-task-head">
         <input class="agent-task-name" type="text" value="${escHtml(task.name)}"
@@ -4893,7 +4974,7 @@ function agentRenderTasks() {
       </div>
       <div class="agent-items-list">${itemsHtml}</div>
       <button class="agent-add-item" onclick="agentAddItem(${ti})" ${canAdd ? '' : 'disabled'}>
-        ${canAdd ? '+ Gleichung / Aufgabe hinzufügen' : 'Limit erreicht (50)'}
+        ${canAdd ? '+ Gleichung / Aufgabe hinzufügen' : 'Limit erreicht (' + max + ')'}
       </button>`;
     wrap.appendChild(card);
   });
@@ -6096,6 +6177,241 @@ function renderMkVarBtns() {
 
 // kbVars initialization is complete above
 
+/* ══════════════════════════════════════════════
+   PREMIUM / PRO SYSTEM
+══════════════════════════════════════════════ */
+const PRO_CODE = 'Kostenlos123';
+const PRO_KEY  = 'mathspaces_pro';
+const AGENT_MAX_FREE = 5;
+const AGENT_MAX_PRO  = 50;
+
+function isPremium() {
+  try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
+}
+
+function setPremium(val) {
+  try { localStorage.setItem(PRO_KEY, val ? '1' : '0'); } catch(e) {}
+}
+
+function agentGetMax() {
+  return isPremium() ? AGENT_MAX_PRO : AGENT_MAX_FREE;
+}
+
+// ── Premium modal ──────────────────────────────
+function showPremiumModal(reason) {
+  if (reason) document.getElementById('premiumSubText').textContent = reason;
+  else document.getElementById('premiumSubText').textContent = 'Schalte alle Pro-Features frei';
+  // Update benefit description with actual pro limit
+  const desc = document.getElementById('premBenefitAgentDesc');
+  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_PRO + ')';
+  document.getElementById('premiumOverlay').classList.add('open');
+}
+
+function hidePremiumModal() {
+  document.getElementById('premiumOverlay').classList.remove('open');
+}
+
+// ── Activation modal ──────────────────────────
+function showActivateModal() {
+  hidePremiumModal();
+  document.getElementById('activateCodeInput').value = '';
+  document.getElementById('activateError').textContent = '';
+  document.getElementById('activateOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('activateCodeInput').focus(), 200);
+}
+
+function hideActivateModal() {
+  document.getElementById('activateOverlay').classList.remove('open');
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('activateOverlay').classList.contains('open')) { hideActivateModal(); }
+    else if (document.getElementById('premiumOverlay').classList.contains('open')) { hidePremiumModal(); }
+    else if (document.getElementById('model3dOverlay').classList.contains('open')) { close3DModel(); }
+  }
+});
+
+function activatePro() {
+  const code = document.getElementById('activateCodeInput').value.trim();
+  if (code === PRO_CODE) {
+    setPremium(true);
+    document.getElementById('activateOverlay').classList.remove('open');
+    // Update agent counter to reflect new limit
+    agentRenderTasks();
+    showProWelcome();
+  } else {
+    document.getElementById('activateError').textContent = '❌ Ungültiger Code. Bitte versuche es erneut.';
+    document.getElementById('activateCodeInput').select();
+  }
+}
+
+function showProWelcome() {
+  // Show a simple confirmation toast-style message
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f5a623;color:#fff;padding:14px 22px;border-radius:14px;font-size:15px;font-weight:700;z-index:13000;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
+  el.textContent = '🎉 MathSpaces Pro aktiviert!';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
+}
+
+// ── TV Mode Premium gate ───────────────────────
+function openTvModePremium() {
+  if (isPremium()) {
+    openTvMode();
+  } else {
+    showPremiumModal('TV-Modus ist ein Pro-Feature. Schalte es jetzt frei!');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   3D MODEL VIEWER
+══════════════════════════════════════════════ */
+let _3dModel = null;
+let _3dAnimFrame = null;
+let _3dRotX = 0.4;
+let _3dRotY = 0.5;
+let _3dDragActive = false;
+let _3dDragLast = { x: 0, y: 0 };
+
+const _3dModels = {
+  paraboloid: { title: 'Paraboloid – z = x² + y²', fn: (x,y) => x*x + y*y, range: 3, zScale: 0.5 },
+  saddle:     { title: 'Sattelfläche – z = x² − y²', fn: (x,y) => x*x - y*y, range: 3, zScale: 0.5 },
+  cone:       { title: 'Kegel – z = √(x²+y²)', fn: (x,y) => Math.sqrt(x*x+y*y), range: 3, zScale: 0.5 },
+  sincos:     { title: 'Sinus-Fläche – z = sin(x)·cos(y)', fn: (x,y) => Math.sin(x)*Math.cos(y), range: Math.PI*1.5, zScale: 1.2 },
+  plane:      { title: 'Ebene – z = x + y', fn: (x,y) => x+y, range: 3, zScale: 0.4 }
+};
+
+function open3DModel(modelKey) {
+  if (!isPremium()) {
+    showPremiumModal('3D-Modelle sind ein Pro-Feature. Schalte sie jetzt frei!');
+    return;
+  }
+  const m = _3dModels[modelKey];
+  if (!m) return;
+  _3dModel = m;
+  _3dRotX = 0.4; _3dRotY = 0.5;
+  document.getElementById('model3dTitle').textContent = m.title;
+  document.getElementById('model3dOverlay').classList.add('open');
+  requestAnimationFrame(_3dStart);
+}
+
+function close3DModel() {
+  document.getElementById('model3dOverlay').classList.remove('open');
+  if (_3dAnimFrame) { cancelAnimationFrame(_3dAnimFrame); _3dAnimFrame = null; }
+}
+
+function _3dStart() {
+  const cvs = document.getElementById('model3dCanvas');
+  const overlay = document.getElementById('model3dOverlay');
+  cvs.width  = overlay.clientWidth;
+  cvs.height = overlay.clientHeight - 52 - 32; // minus bar and hint
+  _3dDraw();
+
+  // Drag handlers
+  cvs.onmousedown = e => { _3dDragActive = true; _3dDragLast = { x: e.clientX, y: e.clientY }; };
+  cvs.onmousemove = e => {
+    if (!_3dDragActive) return;
+    _3dRotY += (e.clientX - _3dDragLast.x) * 0.01;
+    _3dRotX += (e.clientY - _3dDragLast.y) * 0.01;
+    _3dDragLast = { x: e.clientX, y: e.clientY };
+    _3dDraw();
+  };
+  cvs.onmouseup = () => { _3dDragActive = false; };
+  cvs.ontouchstart = e => { if (!e.touches || !e.touches.length) return; _3dDragActive = true; _3dDragLast = { x: e.touches[0].clientX, y: e.touches[0].clientY }; e.preventDefault(); };
+  cvs.ontouchmove = e => {
+    if (!_3dDragActive || !e.touches || !e.touches.length) return;
+    _3dRotY += (e.touches[0].clientX - _3dDragLast.x) * 0.01;
+    _3dRotX += (e.touches[0].clientY - _3dDragLast.y) * 0.01;
+    _3dDragLast = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    _3dDraw();
+    e.preventDefault();
+  };
+  cvs.ontouchend = () => { _3dDragActive = false; };
+}
+
+function _3dProject(x, y, z, cx, cy, scale) {
+  // Rotate around Y axis then X axis
+  const ry = _3dRotY, rx = _3dRotX;
+  const x1 = x * Math.cos(ry) + z * Math.sin(ry);
+  const z1 = -x * Math.sin(ry) + z * Math.cos(ry);
+  const y1 = y * Math.cos(rx) - z1 * Math.sin(rx);
+  const z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+  // Simple perspective projection
+  const fov = 4;
+  const d = fov / (fov + z2 * 0.5);
+  return { sx: cx + x1 * scale * d, sy: cy - y1 * scale * d, depth: z2 };
+}
+
+function _3dDraw() {
+  if (!_3dModel) return;
+  const cvs = document.getElementById('model3dCanvas');
+  if (!cvs) return;
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, H = cvs.height;
+  const cx = W / 2, cy = H / 2;
+  const scale = Math.min(W, H) * 0.22;
+
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, W, H);
+
+  const steps = 22;
+  const range = _3dModel.range;
+  const zs = _3dModel.zScale;
+  const fn = _3dModel.fn;
+
+  // Build grid of quads and sort by depth (painter's algorithm)
+  const quads = [];
+  for (let i = 0; i < steps; i++) {
+    for (let j = 0; j < steps; j++) {
+      const x0 = -range + (2*range/steps) * i,     y0 = -range + (2*range/steps) * j;
+      const x1 = -range + (2*range/steps) * (i+1), y1 = -range + (2*range/steps) * (j+1);
+      const z00 = fn(x0, y0) * zs, z10 = fn(x1, y0) * zs;
+      const z01 = fn(x0, y1) * zs, z11 = fn(x1, y1) * zs;
+      const p00 = _3dProject(x0, y0, z00, cx, cy, scale);
+      const p10 = _3dProject(x1, y0, z10, cx, cy, scale);
+      const p11 = _3dProject(x1, y1, z11, cx, cy, scale);
+      const p01 = _3dProject(x0, y1, z01, cx, cy, scale);
+      const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) / 4;
+      // Color based on z value
+      const zAvg = (z00 + z10 + z01 + z11) / 4;
+      const zMax = range * zs;
+      const t = Math.max(0, Math.min(1, (zAvg + zMax) / (2 * zMax)));
+      quads.push({ pts: [p00, p10, p11, p01], depth: avgDepth, t });
+    }
+  }
+  // Sort back to front
+  quads.sort((a, b) => a.depth - b.depth);
+
+  // Draw quads
+  quads.forEach(q => {
+    const r = Math.round(30 + q.t * 80);
+    const g = Math.round(60 + q.t * 140);
+    const b = Math.round(180 - q.t * 80);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(q.pts[0].sx, q.pts[0].sy);
+    q.pts.forEach(p => ctx.lineTo(p.sx, p.sy));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  // Draw axes
+  const origin = _3dProject(0, 0, 0, cx, cy, scale);
+  const ax = _3dProject(range * 0.8, 0, 0, cx, cy, scale);
+  const ay = _3dProject(0, range * 0.8, 0, cx, cy, scale);
+  const az = _3dProject(0, 0, range * zs * 0.8, cx, cy, scale);
+  [['x', ax, '#ff4444'], ['y', ay, '#44ff44'], ['z', az, '#4488ff']].forEach(([lbl, pt, col]) => {
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(origin.sx, origin.sy); ctx.lineTo(pt.sx, pt.sy); ctx.stroke();
+    ctx.fillStyle = col; ctx.font = 'bold 13px sans-serif'; ctx.fillText(lbl, pt.sx + 5, pt.sy);
+  });
+}
+
 </script>
 
 <!-- ══════════════════════════════════════════
@@ -6206,6 +6522,77 @@ function renderMkVarBtns() {
     <span style="font-size:18px">📱</span>
     <span style="font-size:12px;color:#888;line-height:1.4"><strong style="color:#aaa">Apple TV:</strong> Streiche von unten (iPhone) oder oben (iPad) → Bildschirmsynchronisierung → Apple TV wählen. Dann wird dieser Bildschirm auf dem Apple TV angezeigt.</span>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PREMIUM MODAL
+══════════════════════════════════════════ -->
+<div id="premiumOverlay" onclick="if(event.target===this)hidePremiumModal()">
+  <div id="premiumModal">
+    <div class="prem-crown">👑</div>
+    <div class="prem-title">Become a Premium Member</div>
+    <div class="prem-sub" id="premiumSubText">Schalte alle Pro-Features frei</div>
+    <div class="prem-benefits">
+      <div class="prem-benefit-row">
+        <div class="prem-benefit-icon">📺</div>
+        <div class="prem-benefit-body">
+          <div class="prem-benefit-title">TV-Modus</div>
+          <div class="prem-benefit-desc">Präsentiere auf Apple TV oder externen Bildschirmen</div>
+        </div>
+      </div>
+      <div class="prem-benefit-row">
+        <div class="prem-benefit-icon">🤖</div>
+        <div class="prem-benefit-body">
+          <div class="prem-benefit-title">Unbegrenzte Agent-Aufgaben</div>
+          <div class="prem-benefit-desc" id="premBenefitAgentDesc">Löse beliebig viele Aufgaben auf einmal</div>
+        </div>
+      </div>
+      <div class="prem-benefit-row">
+        <div class="prem-benefit-icon">🧊</div>
+        <div class="prem-benefit-body">
+          <div class="prem-benefit-title">3D-Modelle</div>
+          <div class="prem-benefit-desc">Interaktive 3D-Funktionsvisualisierungen (Paraboloid, Kegel u.v.m.)</div>
+        </div>
+      </div>
+      <div class="prem-benefit-row">
+        <div class="prem-benefit-icon">⭐</div>
+        <div class="prem-benefit-body">
+          <div class="prem-benefit-title">Alle zukünftigen Features</div>
+          <div class="prem-benefit-desc">Du bekommst automatisch alle neuen Pro-Features</div>
+        </div>
+      </div>
+    </div>
+    <button class="prem-join-btn" onclick="showActivateModal()">🚀 Join Now</button>
+    <button class="prem-notnow-btn" onclick="hidePremiumModal()">Not Now</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ACTIVATION MODAL
+══════════════════════════════════════════ -->
+<div id="activateOverlay">
+  <div id="activateModal">
+    <div class="act-icon">🔑</div>
+    <div class="act-title">Activate MathSpaces Pro</div>
+    <div class="act-sub">Gib deinen Aktivierungscode ein, um MathSpaces Pro freizuschalten.</div>
+    <input class="act-input" id="activateCodeInput" type="text" placeholder="Aktivierungscode" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="act-error" id="activateError"></div>
+    <button class="act-confirm-btn" onclick="activatePro()">✅ Aktivieren</button>
+    <button class="act-back-btn" onclick="hideActivateModal()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     3D MODEL OVERLAY
+══════════════════════════════════════════ -->
+<div id="model3dOverlay">
+  <div id="model3dBar">
+    <span style="font-size:22px">🧊</span>
+    <span id="model3dTitle">3D-Modell</span>
+    <button onclick="close3DModel()" style="padding:6px 14px;background:#333;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto">✕ Schließen</button>
+  </div>
+  <canvas id="model3dCanvas"></canvas>
+  <div id="model3dHint">Ziehe mit dem Finger / der Maus, um das Modell zu drehen</div>
 </div>
 
 </body>
