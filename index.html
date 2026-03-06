@@ -351,6 +351,25 @@
       display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
     body.hide-ui #restoreUIBtn { display: flex; }
 
+    /* ─── Fullscreen popup menu ─── */
+    #fsMenuOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1100; display: none; }
+    #fsMenuOverlay.open { display: block; }
+    #fsMenu { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+      border-radius: 20px 20px 0 0; z-index: 1101; padding: 20px 16px;
+      padding-bottom: calc(16px + var(--sb));
+      animation: suUp .25s ease; }
+    #fsMenu h3 { font-size: 13px; font-weight: 700; color: var(--dim); text-transform: uppercase;
+      letter-spacing: .8px; margin-bottom: 14px; text-align: center; }
+    #fsMenu .fsmodes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    #fsMenu .fsmodes button { background: var(--bg2); border: 2px solid transparent; border-radius: var(--r);
+      color: var(--txt); font-size: 12px; font-weight: 600; padding: 10px 6px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px; line-height: 1.2; font-family: inherit; }
+    #fsMenu .fsmodes button.active { border-color: var(--acc); color: var(--acc); }
+    #fsMenu .fsmodes button span { font-size: 22px; }
+    #fsMenu .fsExit { background: var(--bg2); border: none; border-radius: var(--r); color: var(--txt);
+      font-size: 15px; font-weight: 600; padding: 13px; width: 100%; cursor: pointer; font-family: inherit; }
+    #fsMenu .fsExit:active { opacity: .7; }
+
     /* ─── Ruler on canvas ─── */
     #rulerH { position: absolute; top: 0; left: 20px; right: 0; height: 20px; pointer-events: none; z-index: 4; display: none; }
     #rulerV { position: absolute; top: 20px; left: 0; width: 20px; bottom: 0; pointer-events: none; z-index: 4; display: none; }
@@ -603,8 +622,24 @@
      SIDEBAR
 ══════════════════════════════════════════ -->
 <div id="sideOverlay" onclick="closeSidebar()"></div>
-<button id="restoreUIBtn" onclick="toggleHideUI()" title="UI einblenden" aria-label="UI einblenden">☰</button>
+<button id="restoreUIBtn" onclick="openFsMenu()" title="Menü" aria-label="Menü">☰</button>
 <button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+<!-- ══════════════════════════════════════════
+     FULLSCREEN POPUP MENU
+══════════════════════════════════════════ -->
+<div id="fsMenuOverlay" onclick="closeFsMenu()"></div>
+<div id="fsMenu" style="display:none">
+  <h3>Ansicht wechseln</h3>
+  <div class="fsmodes">
+    <button id="fsModeRechner" onclick="fsSwitchTab('rechner')"><span>🧮</span>Rechner</button>
+    <button id="fsModeKoord" onclick="fsSwitchTab('koordinaten')"><span>📐</span>Koordinaten</button>
+    <button id="fsModeNotizen" onclick="fsSwitchTab('notizen')"><span>📝</span>Notizen</button>
+    <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Klasse</button>
+    <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
+  </div>
+  <button class="fsExit" onclick="closeFsMenuAndExit()">✕ Vollbild beenden</button>
+</div>
 
 <div id="sidebar">
   <div class="sdhdr">
@@ -2514,6 +2549,32 @@ function toggleHideUI() {
 }
 
 /* ══════════════════════════════════════════════
+   FULLSCREEN POPUP MENU
+══════════════════════════════════════════════ */
+function openFsMenu() {
+  // Highlight the currently active tab button
+  const tabs = ['rechner','koordinaten','notizen','klasse','bild'];
+  const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild'];
+  ids.forEach((id, i) => {
+    document.getElementById(id).classList.toggle('active', tabs[i] === currentTab);
+  });
+  document.getElementById('fsMenuOverlay').classList.add('open');
+  document.getElementById('fsMenu').style.display = 'block';
+}
+function closeFsMenu() {
+  document.getElementById('fsMenuOverlay').classList.remove('open');
+  document.getElementById('fsMenu').style.display = 'none';
+}
+function fsSwitchTab(tab) {
+  closeFsMenu();
+  switchTab(tab);
+}
+function closeFsMenuAndExit() {
+  closeFsMenu();
+  toggleHideUI();
+}
+
+/* ══════════════════════════════════════════════
    SIDEBAR
 ══════════════════════════════════════════════ */
 function toggleSidebar() {
@@ -3166,6 +3227,8 @@ function bildParseAndShow(rawText) {
         const res = steps.find(s => s.result);
         if (res) solHtml = `<div class="bild-item-sol">Lösung: <strong>${escHtml(res.math)}</strong></div>`;
       } catch { /* unsolvable – still show it */ }
+      // Check if equation can be plotted as y = f(x)
+      const fnExpr = bildExtractFnExpr(eq);
 
       html += `<div class="bild-eq-item">
         <div class="bild-item-text">${escHtml(eq)}</div>
@@ -3173,6 +3236,7 @@ function bildParseAndShow(rawText) {
         <div class="bild-item-actions">
           <button class="bi-btn" onclick="bildSendToSolver(${idx})">→ Gleichungslöser</button>
           <button class="bi-btn" onclick="bildSendToCalc(${idx})">→ Rechner</button>
+          ${fnExpr !== null ? `<button class="bi-btn" onclick="bildSendToCoordFn(${idx})">→ Koordinatensystem</button>` : ''}
           <button class="bi-btn" onclick="bildCopyEq(${idx})">📋 Kopieren</button>
         </div>
       </div>`;
@@ -3272,6 +3336,33 @@ function bildCopyPt(idx) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).catch(() => {});
   }
+}
+
+/* ─ Extract plottable function expression from an equation ─
+   Returns the right-hand side expression (in x) if the equation
+   has the form  y = …  /  f(x) = …  /  y = constant, otherwise null. */
+function bildExtractFnExpr(eq) {
+  // Strip "y =" / "f(x) =" / "y=" prefix
+  const m = eq.match(/^(?:y|f\s*\(\s*x\s*\))\s*=\s*(.+)$/i);
+  if (!m) return null;
+  const expr = m[1].replace(/\s/g, '');
+  if (!expr) return null;
+  // Validate: must evaluate to a finite number at x = 1
+  const val = evalFn(expr, 1);
+  if (!isFinite(val)) return null;
+  return expr;
+}
+
+function bildSendToCoordFn(idx) {
+  const eq = bildDetectedEqs[idx];
+  if (!eq) return;
+  const expr = bildExtractFnExpr(eq);
+  if (!expr) return;
+  const color = COLORS[colorIdx % COLORS.length]; colorIdx++;
+  const id = coord.nextId++;
+  coord.functions.push({ expr, color, id, raw: eq });
+  switchTab('koordinaten');
+  setTimeout(() => { renderFnList(); resizeCanvas(); drawCoord(); }, 120);
 }
 
 /* ─ Statistics calculator ─ */
