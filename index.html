@@ -4678,6 +4678,13 @@ function toggleHideUI() {
    FULLSCREEN POPUP MENU
 ══════════════════════════════════════════════ */
 function openFsMenu() {
+  // Sync fsMenu button visibility with nav buttons (respects license/feature restrictions)
+  Object.entries(FS_NAV_MAP).forEach(([navId, fsId]) => {
+    const navBtn = document.getElementById(navId);
+    const fsBtn  = document.getElementById(fsId);
+    if (navBtn && fsBtn) fsBtn.style.display = navBtn.style.display;
+  });
+
   // Highlight the currently active tab button
   const tabs = ['rechner','koordinaten','notizen','klasse','bild','agent','handbuch'];
   const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild','fsModeAgent','fsModeHandbuch'];
@@ -7853,6 +7860,17 @@ const FEAT_NAV = {
 };
 // Always-visible nav items (never hidden)
 const NAV_ALWAYS = ['nbHandbuch', 'nbSettings'];
+
+// navButtonId → fsMenu buttonId (used to sync fullscreen-menu visibility with nav)
+const FS_NAV_MAP = {
+  nbRechner:  'fsModeRechner',
+  nbKoord:    'fsModeKoord',
+  nbNotizen:  'fsModeNotizen',
+  nbKlasse:   'fsModeKlasse',
+  nbBild:     'fsModeBild',
+  nbAgent:    'fsModeAgent',
+  nbHandbuch: 'fsModeHandbuch',
+};
 
 // Grade → recommended default features
 const GRADE_DEFAULTS = {
