@@ -14,13 +14,24 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <style>
+    /* ═══════════════════════════════════════════════════════════
+       UI PROTOCOL: Each major UI region is scoped to its own ID
+       to prevent style interference between components.
+       • #app       – main application shell
+       • #sidebar   – side panel / tools
+       • #kpanel    – coordinate system bottom panel  
+       • #fsMenu    – fullscreen navigation overlay
+       • #premiumOverlay, #activateOverlay – modal dialogs
+       All component-specific styles MUST be prefixed with their
+       parent ID selector to maintain isolation.
+       ═══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     :root {
       --bg: #ffffff; --bg2: #f5f5f5; --card: #eeeeee; --btn: #e0e0e0; --btn2: #d0d0d0;
       --acc: #cc0000; --acc2: #cc0000; --acc3: #111111; --acc4: #cc0000;
       --txt: #111111; --dim: #555555; --bdr: #cccccc;
       --nav: 64px; --hdr: 52px; --sb: env(safe-area-inset-bottom, 0px); --st: env(safe-area-inset-top, 0px);
-      --r: 12px;
+      --r: 0;
     }
     html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--txt);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; -webkit-user-select: none; }
@@ -29,7 +40,7 @@
     #installScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex;
       flex-direction: column; align-items: center; padding: 28px 20px 80px; text-align: center; overflow-y: auto; }
     #installScreen .ic { width: 96px; height: 96px; background: var(--acc);
-      border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 52px;
+      border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 52px;
       margin-bottom: 20px; flex-shrink:0; }
     #installScreen h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px; color: var(--txt); }
     #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 28px; }
@@ -52,7 +63,7 @@
     .inst-option .io-title { font-size: 15px; font-weight: 700; color: var(--txt); margin-bottom: 2px; }
     .inst-option.disabled .io-title { text-decoration: line-through; color: var(--dim); }
     .inst-option .io-sub { font-size: 12px; color: var(--dim); }
-    .inst-option .io-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+    .inst-option .io-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 0; flex-shrink: 0; }
     .inst-option.disabled .io-badge { background: var(--btn); color: var(--dim); }
     .inst-option.available .io-badge { background: var(--acc); color: white; }
 
@@ -74,7 +85,7 @@
 
     /* "Im Web nutzen" floating button */
     #webUseBtn { position: fixed; bottom: 18px; right: 16px; z-index: 10000;
-      background: var(--btn); border: 1px solid var(--bdr); border-radius: 20px;
+      background: var(--btn); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--dim); font-size: 12px; font-weight: 600; padding: 8px 14px;
       cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,.12);
       white-space: nowrap; }
@@ -83,7 +94,7 @@
     /* ─── Warning Modal ─── */
     #warnOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 9998;
       display: flex; align-items: flex-end; padding: 16px; }
-    #warnModal { background: var(--card); border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 500px;
+    #warnModal { background: var(--card); border-radius: 0; padding: 24px 20px; width: 100%; max-width: 500px;
       margin: 0 auto; margin-bottom: calc(var(--sb) + 8px); animation: suUp .3s ease; }
     @keyframes suUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     #warnModal .wi { font-size: 36px; margin-bottom: 10px; }
@@ -98,7 +109,7 @@
     #appHdr { height: var(--hdr); background: var(--bg2); border-bottom: 1px solid var(--bdr);
       display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; gap: 10px; }
     #appHdr .logo { width: 32px; height: 32px; background: var(--acc);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+      border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     #appHdr h1 { font-size: 19px; font-weight: 700; color: var(--txt); }
     #content { flex: 1; overflow: hidden; position: relative; }
 
@@ -116,7 +127,7 @@
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
-    .stab { flex: 1; padding: 8px 4px; background: none; border: none; border-radius: 8px;
+    .stab { flex: 1; padding: 8px 4px; background: none; border: none; border-radius: 0;
       color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer; transition: all .2s; }
     .stab.active { background: var(--acc); color: white; }
     .spanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -126,7 +137,7 @@
     #tabRechner > .stabs { flex-direction: column; border-bottom: none; border-right: 1px solid var(--bdr);
       width: 64px; flex-shrink: 0; padding: 6px 4px; gap: 3px; align-items: stretch; overflow-y: auto; }
     #tabRechner > .stabs .stab { flex: none; padding: 10px 4px 8px; display: flex; flex-direction: column;
-      align-items: center; gap: 3px; font-size: 9px; line-height: 1.2; border-radius: 10px; font-weight: 600;
+      align-items: center; gap: 3px; font-size: 9px; line-height: 1.2; border-radius: 0; font-weight: 600;
       white-space: nowrap; text-align: center; }
     #tabRechner > .stabs .stab .si { font-size: 22px; line-height: 1; display: block; }
     .spanels-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
@@ -161,7 +172,7 @@
     .sect { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
     .ig { background: var(--bg2); border-radius: var(--r); padding: 14px; }
     .ig label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
-    .mi { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .mi { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 17px; padding: 11px 13px; font-family: 'Courier New', monospace; outline: none;
       -webkit-user-select: text; user-select: text; }
     .mi:focus { border-color: var(--acc); }
@@ -186,14 +197,14 @@
     #brueche { overflow-y: auto; padding: 14px; gap: 12px; }
     .frow { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .fdisplay { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-    .fni { width: 72px; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .fni { width: 72px; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 20px; padding: 8px; text-align: center; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; }
     .fni:focus { border-color: var(--acc); }
     .fline { width: 72px; height: 2px; background: var(--txt); }
     .opsel { display: flex; flex-direction: column; gap: 5px; }
     .opb { width: 42px; height: 42px; background: var(--btn); border: 2px solid transparent;
-      border-radius: 8px; color: var(--txt); font-size: 19px; cursor: pointer; display: flex;
+      border-radius: 0; color: var(--txt); font-size: 19px; cursor: pointer; display: flex;
       align-items: center; justify-content: center; transition: all .2s; }
     .opb.sel { border-color: var(--acc); background: rgba(204,0,0,.1); }
 
@@ -209,7 +220,7 @@
       display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto;
       gap: 5px; z-index: 15; background: rgba(245,245,245,0.92);
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      border-radius: 14px; padding: 4px 6px; scrollbar-width: none;
+      border-radius: 0; padding: 4px 6px; scrollbar-width: none;
       border: 1px solid var(--bdr); transition: bottom .3s ease; }
     /* Panel fully hidden: toolbar and info move down to use available space */
     #tabKoord.kp-hidden #rtoolbar { bottom: 10px; }
@@ -225,45 +236,48 @@
     #tabKoord.canvas-busy #rtoolbar { opacity: 0.13; pointer-events: none; }
     #ltoolbar, #rtoolbar { transition: opacity .25s; }
     .tbtn { width: 42px; height: 42px; background: var(--card); backdrop-filter: blur(8px);
-      border: 1px solid var(--bdr); border-radius: 10px; color: var(--txt); font-size: 17px; cursor: pointer;
+      border: 1px solid var(--bdr); border-radius: 0; color: var(--txt); font-size: 17px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; transition: all .2s; }
     .tbtn.act { background: var(--acc); border-color: var(--acc); color: white; }
     .tbtn:active { opacity: .7; }
     #coordInfo { position: absolute; bottom: 100px; left: 10px; background: var(--card);
-      border: 1px solid var(--bdr); border-radius: 8px; padding: 5px 9px; font-size: 11px; color: var(--dim); z-index: 5; }
+      border: 1px solid var(--bdr); border-radius: 0; padding: 5px 9px; font-size: 11px; color: var(--dim); z-index: 5; }
     /* ─── Template preview canvas ─── */
-    .vtpl-prev { width: 52px; height: 38px; border-radius: 5px; border: 1px solid var(--bdr); flex-shrink: 0; background: #fff; }
+    .vtpl-prev { width: 52px; height: 38px; border-radius: 0; border: 1px solid var(--bdr); flex-shrink: 0; background: #fff; }
     /* ─── Connector type buttons ─── */
     .lc-type-row { display: flex; gap: 5px; flex-wrap: wrap; }
     .lc-type-btn { flex: 1; min-width: 60px; padding: 7px 4px; background: var(--btn); border: 2px solid transparent;
-      border-radius: 8px; color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; text-align: center; transition: all .2s; }
+      border-radius: 0; color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; text-align: center; transition: all .2s; }
     .lc-type-btn.active { border-color: var(--acc); color: var(--acc); background: rgba(204,0,0,.1); }
     /* ─── Point edit overlay ─── */
-    #ptEditOverlay { position: absolute; background: var(--card); border: 1px solid var(--bdr); border-radius: 10px;
+    #ptEditOverlay { position: absolute; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       padding: 10px 12px; z-index: 30; display: none; flex-direction: column; gap: 6px; min-width: 180px;
       box-shadow: 0 4px 16px rgba(0,0,0,.18); }
     #ptEditOverlay.vis { display: flex; }
     .pte-row { display: flex; align-items: center; gap: 6px; }
     .pte-lbl { font-size: 11px; color: var(--dim); width: 14px; flex-shrink: 0; }
-    .pte-in { flex: 1; background: var(--bg2); border: 1px solid var(--bdr); border-radius: 6px;
+    .pte-in { flex: 1; background: var(--bg2); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 13px; padding: 5px 7px; text-align: center;
       font-family: 'Courier New', monospace; outline: none; -webkit-user-select: text; user-select: text; }
     .pte-in:focus { border-color: var(--acc); }
     .pte-actions { display: flex; gap: 5px; margin-top: 2px; }
-    .pte-btn { flex: 1; padding: 6px 4px; border: none; border-radius: 7px; font-size: 12px; font-weight: 600;
+    .pte-btn { flex: 1; padding: 6px 4px; border: none; border-radius: 0; font-size: 12px; font-weight: 600;
       font-family: inherit; cursor: pointer; }
     .pte-btn.ok { background: var(--acc); color: white; }
     .pte-btn.cancel { background: var(--btn); color: var(--txt); }
 
     /* ─── Slide-Up Panel ─── */
+    /* kpanel: peek as absolute inside tabKoord; lifts to position:fixed when fully open
+       so it overlays the bottom nav and all toolbars. */
     #kpanel { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg2);
       border-top: 1px solid var(--bdr); z-index: 10;
       transform: translateY(calc(100% - 50px)); transition: transform .3s ease;
-      border-radius: 16px 16px 0 0; max-height: 72%; display: flex; flex-direction: column; }
-    #kpanel.open { transform: translateY(0); }
+      max-height: 72%; display: flex; flex-direction: column; }
+    #kpanel.open { position: fixed; bottom: 0; left: 0; right: 0;
+      transform: translateY(0); z-index: 2000; max-height: 80vh; }
     #kpanel.hidden { transform: translateY(100%); pointer-events: none; }
     @media (orientation: landscape) and (max-height: 600px) {
-      #kpanel { max-height: 90%; }
+      #kpanel.open { max-height: 92vh; }
     }
     #khandle { height: 50px; display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; position: relative; }
@@ -271,67 +285,67 @@
     #khandle span { position: absolute; left: 16px; font-size: 13px; font-weight: 600; color: var(--txt); }
     #kCloseBtn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
       width: 28px; height: 28px; background: var(--btn); border: 1px solid var(--bdr);
-      border-radius: 8px; color: var(--dim); font-size: 14px; font-weight: 700; cursor: pointer;
+      border-radius: 0; color: var(--dim); font-size: 14px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; z-index: 2;
       font-family: inherit; line-height: 1; }
     #kCloseBtn:active { background: var(--btn2); }
     /* Floating "open panel" button shown when panel is fully hidden */
     #kOpenBtn { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-      z-index: 11; background: var(--acc); border: none; border-radius: 20px; color: white;
+      z-index: 11; background: var(--acc); border: none; border-radius: 0; color: white;
       font-size: 12px; font-weight: 700; padding: 8px 18px; cursor: pointer; font-family: inherit;
       display: none; align-items: center; gap: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
     #kOpenBtn.vis { display: flex; }
     #kOpenBtn:active { opacity: .8; }
     .kcontent { overflow-y: auto; padding: 0 14px 16px; flex: 1; }
     .kcontent.kbd-open { padding-bottom: 270px; }
-    .ptabs { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; margin-bottom: 12px; gap: 3px; }
-    .ptab { flex: 1; padding: 7px 3px; background: none; border: none; border-radius: 8px; color: var(--dim);
+    .ptabs { display: flex; background: var(--bg); border-radius: 0; padding: 3px; margin-bottom: 12px; gap: 3px; }
+    .ptab { flex: 1; padding: 7px 3px; background: none; border: none; border-radius: 0; color: var(--dim);
       font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; text-align: center; }
     .ptab.active { background: var(--acc); color: white; }
     .psec { display: none; }
     .psec.active { display: block; }
     .psect { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
     .finput-row { display: flex; gap: 7px; margin-bottom: 7px; }
-    .finput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .finput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 14px; padding: 9px 11px; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; }
     .finput:focus { border-color: var(--acc); }
-    .addbtn { width: 38px; height: 38px; background: var(--acc); border: none; border-radius: 8px;
+    .addbtn { width: 38px; height: 38px; background: var(--acc); border: none; border-radius: 0;
       color: white; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .listitem { display: flex; align-items: center; gap: 7px; padding: 7px; background: var(--card);
-      border-radius: 8px; margin-bottom: 5px; }
+      border-radius: 0; margin-bottom: 5px; }
     .clrdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .lbl { flex: 1; font-size: 12px; font-family: 'Courier New', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .delbtn { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 15px; padding: 3px; }
     .srow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     .slbl { font-size: 12px; color: var(--dim); width: 85px; flex-shrink: 0; }
-    .sinput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 6px;
+    .sinput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 13px; padding: 6px 9px; outline: none; -webkit-user-select: text; user-select: text; }
     .sinput:focus { border-color: var(--acc); }
     .modbtns { display: flex; gap: 6px; margin-bottom: 10px; }
     .modbtn { flex: 1; padding: 9px 4px; background: var(--btn); border: 2px solid transparent;
-      border-radius: 8px; color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer;
+      border-radius: 0; color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer;
       text-align: center; transition: all .2s; }
     .modbtn.active { border-color: var(--acc); color: var(--acc); background: rgba(204,0,0,.1); }
     .colrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .colopt { width: 26px; height: 26px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border .2s; }
     .colopt.sel { border-color: #111111; }
     .togrow { display: flex; gap: 6px; margin-bottom: 8px; }
-    .togbtn { flex: 1; padding: 8px; background: var(--btn); border: 2px solid transparent; border-radius: 8px;
+    .togbtn { flex: 1; padding: 8px; background: var(--btn); border: 2px solid transparent; border-radius: 0;
       color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer; transition: all .2s; }
     .togbtn.active { border-color: var(--acc3); color: var(--acc3); background: rgba(0,0,0,.08); }
     .wslider { width: 100%; accent-color: var(--acc); }
     .ptrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
-    .ptinput { flex: 1; min-width: 60px; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .ptinput { flex: 1; min-width: 60px; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 14px; padding: 9px 9px; text-align: center; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; }
     .ptinput:focus { border-color: var(--acc); }
     .iclr { color: var(--acc4); }
     /* Coordinate system Vorlagen (template) rows */
     .vtpl-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px;
-      background: var(--card); border-radius: 8px; }
+      background: var(--card); border-radius: 0; }
     .vtpl-lbl { flex: 1; font-size: 12px; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .vtpl-btn { flex-shrink: 0; padding: 6px 10px; background: var(--acc); border: none; border-radius: 7px;
+    .vtpl-btn { flex-shrink: 0; padding: 6px 10px; background: var(--acc); border: none; border-radius: 0;
       color: white; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .vtpl-btn:active { opacity: .7; }
     ::-webkit-scrollbar { width: 3px; }
@@ -347,7 +361,7 @@
     .sdhdr h2 { font-size: 15px; font-weight: 700; color: var(--txt); }
     .sdhdr .sdclose { background: none; border: none; color: var(--dim); font-size: 20px; cursor: pointer; padding: 2px 6px; }
     .sdtabs { display: flex; gap: 4px; padding: 8px 10px; flex-shrink: 0; }
-    .sdtab { flex: 1; padding: 7px 4px; background: var(--btn); border: none; border-radius: 8px;
+    .sdtab { flex: 1; padding: 7px 4px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; text-align: center; }
     .sdtab.active { background: var(--acc); color: white; }
     .sdpanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -367,20 +381,20 @@
     .lc-hint { font-size: 11px; color: var(--dim); text-align: center; line-height: 1.5; padding: 4px; }
     #lcPointList { display: flex; flex-direction: column; gap: 4px; }
     .lc-pt-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--card);
-      border-radius: 8px; font-size: 12px; font-family: 'Courier New', monospace; }
+      border-radius: 0; font-size: 12px; font-family: 'Courier New', monospace; }
     .lc-pt-num { width: 20px; height: 20px; background: var(--acc); border-radius: 50%;
       display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
       color: white; flex-shrink: 0; }
     .lc-pt-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lc-pt-del { background: none; border: none; color: #ff4444; cursor: pointer; font-size: 13px; padding: 2px 4px; }
     .lc-actions { display: flex; gap: 6px; }
-    .lc-btn { flex: 1; padding: 9px 4px; background: var(--btn); border: none; border-radius: 8px;
+    .lc-btn { flex: 1; padding: 9px 4px; background: var(--btn); border: none; border-radius: 0;
       color: var(--txt); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .lc-btn:active { opacity: .7; }
     .lc-btn.ok { background: var(--acc); color: white; }
     #lcConnectors { display: flex; flex-direction: column; gap: 5px; }
     .lc-conn-item { display: flex; align-items: center; gap: 7px; padding: 7px 8px; background: var(--card);
-      border-radius: 8px; }
+      border-radius: 0; }
     .lc-conn-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .lc-conn-lbl { flex: 1; font-size: 11px; font-family: 'Courier New', monospace;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
@@ -388,18 +402,18 @@
 
     /* ─── Sidebar Toggle Button ─── */
     #sidebarToggle { width: 36px; height: 36px; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: 9px; color: var(--txt); font-size: 18px; cursor: pointer; flex-shrink: 0;
+      border-radius: 0; color: var(--txt); font-size: 18px; cursor: pointer; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; transition: all .2s; }
     #sidebarToggle:active { opacity: .7; }
     body.sidebar-open #sidebarToggle { background: var(--acc); color: white; border-color: var(--acc); }
 
     /* ─── Mini Calculator ─── */
     .mcwrap { padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
-    .mcdisp { background: var(--bg); border-radius: 10px; padding: 10px 12px; text-align: right; flex-shrink: 0; }
+    .mcdisp { background: var(--bg); border-radius: 0; padding: 10px 12px; text-align: right; flex-shrink: 0; }
     .mcexpr { font-size: 11px; color: var(--dim); min-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .mcres { font-size: 26px; font-weight: 300; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
     .mcbtns { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; flex-shrink: 0; }
-    .mcb { background: var(--btn); border: none; border-radius: 9px; color: var(--txt); font-size: 15px;
+    .mcb { background: var(--btn); border: none; border-radius: 0; color: var(--txt); font-size: 15px;
       font-family: inherit; cursor: pointer; padding: 11px 4px; transition: all .1s; touch-action: manipulation; }
     .mcb:active { transform: scale(.92); background: var(--btn2); }
     .mcb.op { background: var(--acc); color: white; }
@@ -409,13 +423,13 @@
 
     /* ─── Sidebar Notes ─── */
     .sdnotes { flex: 1; padding: 10px; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
-    .sdnotes textarea { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 10px;
+    .sdnotes textarea { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 13px; line-height: 1.5; padding: 10px; font-family: inherit;
       outline: none; resize: none; -webkit-user-select: text; user-select: text; }
     .sdnotes textarea:focus { border-color: var(--acc); }
 
     /* ─── Hide UI Button ─── */
-    #hideUIBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 6px;
+    #hideUIBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--dim); font-size: 11px; font-weight: 600; padding: 3px 9px; cursor: pointer;
       font-family: inherit; line-height: 1.4; letter-spacing: .3px; margin-left: auto; }
     #hideUIBtn:active { opacity: .7; }
@@ -434,7 +448,7 @@
     #fsMenuOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1100; display: none; }
     #fsMenuOverlay.open { display: block; }
     #fsMenu { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
-      border-radius: 20px 20px 0 0; z-index: 1101; padding: 20px 16px;
+      border-radius: 0 0 0; z-index: 1101; padding: 20px 16px;
       padding-bottom: calc(16px + var(--sb));
       animation: suUp .25s ease; }
     #fsMenu h3 { font-size: 13px; font-weight: 700; color: var(--dim); text-transform: uppercase;
@@ -464,17 +478,17 @@
 
     /* ─── Quadrant toolbar ─── */
     #quadrantPanel { position: absolute; bottom: 60px; right: 10px; background: var(--bg2);
-      border-radius: 10px; border: 1px solid var(--bdr); padding: 6px;
+      border-radius: 0; border: 1px solid var(--bdr); padding: 6px;
       z-index: 10; display: none; flex-direction: column; gap: 4px; }
     #quadrantPanel.vis { display: flex; }
-    .qbtn { width: 38px; height: 38px; background: var(--btn); border: 2px solid transparent; border-radius: 8px;
+    .qbtn { width: 38px; height: 38px; background: var(--btn); border: 2px solid transparent; border-radius: 0;
       color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; }
     .qbtn.active { border-color: var(--acc); color: var(--acc); background: rgba(204,0,0,.1); }
     .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 
     /* ─── Textbox tool ─── */
     .canvas-label { position: absolute; background: var(--bg2); border: 1px solid var(--bdr);
-      border-radius: 6px; padding: 4px 8px; color: var(--txt); font-size: 12px; cursor: move;
+      border-radius: 0; padding: 4px 8px; color: var(--txt); font-size: 12px; cursor: move;
       user-select: none; -webkit-user-select: none; z-index: 8; white-space: pre-wrap; max-width: 180px; word-break: break-word; }
 
     /* ─── Notes Panel ─── */
@@ -503,7 +517,7 @@
     .klasse-card .kc-body { font-size: 13px; color: var(--dim); line-height: 1.5; }
     .klasse-toolbar { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px 10px; }
     .ktool { flex: 1; min-width: 80px; padding: 10px 6px; background: var(--btn); border: 2px solid transparent;
-      border-radius: 10px; color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer;
+      border-radius: 0; color: var(--dim); font-size: 12px; font-family: inherit; cursor: pointer;
       text-align: center; transition: all .2s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
     .ktool span { font-size: 20px; }
     .ktool.active { border-color: var(--acc3); color: var(--acc3); background: rgba(0,0,0,.08); }
@@ -516,7 +530,7 @@
     .kf-val { color: var(--txt); font-family: 'Courier New', monospace; }
 
     /* ─── Value Table ─── */
-    .vt-wrap { overflow-x: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--bdr); }
+    .vt-wrap { overflow-x: auto; margin-top: 8px; border-radius: 0; border: 1px solid var(--bdr); }
     .vt { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
     .vt th { background: var(--card); color: var(--acc); padding: 7px 10px; text-align: center;
       font-size: 11px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--bdr); white-space: nowrap; }
@@ -532,7 +546,7 @@
     .cb.ang { font-size: 11px; font-weight: 700; background: rgba(0,0,0,.06); border: 1px solid var(--acc3); color: var(--acc3); }
     .cb.ang:active { background: rgba(0,0,0,.15); }
     .cb.ang.rad { background: rgba(204,0,0,.08); border-color: var(--acc4); color: var(--acc4); }
-    #sciToggleBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 6px;
+    #sciToggleBtn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--dim); font-size: 11px; font-weight: 700; padding: 3px 9px; cursor: pointer;
       font-family: inherit; line-height: 1.4; letter-spacing: .5px; }
     #sciToggleBtn.active { background: rgba(204,0,0,.1); border-color: var(--acc); color: var(--acc); }
@@ -548,7 +562,7 @@
       background: var(--bg2); border: 1px solid var(--bdr); display: none; position: relative; }
     #bildPreview { width: 100%; max-height: 260px; object-fit: contain; display: block; }
     #bildClearBtn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.6); color: white;
-      border: none; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 13px; }
+      border: none; border-radius: 0; padding: 4px 9px; cursor: pointer; font-size: 13px; }
     .bild-status { margin: 0 14px 10px; padding: 10px 14px; background: var(--bg2);
       border-radius: var(--r); font-size: 13px; color: var(--dim); display: none; }
     .bild-status.vis { display: block; }
@@ -566,7 +580,7 @@
     .bild-item-sol { font-size: 13px; color: var(--dim); margin-bottom: 8px; }
     .bild-item-sol strong { color: var(--acc3); }
     .bild-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .bi-btn { padding: 6px 12px; background: var(--btn); border: none; border-radius: 8px;
+    .bi-btn { padding: 6px 12px; background: var(--btn); border: none; border-radius: 0;
       color: var(--txt); font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s; }
     .bi-btn:active { background: var(--acc); color: white; }
     .bild-empty { text-align: center; padding: 24px 14px; color: var(--dim); font-size: 14px; }
@@ -605,14 +619,14 @@
     .agent-task-del:active { color: var(--acc); }
     .agent-items-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
     .agent-item-row { display: flex; gap: 6px; align-items: center; }
-    .agent-item-input { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .agent-item-input { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 14px; padding: 9px 11px; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; }
     .agent-item-input:focus { border-color: var(--acc); }
     .agent-item-del { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
     .agent-item-del:active { color: var(--acc); }
     .agent-add-item { margin: 4px 8px 10px; padding: 8px; background: none; border: 1px dashed var(--bdr);
-      border-radius: 8px; color: var(--dim); font-size: 13px; font-family: inherit; cursor: pointer; width: calc(100% - 16px);
+      border-radius: 0; color: var(--dim); font-size: 13px; font-family: inherit; cursor: pointer; width: calc(100% - 16px);
       text-align: center; }
     .agent-add-item:active { background: var(--bg2); border-color: var(--acc); color: var(--acc); }
     .agent-empty { text-align: center; padding: 32px 16px; color: var(--dim); font-size: 14px; }
@@ -633,20 +647,20 @@
     .agent-res-steps .ssn { width: 18px; height: 18px; font-size: 10px; }
     .agent-res-steps .ssd { font-size: 11px; }
     .agent-res-steps .ssm { font-size: 13px; }
-    .agent-res-answer { margin-top: 8px; padding: 10px 12px; background: var(--card); border-radius: 8px;
+    .agent-res-answer { margin-top: 8px; padding: 10px 12px; background: var(--card); border-radius: 0;
       border-left: 4px solid var(--acc3); }
     .agent-res-answer .rl { font-size: 11px; color: var(--dim); margin-bottom: 2px; }
     .agent-res-answer .rv { font-size: 17px; font-weight: 700; color: var(--acc3); font-family: 'Courier New', monospace; }
     .agent-res-coord-btn { margin-top: 8px; padding: 7px 12px; background: var(--btn); border: none;
-      border-radius: 8px; color: var(--txt); font-size: 12px; font-family: inherit; cursor: pointer;
+      border-radius: 0; color: var(--txt); font-size: 12px; font-family: inherit; cursor: pointer;
       display: flex; align-items: center; gap: 5px; }
     .agent-res-coord-btn:active { background: var(--acc); color: white; }
-    .agent-res-error { margin-top: 8px; padding: 8px 12px; background: #fff0f0; border-radius: 8px;
+    .agent-res-error { margin-top: 8px; padding: 8px 12px; background: #fff0f0; border-radius: 0;
       border-left: 4px solid var(--acc); color: var(--acc); font-size: 12px; }
 
     /* ─── Unit Converter ─── */
     .urow { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-    .usel { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .usel { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 15px; padding: 10px 12px; font-family: inherit; outline: none; cursor: pointer;
       appearance: none; -webkit-appearance: none; }
     .usel:focus { border-color: var(--acc); }
@@ -676,7 +690,7 @@
       transform: translateY(100%); transition: transform .25s ease; display: flex; flex-direction: column; gap: 5px; }
     #mathKbd.open { transform: translateY(0); }
     .mkrow { display: flex; gap: 5px; justify-content: center; }
-    .mk { flex: 1; max-width: 52px; height: 44px; background: #2a2a4a; border: none; border-radius: 9px;
+    .mk { flex: 1; max-width: 52px; height: 44px; background: #2a2a4a; border: none; border-radius: 0;
       color: #fff; font-size: 18px; font-family: inherit; cursor: pointer;
       display: flex; align-items: center; justify-content: center; transition: background .1s; touch-action: manipulation; }
     .mk:active { background: #cc0000; }
@@ -696,13 +710,13 @@
     .fp-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
     .fp-field { display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .fp-input { width: 80px; height: 44px; background: #2a2a4a; border: 1px solid #3a3a6a;
-      border-radius: 9px; color: #fff; font-size: 20px; text-align: center;
+      border-radius: 0; color: #fff; font-size: 20px; text-align: center;
       font-family: 'Courier New', monospace; outline: none; -webkit-user-select: text; user-select: text; }
     .fp-input:focus { border-color: #cc0000; }
     .fp-line { width: 80px; height: 2px; background: #fff; }
     .fp-label { font-size: 11px; color: #888; }
     .fp-actions { display: flex; gap: 8px; }
-    .fp-btn { flex: 1; padding: 12px; background: #2a2a4a; border: none; border-radius: 9px;
+    .fp-btn { flex: 1; padding: 12px; background: #2a2a4a; border: none; border-radius: 0;
       color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
     .fp-btn.ok { background: #cc0000; }
     .fp-btn:active { opacity: .8; }
@@ -738,12 +752,12 @@
     .timer-btn.reset { background: var(--btn); color: var(--txt); }
     .timer-btn.reset:active { background: var(--btn2); }
     .timer-presets { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 10px 10px; }
-    .timer-preset { padding: 5px 10px; border: 1px solid var(--bdr); border-radius: 20px; background: var(--bg2);
+    .timer-preset { padding: 5px 10px; border: 1px solid var(--bdr); border-radius: 0; background: var(--bg2);
       color: var(--txt); font-size: 12px; cursor: pointer; font-family: inherit; transition: all .15s; }
     .timer-preset:active, .timer-preset.active { background: var(--acc); color: white; border-color: var(--acc); }
     .timer-custom-row { display: flex; gap: 5px; padding: 0 10px 8px; align-items: center; }
     .timer-custom-row span { font-size: 12px; color: var(--dim); white-space: nowrap; }
-    .timer-custom-in { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    .timer-custom-in { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 14px; padding: 7px 9px; text-align: center; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; width: 50px; }
     .timer-custom-in:focus { border-color: var(--acc); }
@@ -752,7 +766,7 @@
 
     /* ─── Floating movable widgets ─── */
     .floating-widget { position: fixed; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.18); z-index: 800;
+      border-radius: 0; box-shadow: 0 4px 24px rgba(0,0,0,.18); z-index: 800;
       min-width: 200px; min-height: 120px; overflow: hidden; display: none; resize: both; }
     .floating-widget.visible { display: block; }
     .fw-handle { background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 8px 12px;
@@ -772,21 +786,21 @@
     .hb-fn { background: var(--bg2); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; }
     .hb-fn-name { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
     .hb-fn-desc { font-size: 13px; color: var(--dim); line-height: 1.6; }
-    .hb-fn-example { margin-top: 6px; padding: 6px 10px; background: var(--card); border-radius: 6px;
+    .hb-fn-example { margin-top: 6px; padding: 6px 10px; background: var(--card); border-radius: 0;
       font-size: 12px; font-family: 'Courier New', monospace; color: var(--acc3); }
     .hb-search { width: 100%; background: var(--card); border: 1px solid var(--bdr); border-radius: var(--r);
       color: var(--txt); font-size: 15px; padding: 11px 14px; outline: none; font-family: inherit;
       -webkit-user-select: text; user-select: text; margin-bottom: 14px; }
     .hb-search:focus { border-color: var(--acc); }
     .hb-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-    .hb-toc-btn { padding: 6px 12px; background: var(--bg2); border: 1px solid var(--bdr); border-radius: 20px;
+    .hb-toc-btn { padding: 6px 12px; background: var(--bg2); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--dim); font-size: 12px; cursor: pointer; font-family: inherit; transition: all .15s; }
     .hb-toc-btn:active { background: var(--acc); color: white; border-color: var(--acc); }
 
     /* ─── Glossary / Hard words ─── */
     .hw { color: #0055cc; text-decoration: underline dotted; cursor: pointer; font-weight: 500; }
     .hw:hover { color: #003d99; }
-    #glossaryTooltip { position: fixed; background: #1a2a4a; color: white; border-radius: 10px;
+    #glossaryTooltip { position: fixed; background: #1a2a4a; color: white; border-radius: 0;
       padding: 12px 16px; font-size: 13px; line-height: 1.6; max-width: 280px; z-index: 9999;
       box-shadow: 0 4px 20px rgba(0,0,0,.3); pointer-events: none; display: none; }
     #glossaryTooltip .gt-term { font-size: 11px; font-weight: 700; color: #7ab3f0; text-transform: uppercase;
@@ -794,7 +808,7 @@
     #glossaryTooltip .gt-def { font-size: 13px; color: #e0e0e0; line-height: 1.5; }
     /* ─── Multiple Coordinate Systems tab bar ─── */
     :root { --csys-bar-h: 76px; }   /* 36px tabs + 40px function quick-bar */
-    #coordSysTabs .csys-tab { padding: 4px 10px; border: none; border-radius: 7px; background: var(--btn);
+    #coordSysTabs .csys-tab { padding: 4px 10px; border: none; border-radius: 0; background: var(--btn);
       color: var(--dim); font-size: 11px; font-family: inherit; cursor: pointer; white-space: nowrap;
       transition: all .2s; }
     #coordSysTabs .csys-tab.active { background: var(--acc); color: white; }
@@ -806,17 +820,17 @@
     /* Function quick-input bar */
     #coordFnBar { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 8px;
       border-top: 1px solid var(--bdr); background: var(--bg); }
-    #coordFnInput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 8px;
+    #coordFnInput { flex: 1; background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
       color: var(--txt); font-size: 13px; padding: 6px 10px; font-family: 'Courier New', monospace;
       outline: none; -webkit-user-select: text; user-select: text; height: 30px; }
     #coordFnInput:focus { border-color: var(--acc); }
-    #coordFnAddBtn { width: 30px; height: 30px; background: var(--acc); border: none; border-radius: 8px;
+    #coordFnAddBtn { width: 30px; height: 30px; background: var(--acc); border: none; border-radius: 0;
       color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     #coordFnAddBtn:active { opacity: .7; }
     /* Active function chips in the function bar */
     #coordFnChips { display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0; max-width: 45%; scrollbar-width: none; }
     #coordFnChips::-webkit-scrollbar { display: none; }
-    .fn-chip { display: flex; align-items: center; gap: 3px; padding: 3px 7px; border-radius: 20px;
+    .fn-chip { display: flex; align-items: center; gap: 3px; padding: 3px 7px; border-radius: 0;
       font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; color: white;
       max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
     .fn-chip-del { background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; font-size: 12px; padding: 0 0 0 2px; line-height: 1; }
@@ -826,23 +840,23 @@
     #premiumOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 11000;
       display: none; align-items: flex-end; justify-content: center; padding: 16px; }
     #premiumOverlay.open { display: flex; }
-    #premiumModal { background: var(--bg); border-radius: 24px 24px 20px 20px; padding: 28px 22px 24px;
+    #premiumModal { background: var(--bg); border-radius: 0; padding: 28px 22px 24px;
       width: 100%; max-width: 480px; animation: suUp .3s ease; }
     .prem-crown { font-size: 48px; text-align: center; margin-bottom: 8px; }
     .prem-title { font-size: 22px; font-weight: 800; text-align: center; color: var(--txt); margin-bottom: 4px; }
     .prem-sub { font-size: 13px; color: var(--dim); text-align: center; margin-bottom: 20px; }
     .prem-benefits { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
     .prem-benefit-row { display: flex; align-items: center; gap: 12px; background: var(--bg2);
-      border-radius: 12px; padding: 12px 14px; }
+      border-radius: 0; padding: 12px 14px; }
     .prem-benefit-icon { font-size: 26px; flex-shrink: 0; }
     .prem-benefit-body { flex: 1; }
     .prem-benefit-title { font-size: 14px; font-weight: 700; color: var(--txt); }
     .prem-benefit-desc { font-size: 12px; color: var(--dim); margin-top: 1px; }
-    .prem-join-btn { width: 100%; padding: 15px; background: #f5a623; border: none; border-radius: 14px;
+    .prem-join-btn { width: 100%; padding: 15px; background: #f5a623; border: none; border-radius: 0;
       color: white; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit;
       margin-bottom: 10px; letter-spacing: .3px; }
     .prem-join-btn:active { opacity: .85; }
-    .prem-notnow-btn { width: 100%; padding: 13px; background: var(--btn); border: none; border-radius: 14px;
+    .prem-notnow-btn { width: 100%; padding: 13px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .prem-notnow-btn:active { opacity: .75; }
 
@@ -850,21 +864,21 @@
     #activateOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12000;
       display: none; align-items: center; justify-content: center; padding: 20px; }
     #activateOverlay.open { display: flex; }
-    #activateModal { background: var(--bg); border-radius: 20px; padding: 28px 22px;
+    #activateModal { background: var(--bg); border-radius: 0; padding: 28px 22px;
       width: 100%; max-width: 400px; animation: suUp .3s ease; text-align: center; }
     .act-icon { font-size: 52px; margin-bottom: 12px; }
     .act-title { font-size: 20px; font-weight: 800; color: var(--txt); margin-bottom: 6px; }
     .act-sub { font-size: 13px; color: var(--dim); margin-bottom: 20px; line-height: 1.5; }
-    .act-input { width: 100%; padding: 13px 16px; border: 2px solid var(--bdr); border-radius: 12px;
+    .act-input { width: 100%; padding: 13px 16px; border: 2px solid var(--bdr); border-radius: 0;
       font-size: 16px; font-family: 'Courier New', monospace; background: var(--bg2); color: var(--txt);
       text-align: center; letter-spacing: 2px; margin-bottom: 8px; outline: none; }
     .act-input:focus { border-color: #f5a623; }
     .act-error { font-size: 13px; color: #cc0000; min-height: 18px; margin-bottom: 12px; }
-    .act-confirm-btn { width: 100%; padding: 14px; background: #f5a623; border: none; border-radius: 12px;
+    .act-confirm-btn { width: 100%; padding: 14px; background: #f5a623; border: none; border-radius: 0;
       color: white; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
       margin-bottom: 10px; }
     .act-confirm-btn:active { opacity: .85; }
-    .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 12px;
+    .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
     /* ─── 3D Model Overlay ─── */
@@ -883,9 +897,56 @@
     .vtpl-crown-badge { font-size: 13px; }
     .vtpl-row-premium .vtpl-btn { background: #f5a623; color: white; }
     .vtpl-row-premium .vtpl-btn:active { opacity: .8; }
-    .pro-badge { display: inline-block; background: linear-gradient(135deg,#f5a623,#e08010);
-      color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 20px;
+    .pro-badge { display: inline-block; background: #f5a623;
+      color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 0;
       vertical-align: middle; margin-left: 4px; letter-spacing: .5px; }
+
+    /* ─── Toggle Switch ─── */
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--bdr); transition: .2s; }
+    .toggle-slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; transition: .2s; }
+    input:checked + .toggle-slider { background: var(--acc); }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    /* ─── Onboarding Overlay ─── */
+    #onboardOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 19999;
+      display: none; flex-direction: column; align-items: center; overflow-y: auto;
+      padding: 32px 20px 40px; }
+    #onboardOverlay.open { display: flex; }
+    .ob-logo { width: 72px; height: 72px; background: var(--acc); display: flex;
+      align-items: center; justify-content: center; font-size: 36px; font-weight: 900;
+      color: white; flex-shrink: 0; margin-bottom: 16px; }
+    .ob-title { font-size: 24px; font-weight: 800; color: var(--txt); margin-bottom: 4px; text-align: center; }
+    .ob-sub { font-size: 13px; color: var(--dim); margin-bottom: 28px; text-align: center; max-width: 360px; }
+    .ob-step { display: none; flex-direction: column; width: 100%; max-width: 420px; }
+    .ob-step.active { display: flex; }
+    .ob-step-title { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 14px; }
+    .ob-grade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .ob-grade-btn { padding: 16px 12px; background: var(--bg2); border: 2px solid var(--bdr);
+      color: var(--txt); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center;
+      font-family: inherit; transition: all .15s; }
+    .ob-grade-btn:active, .ob-grade-btn.sel { border-color: var(--acc); background: var(--card);
+      color: var(--acc); }
+    .ob-feat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .ob-feat-row { display: flex; align-items: center; gap: 14px; padding: 14px 12px;
+      background: var(--bg2); border: 2px solid var(--bdr); cursor: pointer; transition: border .15s; }
+    .ob-feat-row.sel { border-color: var(--acc); background: var(--card); }
+    .ob-feat-row input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--acc); cursor: pointer; }
+    .ob-feat-icon { font-size: 24px; flex-shrink: 0; }
+    .ob-feat-body { flex: 1; }
+    .ob-feat-name { font-size: 14px; font-weight: 700; color: var(--txt); }
+    .ob-feat-desc { font-size: 12px; color: var(--dim); margin-top: 2px; }
+    .ob-next-btn { width: 100%; padding: 15px; background: var(--acc); border: none;
+      color: white; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+      margin-bottom: 8px; }
+    .ob-next-btn:active { opacity: .85; }
+    .ob-skip { font-size: 13px; color: var(--dim); text-align: center; cursor: pointer;
+      padding: 6px; text-decoration: underline; background: none; border: none; font-family: inherit; }
+    .ob-step-indicator { display: flex; gap: 6px; margin-bottom: 24px; }
+    .ob-dot { width: 8px; height: 8px; background: var(--bdr); }
+    .ob-dot.active { background: var(--acc); }
   </style>
 </head>
 <body>
@@ -1023,6 +1084,111 @@
       Alle Daten gehen verloren, wenn du die App schließt. Bitte notiere wichtige Ergebnisse
       separat, bevor du die App schließt.</p>
     <button class="wok" onclick="dismissWarning()">Verstanden – App starten</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ONBOARDING OVERLAY
+══════════════════════════════════════════ -->
+<div id="onboardOverlay">
+  <div class="ob-logo">M</div>
+  <div class="ob-title">Willkommen bei MathSpaces</div>
+  <div class="ob-sub">Kurze Fragen, damit wir dir nur die Funktionen zeigen, die du wirklich brauchst.</div>
+
+  <!-- Step indicators -->
+  <div class="ob-step-indicator">
+    <div class="ob-dot active" id="obDot0"></div>
+    <div class="ob-dot" id="obDot1"></div>
+    <div class="ob-dot" id="obDot2"></div>
+  </div>
+
+  <!-- Step 0: Grade / Role -->
+  <div class="ob-step active" id="obStep0">
+    <div class="ob-step-title">In welcher Klasse bist du?</div>
+    <div class="ob-grade-grid">
+      <button class="ob-grade-btn" id="obG56"      onclick="obSelectGrade('5-6')">Klasse 5 – 6</button>
+      <button class="ob-grade-btn" id="obG78"      onclick="obSelectGrade('7-8')">Klasse 7 – 8</button>
+      <button class="ob-grade-btn" id="obG910"     onclick="obSelectGrade('9-10')">Klasse 9 – 10</button>
+      <button class="ob-grade-btn" id="obG1113"    onclick="obSelectGrade('11-13')">Klasse 11 – 13</button>
+      <button class="ob-grade-btn" id="obGTeacher" onclick="obSelectGrade('lehrer')" style="grid-column:span 2">👩‍🏫 Ich bin Lehrer/in</button>
+    </div>
+    <button class="ob-next-btn" id="obNext0" onclick="obGoStep1()" disabled style="opacity:.4">Weiter →</button>
+    <button class="ob-skip" onclick="obSkip()">Überspringen</button>
+  </div>
+
+  <!-- Step 1: Teacher code (only shown for grade=lehrer) -->
+  <div class="ob-step" id="obStep1">
+    <div class="ob-step-title">Lehrermodus aktivieren</div>
+    <div class="ig" style="margin-bottom:14px">
+      <div style="font-size:22px;margin-bottom:10px;text-align:center">🔑</div>
+      <div style="font-size:14px;color:var(--txt);margin-bottom:6px;font-weight:600">Lehrercode eingeben</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:14px;line-height:1.5">
+        Der Lehrermodus schaltet alle Funktionen und Premium-Features kostenlos frei. Bitte gib den Schulcode ein.
+      </div>
+      <input id="obTeacherCodeInput" type="password" inputmode="numeric" placeholder="Code eingeben"
+        class="mi" style="text-align:center;font-size:22px;letter-spacing:6px;margin-bottom:8px"
+        oninput="obClearTeacherErr()" onkeydown="if(event.key==='Enter')obCheckTeacherCode()">
+      <div id="obTeacherErr" style="font-size:13px;color:#cc0000;min-height:18px;margin-bottom:8px;text-align:center"></div>
+    </div>
+    <button class="ob-next-btn" onclick="obCheckTeacherCode()">Lehrermodus aktivieren ✓</button>
+    <button class="ob-skip" onclick="obBack()">← Zurück</button>
+  </div>
+
+  <!-- Step 2: Features (for students) -->
+  <div class="ob-step" id="obStep2">
+    <div class="ob-step-title">Was wirst du hauptsächlich nutzen?</div>
+    <div class="ob-feat-list">
+      <label class="ob-feat-row sel" id="obFeatCalc">
+        <input type="checkbox" id="obChkCalc" value="calc" checked onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">🧮</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">Rechner</div>
+          <div class="ob-feat-desc">Grundrechner, Gleichungen, Brüche, Einheiten</div>
+        </div>
+      </label>
+      <label class="ob-feat-row" id="obFeatKoord">
+        <input type="checkbox" id="obChkKoord" value="koord" onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">📐</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">Koordinatensystem</div>
+          <div class="ob-feat-desc">Funktionen zeichnen, Punkte setzen</div>
+        </div>
+      </label>
+      <label class="ob-feat-row" id="obFeatNotizen">
+        <input type="checkbox" id="obChkNotizen" value="notizen" onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">📝</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">Notizen</div>
+          <div class="ob-feat-desc">Schnellnotizen speichern</div>
+        </div>
+      </label>
+      <label class="ob-feat-row" id="obFeatFormeln">
+        <input type="checkbox" id="obChkFormeln" value="formeln" onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">🎓</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">Formeln &amp; Physik</div>
+          <div class="ob-feat-desc">Formeln, Geometrie, Physikrechner</div>
+        </div>
+      </label>
+      <label class="ob-feat-row" id="obFeatBild">
+        <input type="checkbox" id="obChkBild" value="bild" onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">📷</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">Mathe-Scanner</div>
+          <div class="ob-feat-desc">Gleichungen aus Fotos scannen (OCR)</div>
+        </div>
+      </label>
+      <label class="ob-feat-row" id="obFeatAgent">
+        <input type="checkbox" id="obChkAgent" value="agent" onchange="obToggleFeat(this)">
+        <div class="ob-feat-icon">🤖</div>
+        <div class="ob-feat-body">
+          <div class="ob-feat-name">KI-Agent</div>
+          <div class="ob-feat-desc">Aufgaben automatisch lösen lassen</div>
+        </div>
+      </label>
+    </div>
+    <button class="ob-next-btn" onclick="obComplete()">Fertig – App starten ✓</button>
+    <button class="ob-skip" onclick="obBackToGrade()">← Zurück</button>
   </div>
 </div>
 
@@ -1269,6 +1435,7 @@
     <div style="display:flex;flex-direction:column;gap:0">
       <h1>MathSpaces</h1>
     </div>
+    <div id="teacherBadge" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px;letter-spacing:.5px;flex-shrink:0">LEHRER</div>
     <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
   </header>
 
@@ -1289,12 +1456,12 @@
           <span style="font-size:11px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Variablen:</span>
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)">x =
             <input id="calcVarX" type="number" value="0" step="any"
-              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
+              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:0;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
               oninput="updateCalcVars()" title="Wert für x">
           </label>
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)">y =
             <input id="calcVarY" type="number" value="0" step="any"
-              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
+              style="width:60px;background:var(--card);border:1px solid var(--bdr);border-radius:0;color:var(--txt);font-size:13px;padding:3px 6px;text-align:center;outline:none;font-family:inherit"
               oninput="updateCalcVars()" title="Wert für y">
           </label>
           <button onclick="calcInput('x')" class="cb sec" style="padding:3px 10px;font-size:13px;height:auto">x</button>
@@ -1303,7 +1470,7 @@
         <div class="cdisp">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
             <button id="sciToggleBtn" onclick="toggleSciMode()">SCI</button>
-            <button id="angleBtn" class="cb ang" onclick="toggleAngle()" style="width:auto;padding:3px 10px;font-size:11px;border-radius:6px;display:none">DEG</button>
+            <button id="angleBtn" class="cb ang" onclick="toggleAngle()" style="width:auto;padding:3px 10px;font-size:11px;border-radius:0;display:none">DEG</button>
           </div>
           <div class="chist" id="calcHist"></div>
           <div class="cexpr" id="calcExpr"></div>
@@ -1440,7 +1607,7 @@
         <!-- Row 1: system tabs -->
         <div id="coordSysTabRow">
           <div id="coordSysTabs" style="display:flex;gap:4px;flex:1;overflow-x:auto"></div>
-          <button onclick="addCoordSystem()" title="Neues Koordinatensystem" style="flex-shrink:0;width:28px;height:28px;background:var(--acc);border:none;border-radius:7px;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          <button onclick="addCoordSystem()" title="Neues Koordinatensystem" style="flex-shrink:0;width:28px;height:28px;background:var(--acc);border:none;border-radius:0;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
         </div>
         <!-- Row 2: function quick-input -->
         <div id="coordFnBar">
@@ -1601,7 +1768,7 @@
             </div>
 
             <!-- 3D Models – Premium -->
-            <div class="psect" style="margin-top:14px">3D-Modelle <span class="pro-badge">PRO</span> <span style="background:#0055cc;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:20px;vertical-align:middle;margin-left:2px;letter-spacing:.5px">BETA</span></div>
+            <div class="psect" style="margin-top:14px">3D-Modelle <span class="pro-badge">PRO</span> <span style="background:#0055cc;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:0;vertical-align:middle;margin-left:2px;letter-spacing:.5px">BETA</span></div>
             <div style="display:flex;flex-direction:column;gap:6px">
               <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Paraboloid &nbsp;<small>z = x²+y²</small></span><button class="vtpl-btn" onclick="open3DModel('paraboloid')">→ Öffnen</button></div>
               <div class="vtpl-row vtpl-row-premium"><span class="vtpl-lbl vtpl-crown"><span class="vtpl-crown-badge">👑</span>Sattelfläche &nbsp;<small>z = x²−y²</small></span><button class="vtpl-btn" onclick="open3DModel('saddle')">→ Öffnen</button></div>
@@ -2266,6 +2433,99 @@
       </div>
     </div><!-- end tabHandbuch -->
 
+    <div id="tabSettings" class="panel">
+      <div class="stabs">
+        <button class="stab active" onclick="switchSettingsTab('settGeneral')">Allgemein</button>
+        <button class="stab" onclick="switchSettingsTab('settAdvanced')">Erweitert</button>
+      </div>
+
+      <!-- General tab -->
+      <div id="settGeneral" class="spanel active" style="overflow-y:auto;padding:14px;gap:12px">
+
+        <div class="sect">Mein Profil</div>
+        <div class="ig">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--txt)" id="settRoleLabel">Schüler/in</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:2px" id="settGradeLabel">Klasse nicht gesetzt</div>
+            </div>
+            <div id="settTeacherBadgeLbl" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px">LEHRER</div>
+          </div>
+          <button class="sbtn" onclick="showOnboarding(true)" style="margin-top:4px">Präferenzen ändern</button>
+        </div>
+
+        <div class="sect">Darstellung</div>
+        <div class="ig">
+          <label>Farbschema</label>
+          <select class="mi" id="themeSelect" onchange="applyTheme(this.value)" style="border-radius:0">
+            <option value="light">Hell</option>
+            <option value="dark">Dunkel</option>
+          </select>
+        </div>
+        <div class="ig">
+          <label>Akzentfarbe</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <button onclick="setAccentColor('#cc0000')" style="width:32px;height:32px;background:#cc0000;border:2px solid var(--bdr);cursor:pointer" title="Rot"></button>
+            <button onclick="setAccentColor('#0055cc')" style="width:32px;height:32px;background:#0055cc;border:2px solid var(--bdr);cursor:pointer" title="Blau"></button>
+            <button onclick="setAccentColor('#007700')" style="width:32px;height:32px;background:#007700;border:2px solid var(--bdr);cursor:pointer" title="Grün"></button>
+            <button onclick="setAccentColor('#884400')" style="width:32px;height:32px;background:#884400;border:2px solid var(--bdr);cursor:pointer" title="Orange"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced tab -->
+      <div id="settAdvanced" class="spanel" style="overflow-y:auto;padding:14px;gap:12px">
+
+        <div class="sect">Lehrermodus</div>
+        <div id="settTeacherActive" style="display:none">
+          <div class="ig" style="border-left:3px solid #1a7a1a">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">✅</span>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#1a7a1a">Lehrermodus aktiv</div>
+                <div style="font-size:12px;color:var(--dim);margin-top:2px">Alle Funktionen &amp; Premium freigeschaltet</div>
+              </div>
+            </div>
+            <button class="sbtn" onclick="deactivateTeacherMode()" style="background:#555">Lehrermodus beenden</button>
+          </div>
+        </div>
+        <div id="settTeacherInactive">
+          <div class="ig">
+            <div style="font-size:13px;color:var(--dim);margin-bottom:12px;line-height:1.5">
+              Lehrerinnen und Lehrer erhalten Zugriff auf alle Funktionen und Premium-Features kostenlos.
+            </div>
+            <label style="font-size:12px;color:var(--dim);margin-bottom:6px;display:block">Lehrercode eingeben</label>
+            <input id="settTeacherCodeInput" type="password" inputmode="numeric" placeholder="Code"
+              class="mi" style="text-align:center;font-size:20px;letter-spacing:6px;margin-bottom:8px"
+              oninput="document.getElementById('settTeacherErr').textContent=''"
+              onkeydown="if(event.key==='Enter')activateTeacherFromSettings()">
+            <div id="settTeacherErr" style="font-size:13px;color:#cc0000;min-height:18px;margin-bottom:8px"></div>
+            <button class="sbtn" onclick="activateTeacherFromSettings()">🔑 Lehrermodus aktivieren</button>
+          </div>
+        </div>
+
+        <div class="sect" style="margin-top:14px">Erweiterter Modus</div>
+        <div class="ig">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--txt)">Erweiterter Modus</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:2px">Zeigt Agent, Handbuch und weitere Profi-Tabs</div>
+            </div>
+            <label class="toggle-switch" aria-label="Erweiterter Modus ein-/ausschalten">
+              <input type="checkbox" id="advancedModeToggle" onchange="toggleAdvancedMode(this.checked)" aria-label="Erweiterter Modus">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="sect" style="margin-top:14px">Daten</div>
+        <div class="ig">
+          <div style="font-size:13px;color:var(--dim);margin-bottom:10px">Alle Notizen, Einstellungen und gespeicherten Daten zurücksetzen.</div>
+          <button class="sbtn" style="background:var(--acc)" onclick="if(confirm('Alle Daten zurücksetzen?')){localStorage.clear();location.reload()}">Alle Daten zurücksetzen</button>
+        </div>
+
+      </div>
+    </div><!-- end tabSettings -->
+
   </div><!-- content -->
 
   <nav id="nav">
@@ -2289,6 +2549,9 @@
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
       <span class="ni">📖</span>Handbuch
+    </button>
+    <button class="nb" id="nbSettings" onclick="switchTab('settings')">
+      <span class="ni">⚙️</span>Einstellungen
     </button>
   </nav>
 </div><!-- app -->
@@ -2337,15 +2600,55 @@ function launchApp() {
   document.getElementById('installScreen').style.display = 'none';
   document.getElementById('webUseBtn').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  if (!sessionStorage.getItem('warned')) {
+
+  // ── Determine if this is first-use or a returning user ──────────────────
+  // ?onboard in URL forces the onboarding to show (useful for re-testing)
+  const forceOnboard = new URLSearchParams(location.search).has('onboard');
+  if (forceOnboard) localStorage.removeItem('ms_prefs_done');
+
+  const prefsDone   = localStorage.getItem('ms_prefs_done') === '1';
+  const teacherMode = isTeacher();
+  const showingOnboard = !teacherMode && !prefsDone;
+
+  // Only show the data-loss warning if we're NOT about to show the onboarding
+  if (!showingOnboard && !sessionStorage.getItem('warned')) {
     document.getElementById('warnOverlay').style.display = 'flex';
   }
+
+  // Show onboarding FIRST so an init error below can't block it
+  if (showingOnboard) {
+    showOnboarding(false);
+  }
+
+  // ── App initialisation ──────────────────────────────────────────────────
   initCoordCanvas();
   initLcColorRow();
-  renderCoordSysTabs();   // initialize multiple coord system tabs
+  renderCoordSysTabs();
   bildSetupDropZone();
   initPhysRulerDrag();
-  // Hide loading screen when app is ready
+
+  // ── Restore saved settings ──────────────────────────────────────────────
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) applyTheme(savedTheme);
+  const savedAccent = localStorage.getItem('accentColor');
+  if (savedAccent) setAccentColor(savedAccent);
+  const savedAdvanced = localStorage.getItem('advancedMode') === '1';
+  document.getElementById('advancedModeToggle').checked = savedAdvanced;
+  toggleAdvancedMode(savedAdvanced);
+
+  // ── Restore mode / preferences ──────────────────────────────────────────
+  if (teacherMode) {
+    document.getElementById('teacherBadge').style.display = 'flex';
+    document.getElementById('settTeacherActive').style.display = 'block';
+    document.getElementById('settTeacherInactive').style.display = 'none';
+    document.getElementById('settTeacherBadgeLbl').style.display = 'block';
+    document.getElementById('settRoleLabel').textContent = 'Lehrer/in';
+    applyPreferences('lehrer', ['calc','koord','notizen','formeln','bild','agent']);
+  } else if (prefsDone) {
+    loadAndApplyPreferences();
+  }
+  // (onboarding already opened above if neither condition is true)
+
   if (window._hideLoadingScreen) window._hideLoadingScreen();
 }
 
@@ -2402,6 +2705,7 @@ function switchTab(tab) {
   document.getElementById('tabBild').classList.toggle('active', tab === 'bild');
   document.getElementById('tabAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('tabHandbuch').classList.toggle('active', tab === 'handbuch');
+  document.getElementById('tabSettings').classList.toggle('active', tab === 'settings');
   document.getElementById('nbRechner').classList.toggle('active', tab === 'rechner');
   document.getElementById('nbKoord').classList.toggle('active', tab === 'koordinaten');
   document.getElementById('nbNotizen').classList.toggle('active', tab === 'notizen');
@@ -2409,6 +2713,7 @@ function switchTab(tab) {
   document.getElementById('nbBild').classList.toggle('active', tab === 'bild');
   document.getElementById('nbAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('nbHandbuch').classList.toggle('active', tab === 'handbuch');
+  document.getElementById('nbSettings').classList.toggle('active', tab === 'settings');
   if (tab === 'koordinaten') { resizeCanvas(); applyRangeSettings(); }
   if (tab === 'klasse') { initKlasse(); }
   if (tab === 'handbuch') { initHandbuch(); }
@@ -6566,16 +6871,16 @@ function renderVarPickerList() {
     return;
   }
   list.innerHTML = kbVars.map((v, i) =>
-    `<div style="display:flex;align-items:center;gap:8px;background:#2a2a4a;border-radius:9px;padding:8px 12px">
+    `<div style="display:flex;align-items:center;gap:8px;background:#2a2a4a;border-radius:0;padding:8px 12px">
       <span style="font-weight:700;color:#fff;font-size:15px;min-width:40px">${escHtml(v.name)}</span>
       <span style="color:#888">=</span>
       <input type="number" value="${v.value}" step="any" data-varidx="${i}"
-        style="flex:1;background:#1a1a2e;border:1px solid #3a3a6a;border-radius:6px;color:#fff;font-size:14px;padding:5px 8px;outline:none;font-family:inherit"
+        style="flex:1;background:#1a1a2e;border:1px solid #3a3a6a;border-radius:0;color:#fff;font-size:14px;padding:5px 8px;outline:none;font-family:inherit"
         class="vp-val-input">
       <button data-insert-var="${i}"
-        style="background:#00885a;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">Einfügen</button>
+        style="background:#00885a;border:none;border-radius:0;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">Einfügen</button>
       <button data-delete-var="${i}"
-        style="background:#cc0000;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">✕</button>
+        style="background:#cc0000;border:none;border-radius:0;color:#fff;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit">✕</button>
     </div>`
   ).join('');
   // Attach event listeners
@@ -6707,7 +7012,7 @@ function activatePro() {
 function showProWelcome() {
   // Show a simple confirmation toast-style message
   const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f5a623;color:#fff;padding:14px 22px;border-radius:14px;font-size:15px;font-weight:700;z-index:13000;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f5a623;color:#fff;padding:14px 22px;border-radius:0;font-size:15px;font-weight:700;z-index:13000;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
   el.textContent = '🎉 MathSpaces Pro aktiviert!';
   document.body.appendChild(el);
   setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
@@ -6860,6 +7165,323 @@ function _3dDraw() {
   });
 }
 
+
+function switchSettingsTab(id) {
+  document.querySelectorAll('#tabSettings .spanel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tabSettings .stab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['settGeneral','settAdvanced'];
+  document.querySelectorAll('#tabSettings .stab')[tabs.indexOf(id)].classList.add('active');
+}
+
+function toggleAdvancedMode(enabled) {
+  localStorage.setItem('advancedMode', enabled ? '1' : '0');
+  const advTabs = ['nbAgent', 'nbHandbuch'];
+  advTabs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = enabled ? '' : 'none';
+  });
+}
+
+// ─── UI Layer Protocol ───
+window._openOverlays = new Set();
+const _overlayClosers = {
+  'warnOverlay': () => { document.getElementById('warnOverlay').style.display='none'; },
+  'fsMenu': () => { closeFsMenu(); },
+  'premiumOverlay': () => { hidePremiumModal(); },
+  'activateOverlay': () => { hideActivateModal(); },
+  'model3dOverlay': () => { close3DModel(); },
+  'fracPicker': () => { closeFracPicker(); },
+  'varPicker': () => { closeVarPicker(); },
+  'mathKbd': () => { typeof closeMathKbd === 'function' && closeMathKbd(); }
+};
+function openOverlay(id) {
+  window._openOverlays.forEach(openId => {
+    if (openId !== id && _overlayClosers[openId]) {
+      try { _overlayClosers[openId](); } catch(e) { console.warn('Failed to close overlay:', openId, e); }
+    }
+  });
+  window._openOverlays.add(id);
+}
+function closeOverlay(id) {
+  window._openOverlays.delete(id);
+}
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.style.setProperty('--bg', '#111111');
+    document.documentElement.style.setProperty('--bg2', '#1a1a1a');
+    document.documentElement.style.setProperty('--card', '#222222');
+    document.documentElement.style.setProperty('--btn', '#333333');
+    document.documentElement.style.setProperty('--btn2', '#444444');
+    document.documentElement.style.setProperty('--txt', '#eeeeee');
+    document.documentElement.style.setProperty('--dim', '#aaaaaa');
+    document.documentElement.style.setProperty('--bdr', '#444444');
+  } else {
+    document.documentElement.style.setProperty('--bg', '#ffffff');
+    document.documentElement.style.setProperty('--bg2', '#f5f5f5');
+    document.documentElement.style.setProperty('--card', '#eeeeee');
+    document.documentElement.style.setProperty('--btn', '#e0e0e0');
+    document.documentElement.style.setProperty('--btn2', '#d0d0d0');
+    document.documentElement.style.setProperty('--txt', '#111111');
+    document.documentElement.style.setProperty('--dim', '#555555');
+    document.documentElement.style.setProperty('--bdr', '#cccccc');
+  }
+  localStorage.setItem('theme', theme);
+}
+
+function setAccentColor(color) {
+  document.documentElement.style.setProperty('--acc', color);
+  document.documentElement.style.setProperty('--acc2', color);
+  document.documentElement.style.setProperty('--acc4', color);
+  localStorage.setItem('accentColor', color);
+}
+
+/* ══════════════════════════════════════════════
+   TEACHER / STUDENT MODE
+══════════════════════════════════════════════ */
+const TEACHER_CODE = '1122';
+const TEACHER_KEY  = 'ms_teacher_mode';
+
+function isTeacher() {
+  try { return localStorage.getItem(TEACHER_KEY) === '1'; } catch(e) { return false; }
+}
+
+function activateTeacherMode() {
+  localStorage.setItem(TEACHER_KEY, '1');
+  setPremium(true);
+  // Show teacher badge in header
+  document.getElementById('teacherBadge').style.display = 'flex';
+  document.getElementById('settTeacherActive').style.display = 'block';
+  document.getElementById('settTeacherInactive').style.display = 'none';
+  document.getElementById('settTeacherBadgeLbl').style.display = 'block';
+  document.getElementById('settRoleLabel').textContent = 'Lehrer/in';
+  // Unlock all nav tabs
+  applyPreferences('lehrer', ['calc','koord','notizen','formeln','bild','agent']);
+  // Toast
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a7a1a;color:#fff;padding:14px 22px;font-size:15px;font-weight:700;z-index:13000;white-space:nowrap;';
+  el.textContent = '✅ Lehrermodus aktiviert!';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2500);
+}
+
+function deactivateTeacherMode() {
+  localStorage.removeItem(TEACHER_KEY);
+  setPremium(false);
+  document.getElementById('teacherBadge').style.display = 'none';
+  document.getElementById('settTeacherActive').style.display = 'none';
+  document.getElementById('settTeacherInactive').style.display = 'block';
+  document.getElementById('settTeacherBadgeLbl').style.display = 'none';
+  document.getElementById('settRoleLabel').textContent = 'Schüler/in';
+  // Re-apply student preferences
+  const grade = localStorage.getItem('ms_grade') || '';
+  const uses  = (localStorage.getItem('ms_uses') || 'calc').split(',');
+  applyPreferences(grade, uses);
+}
+
+function activateTeacherFromSettings() {
+  const code = document.getElementById('settTeacherCodeInput').value.trim();
+  if (code === TEACHER_CODE) {
+    document.getElementById('settTeacherCodeInput').value = '';
+    activateTeacherMode();
+  } else {
+    document.getElementById('settTeacherErr').textContent = '❌ Falscher Code.';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   PREFERENCES / NAV VISIBILITY
+══════════════════════════════════════════════ */
+// featId → navButtonId mapping
+const FEAT_NAV = {
+  calc:    'nbRechner',
+  koord:   'nbKoord',
+  notizen: 'nbNotizen',
+  formeln: 'nbKlasse',
+  bild:    'nbBild',
+  agent:   'nbAgent'
+};
+// Always-visible nav items (never hidden)
+const NAV_ALWAYS = ['nbHandbuch', 'nbSettings'];
+
+// Grade → recommended default features
+const GRADE_DEFAULTS = {
+  '5-6':   ['calc', 'notizen'],
+  '7-8':   ['calc', 'koord', 'notizen', 'formeln'],
+  '9-10':  ['calc', 'koord', 'notizen', 'formeln', 'bild'],
+  '11-13': ['calc', 'koord', 'notizen', 'formeln', 'bild', 'agent'],
+  'lehrer':['calc', 'koord', 'notizen', 'formeln', 'bild', 'agent']
+};
+
+function applyPreferences(grade, uses) {
+  // Save
+  if (grade) localStorage.setItem('ms_grade', grade);
+  if (uses)  localStorage.setItem('ms_uses', uses.join(','));
+
+  // Update settings labels
+  const gradeLabels = { '5-6':'Klasse 5 – 6','7-8':'Klasse 7 – 8','9-10':'Klasse 9 – 10','11-13':'Klasse 11 – 13','lehrer':'Lehrermodus' };
+  const glEl = document.getElementById('settGradeLabel');
+  if (glEl && grade) glEl.textContent = gradeLabels[grade] || grade;
+
+  // Show/hide nav buttons based on selected features
+  Object.entries(FEAT_NAV).forEach(([feat, navId]) => {
+    const btn = document.getElementById(navId);
+    if (!btn) return;
+    btn.style.display = uses.includes(feat) ? '' : 'none';
+  });
+
+  // If currently active tab is now hidden, switch to rechner
+  const activeNb = document.querySelector('#nav .nb.active');
+  if (activeNb && activeNb.style.display === 'none') {
+    switchTab('rechner');
+  }
+}
+
+function loadAndApplyPreferences() {
+  const grade = localStorage.getItem('ms_grade') || '';
+  const usesRaw = localStorage.getItem('ms_uses');
+  const uses = usesRaw ? usesRaw.split(',') : null;
+  if (uses) applyPreferences(grade, uses);
+}
+
+/* ══════════════════════════════════════════════
+   ONBOARDING
+══════════════════════════════════════════════ */
+let _obGrade = '';
+let _obReset = false;
+
+function showOnboarding(reset) {
+  _obReset = !!reset;
+  _obGrade = '';
+  // Reset step UI
+  document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('obStep0').classList.add('active');
+  document.querySelectorAll('.ob-dot').forEach(d => d.classList.remove('active'));
+  document.getElementById('obDot0').classList.add('active');
+  // Clear grade selection
+  document.querySelectorAll('.ob-grade-btn').forEach(b => b.classList.remove('sel'));
+  const nextBtn = document.getElementById('obNext0');
+  nextBtn.disabled = true;
+  nextBtn.style.opacity = '.4';
+  // Show overlay
+  document.getElementById('onboardOverlay').classList.add('open');
+}
+
+function obSelectGrade(grade) {
+  _obGrade = grade;
+  document.querySelectorAll('.ob-grade-btn').forEach(b => b.classList.remove('sel'));
+  const idMap = { '5-6':'obG56','7-8':'obG78','9-10':'obG910','11-13':'obG1113','lehrer':'obGTeacher' };
+  if (idMap[grade]) document.getElementById(idMap[grade]).classList.add('sel');
+  const nextBtn = document.getElementById('obNext0');
+  nextBtn.disabled = false;
+  nextBtn.style.opacity = '1';
+}
+
+function obGoStep1() {
+  if (!_obGrade) return;
+  if (_obGrade === 'lehrer') {
+    // Show teacher code step
+    document.getElementById('obStep0').classList.remove('active');
+    document.getElementById('obStep1').classList.add('active');
+    document.getElementById('obDot0').classList.remove('active');
+    document.getElementById('obDot1').classList.add('active');
+    document.getElementById('obTeacherCodeInput').value = '';
+    document.getElementById('obTeacherErr').textContent = '';
+    setTimeout(() => document.getElementById('obTeacherCodeInput').focus(), 150);
+  } else {
+    // Pre-check features for grade
+    obPreselectFeatures(_obGrade);
+    document.getElementById('obStep0').classList.remove('active');
+    document.getElementById('obStep2').classList.add('active');
+    document.getElementById('obDot0').classList.remove('active');
+    document.getElementById('obDot2').classList.add('active');
+  }
+}
+
+function obPreselectFeatures(grade) {
+  const defaults = GRADE_DEFAULTS[grade] || ['calc'];
+  const featMap = {
+    calc: 'obChkCalc', koord: 'obChkKoord', notizen: 'obChkNotizen',
+    formeln: 'obChkFormeln', bild: 'obChkBild', agent: 'obChkAgent'
+  };
+  const rowMap = {
+    calc: 'obFeatCalc', koord: 'obFeatKoord', notizen: 'obFeatNotizen',
+    formeln: 'obFeatFormeln', bild: 'obFeatBild', agent: 'obFeatAgent'
+  };
+  Object.keys(featMap).forEach(feat => {
+    const chk = document.getElementById(featMap[feat]);
+    const row = document.getElementById(rowMap[feat]);
+    const checked = defaults.includes(feat);
+    if (chk) chk.checked = checked;
+    if (row) row.classList.toggle('sel', checked);
+  });
+}
+
+function obToggleFeat(chk) {
+  const row = chk.closest('.ob-feat-row');
+  if (row) row.classList.toggle('sel', chk.checked);
+}
+
+function _obFinish() {
+  document.getElementById('onboardOverlay').classList.remove('open');
+  // Show the data-loss warning now (deferred from launchApp)
+  if (!sessionStorage.getItem('warned')) {
+    document.getElementById('warnOverlay').style.display = 'flex';
+  }
+}
+
+function obCheckTeacherCode() {
+  const code = document.getElementById('obTeacherCodeInput').value.trim();
+  if (code === TEACHER_CODE) {
+    localStorage.setItem('ms_prefs_done', '1');
+    _obFinish();
+    activateTeacherMode();
+  } else {
+    document.getElementById('obTeacherErr').textContent = '❌ Falscher Code. Bitte erneut versuchen.';
+    document.getElementById('obTeacherCodeInput').select();
+  }
+}
+
+function obClearTeacherErr() {
+  document.getElementById('obTeacherErr').textContent = '';
+}
+
+function obComplete() {
+  const uses = [];
+  ['calc','koord','notizen','formeln','bild','agent'].forEach(feat => {
+    const chkId = 'obChk' + feat.charAt(0).toUpperCase() + feat.slice(1);
+    const chk = document.getElementById(chkId);
+    if (chk && chk.checked) uses.push(feat);
+  });
+  if (uses.length === 0) uses.push('calc');
+  applyPreferences(_obGrade, uses);
+  localStorage.setItem('ms_prefs_done', '1');
+  const rl = document.getElementById('settRoleLabel');
+  if (rl) rl.textContent = 'Schüler/in';
+  _obFinish();
+}
+
+function obBack() {
+  document.getElementById('obStep1').classList.remove('active');
+  document.getElementById('obStep0').classList.add('active');
+  document.getElementById('obDot1').classList.remove('active');
+  document.getElementById('obDot0').classList.add('active');
+}
+
+function obBackToGrade() {
+  document.getElementById('obStep2').classList.remove('active');
+  document.getElementById('obStep0').classList.add('active');
+  document.getElementById('obDot2').classList.remove('active');
+  document.getElementById('obDot0').classList.add('active');
+}
+
+function obSkip() {
+  applyPreferences('', ['calc','koord','notizen','formeln','bild','agent']);
+  localStorage.setItem('ms_prefs_done', '1');
+  _obFinish();
+}
+
 </script>
 
 <!-- ══════════════════════════════════════════
@@ -6936,14 +7558,14 @@ function _3dDraw() {
   <div id="varPickerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:160px;overflow-y:auto"></div>
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
     <input id="varPickerName" type="text" placeholder="Name (z.B. a)" maxlength="8"
-      style="width:70px;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:9px;color:#fff;font-size:16px;text-align:center;padding:8px;outline:none;font-family:inherit">
+      style="width:70px;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:0;color:#fff;font-size:16px;text-align:center;padding:8px;outline:none;font-family:inherit">
     <span style="color:#888">=</span>
     <input id="varPickerVal" type="number" placeholder="Wert" step="any"
-      style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:9px;color:#fff;font-size:16px;padding:8px;outline:none;font-family:inherit">
-    <button onclick="addKbVar()" style="background:#2244aa;border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:inherit">+ Hinzufügen</button>
+      style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:0;color:#fff;font-size:16px;padding:8px;outline:none;font-family:inherit">
+    <button onclick="addKbVar()" style="background:#2244aa;border:none;border-radius:0;color:#fff;font-size:14px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:inherit">+ Hinzufügen</button>
   </div>
   <div style="display:flex;gap:8px">
-    <button onclick="closeVarPicker()" style="flex:1;padding:12px;background:#2a2a4a;border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Schließen</button>
+    <button onclick="closeVarPicker()" style="flex:1;padding:12px;background:#2a2a4a;border:none;border-radius:0;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Schließen</button>
   </div>
 </div>
 
@@ -7005,7 +7627,7 @@ function _3dDraw() {
   <div id="model3dBar">
     <span style="font-size:22px">🧊</span>
     <span id="model3dTitle">3D-Modell</span>
-    <button onclick="close3DModel()" style="padding:6px 14px;background:#333;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto">✕ Schließen</button>
+    <button onclick="close3DModel()" style="padding:6px 14px;background:#333;border:none;border-radius:0;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto">✕ Schließen</button>
   </div>
   <canvas id="model3dCanvas"></canvas>
   <div id="model3dHint">Ziehe mit dem Finger / der Maus, um das Modell zu drehen</div>
