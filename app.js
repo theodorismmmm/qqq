@@ -3456,6 +3456,7 @@ function calcStat() {
 ══════════════════════════════════════════════ */
 (function initLoadingScreen() {
   const cvs = document.getElementById('loadingBar');
+  if (!cvs) return;
   const ctx = cvs.getContext('2d');
   const W = 260, H = 70;
   const dpr = window.devicePixelRatio || 1;
@@ -5252,10 +5253,11 @@ function deactivateTeacherMode() {
   document.getElementById('settTeacherInactive').style.display = 'block';
   document.getElementById('settTeacherBadgeLbl').style.display = 'none';
   document.getElementById('settRoleLabel').textContent = 'Schüler/in';
-  // Re-apply student preferences
+  // Re-apply student preferences, then enforce current license restrictions
   const grade = localStorage.getItem('ms_grade') || '';
   const uses  = (localStorage.getItem('ms_uses') || 'calc').split(',');
   applyPreferences(grade, uses);
+  applyLicense(getLicenseData());
 }
 
 function activateTeacherFromSettings() {
@@ -5448,6 +5450,7 @@ function obComplete() {
   localStorage.setItem('ms_prefs_done', '1');
   const rl = document.getElementById('settRoleLabel');
   if (rl) rl.textContent = 'Schüler/in';
+  applyLicense(getLicenseData());
   _obFinish();
 }
 
@@ -5468,5 +5471,6 @@ function obBackToGrade() {
 function obSkip() {
   applyPreferences('', ['calc','koord','notizen','formeln','bild','agent']);
   localStorage.setItem('ms_prefs_done', '1');
+  applyLicense(getLicenseData());
   _obFinish();
 }
