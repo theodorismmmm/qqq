@@ -901,6 +901,14 @@
       color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 0;
       vertical-align: middle; margin-left: 4px; letter-spacing: .5px; }
 
+    /* ─── Toggle Switch ─── */
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--bdr); transition: .2s; }
+    .toggle-slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; transition: .2s; }
+    input:checked + .toggle-slider { background: var(--acc); }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+
     /* ─── Onboarding Overlay ─── */
     #onboardOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 19999;
       display: none; flex-direction: column; align-items: center; overflow-y: auto;
@@ -2498,17 +2506,21 @@
 
         <div class="sect" style="margin-top:14px">Erweiterter Modus</div>
         <div class="ig">
-          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-            <span>Erweiterter Modus</span>
-            <input type="checkbox" id="advancedModeToggle" onchange="toggleAdvancedMode(this.checked)" style="width:20px;height:20px;cursor:pointer">
-          </label>
-          <div style="font-size:12px;color:var(--dim);margin-top:6px">Schaltet zusätzliche Entwickleroptionen frei.</div>
-        </div>
-        <div id="advancedOptions" style="display:none">
-          <div class="ig">
-            <label>Koordinatensystem Debug</label>
-            <button class="sbtn" onclick="alert('Debug-Modus aktiviert')">Debug starten</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--txt)">Erweiterter Modus</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:2px">Zeigt Agent, Handbuch und weitere Profi-Tabs</div>
+            </div>
+            <label class="toggle-switch" aria-label="Erweiterter Modus ein-/ausschalten">
+              <input type="checkbox" id="advancedModeToggle" onchange="toggleAdvancedMode(this.checked)" aria-label="Erweiterter Modus">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
+        </div>
+        <div class="sect" style="margin-top:14px">Daten</div>
+        <div class="ig">
+          <div style="font-size:13px;color:var(--dim);margin-bottom:10px">Alle Notizen, Einstellungen und gespeicherten Daten zurücksetzen.</div>
+          <button class="sbtn" style="background:var(--acc)" onclick="if(confirm('Alle Daten zurücksetzen?')){localStorage.clear();location.reload()}">Alle Daten zurücksetzen</button>
         </div>
 
       </div>
@@ -2620,11 +2632,9 @@ function launchApp() {
   if (savedTheme) applyTheme(savedTheme);
   const savedAccent = localStorage.getItem('accentColor');
   if (savedAccent) setAccentColor(savedAccent);
-  const savedAdvanced = localStorage.getItem('advancedMode');
-  if (savedAdvanced === '1') {
-    document.getElementById('advancedModeToggle').checked = true;
-    toggleAdvancedMode(true);
-  }
+  const savedAdvanced = localStorage.getItem('advancedMode') === '1';
+  document.getElementById('advancedModeToggle').checked = savedAdvanced;
+  toggleAdvancedMode(savedAdvanced);
 
   // ── Restore mode / preferences ──────────────────────────────────────────
   if (teacherMode) {
@@ -7165,8 +7175,36 @@ function switchSettingsTab(id) {
 }
 
 function toggleAdvancedMode(enabled) {
-  document.getElementById('advancedOptions').style.display = enabled ? 'block' : 'none';
   localStorage.setItem('advancedMode', enabled ? '1' : '0');
+  const advTabs = ['nbAgent', 'nbHandbuch'];
+  advTabs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = enabled ? '' : 'none';
+  });
+}
+
+// ─── UI Layer Protocol ───
+window._openOverlays = new Set();
+const _overlayClosers = {
+  'warnOverlay': () => { document.getElementById('warnOverlay').style.display='none'; },
+  'fsMenu': () => { closeFsMenu(); },
+  'premiumOverlay': () => { hidePremiumModal(); },
+  'activateOverlay': () => { hideActivateModal(); },
+  'model3dOverlay': () => { close3DModel(); },
+  'fracPicker': () => { closeFracPicker(); },
+  'varPicker': () => { closeVarPicker(); },
+  'mathKbd': () => { typeof closeMathKbd === 'function' && closeMathKbd(); }
+};
+function openOverlay(id) {
+  window._openOverlays.forEach(openId => {
+    if (openId !== id && _overlayClosers[openId]) {
+      try { _overlayClosers[openId](); } catch(e) { console.warn('Failed to close overlay:', openId, e); }
+    }
+  });
+  window._openOverlays.add(id);
+}
+function closeOverlay(id) {
+  window._openOverlays.delete(id);
 }
 
 function applyTheme(theme) {
