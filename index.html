@@ -1088,24 +1088,43 @@
   <div class="ob-step-indicator">
     <div class="ob-dot active" id="obDot0"></div>
     <div class="ob-dot" id="obDot1"></div>
+    <div class="ob-dot" id="obDot2"></div>
   </div>
 
-  <!-- Step 1: Grade -->
+  <!-- Step 0: Grade / Role -->
   <div class="ob-step active" id="obStep0">
     <div class="ob-step-title">In welcher Klasse bist du?</div>
     <div class="ob-grade-grid">
-      <button class="ob-grade-btn" id="obG56" onclick="obSelectGrade('5-6')">Klasse 5 – 6</button>
-      <button class="ob-grade-btn" id="obG78" onclick="obSelectGrade('7-8')">Klasse 7 – 8</button>
-      <button class="ob-grade-btn" id="obG910" onclick="obSelectGrade('9-10')">Klasse 9 – 10</button>
-      <button class="ob-grade-btn" id="obG1113" onclick="obSelectGrade('11-13')">Klasse 11 – 13</button>
-      <button class="ob-grade-btn" id="obGTeacher" onclick="obSelectGrade('lehrer')" style="grid-column:span 2">Lehrer / Erwachsener</button>
+      <button class="ob-grade-btn" id="obG56"      onclick="obSelectGrade('5-6')">Klasse 5 – 6</button>
+      <button class="ob-grade-btn" id="obG78"      onclick="obSelectGrade('7-8')">Klasse 7 – 8</button>
+      <button class="ob-grade-btn" id="obG910"     onclick="obSelectGrade('9-10')">Klasse 9 – 10</button>
+      <button class="ob-grade-btn" id="obG1113"    onclick="obSelectGrade('11-13')">Klasse 11 – 13</button>
+      <button class="ob-grade-btn" id="obGTeacher" onclick="obSelectGrade('lehrer')" style="grid-column:span 2">👩‍🏫 Ich bin Lehrer/in</button>
     </div>
     <button class="ob-next-btn" id="obNext0" onclick="obGoStep1()" disabled style="opacity:.4">Weiter →</button>
     <button class="ob-skip" onclick="obSkip()">Überspringen</button>
   </div>
 
-  <!-- Step 2: Features -->
+  <!-- Step 1: Teacher code (only shown for grade=lehrer) -->
   <div class="ob-step" id="obStep1">
+    <div class="ob-step-title">Lehrermodus aktivieren</div>
+    <div class="ig" style="margin-bottom:14px">
+      <div style="font-size:22px;margin-bottom:10px;text-align:center">🔑</div>
+      <div style="font-size:14px;color:var(--txt);margin-bottom:6px;font-weight:600">Lehrercode eingeben</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:14px;line-height:1.5">
+        Der Lehrermodus schaltet alle Funktionen und Premium-Features kostenlos frei. Bitte gib den Schulcode ein.
+      </div>
+      <input id="obTeacherCodeInput" type="password" inputmode="numeric" placeholder="Code eingeben"
+        class="mi" style="text-align:center;font-size:22px;letter-spacing:6px;margin-bottom:8px"
+        oninput="obClearTeacherErr()" onkeydown="if(event.key==='Enter')obCheckTeacherCode()">
+      <div id="obTeacherErr" style="font-size:13px;color:#cc0000;min-height:18px;margin-bottom:8px;text-align:center"></div>
+    </div>
+    <button class="ob-next-btn" onclick="obCheckTeacherCode()">Lehrermodus aktivieren ✓</button>
+    <button class="ob-skip" onclick="obBack()">← Zurück</button>
+  </div>
+
+  <!-- Step 2: Features (for students) -->
+  <div class="ob-step" id="obStep2">
     <div class="ob-step-title">Was wirst du hauptsächlich nutzen?</div>
     <div class="ob-feat-list">
       <label class="ob-feat-row sel" id="obFeatCalc">
@@ -1158,7 +1177,7 @@
       </label>
     </div>
     <button class="ob-next-btn" onclick="obComplete()">Fertig – App starten ✓</button>
-    <button class="ob-skip" onclick="obBack()">← Zurück</button>
+    <button class="ob-skip" onclick="obBackToGrade()">← Zurück</button>
   </div>
 </div>
 
@@ -1405,6 +1424,7 @@
     <div style="display:flex;flex-direction:column;gap:0">
       <h1>MathSpaces</h1>
     </div>
+    <div id="teacherBadge" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px;letter-spacing:.5px;flex-shrink:0">LEHRER</div>
     <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
   </header>
 
@@ -2407,7 +2427,22 @@
         <button class="stab active" onclick="switchSettingsTab('settGeneral')">Allgemein</button>
         <button class="stab" onclick="switchSettingsTab('settAdvanced')">Erweitert</button>
       </div>
+
+      <!-- General tab -->
       <div id="settGeneral" class="spanel active" style="overflow-y:auto;padding:14px;gap:12px">
+
+        <div class="sect">Mein Profil</div>
+        <div class="ig">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--txt)" id="settRoleLabel">Schüler/in</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:2px" id="settGradeLabel">Klasse nicht gesetzt</div>
+            </div>
+            <div id="settTeacherBadgeLbl" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px">LEHRER</div>
+          </div>
+          <button class="sbtn" onclick="showOnboarding(true)" style="margin-top:4px">Präferenzen ändern</button>
+        </div>
+
         <div class="sect">Darstellung</div>
         <div class="ig">
           <label>Farbschema</label>
@@ -2419,29 +2454,60 @@
         <div class="ig">
           <label>Akzentfarbe</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-            <button onclick="setAccentColor('#cc0000')" style="width:32px;height:32px;background:#cc0000;border:2px solid var(--bdr);cursor:pointer"></button>
-            <button onclick="setAccentColor('#0055cc')" style="width:32px;height:32px;background:#0055cc;border:2px solid var(--bdr);cursor:pointer"></button>
-            <button onclick="setAccentColor('#007700')" style="width:32px;height:32px;background:#007700;border:2px solid var(--bdr);cursor:pointer"></button>
-            <button onclick="setAccentColor('#884400')" style="width:32px;height:32px;background:#884400;border:2px solid var(--bdr);cursor:pointer"></button>
+            <button onclick="setAccentColor('#cc0000')" style="width:32px;height:32px;background:#cc0000;border:2px solid var(--bdr);cursor:pointer" title="Rot"></button>
+            <button onclick="setAccentColor('#0055cc')" style="width:32px;height:32px;background:#0055cc;border:2px solid var(--bdr);cursor:pointer" title="Blau"></button>
+            <button onclick="setAccentColor('#007700')" style="width:32px;height:32px;background:#007700;border:2px solid var(--bdr);cursor:pointer" title="Grün"></button>
+            <button onclick="setAccentColor('#884400')" style="width:32px;height:32px;background:#884400;border:2px solid var(--bdr);cursor:pointer" title="Orange"></button>
           </div>
         </div>
       </div>
+
+      <!-- Advanced tab -->
       <div id="settAdvanced" class="spanel" style="overflow-y:auto;padding:14px;gap:12px">
-        <div class="sect">Erweiterter Modus</div>
+
+        <div class="sect">Lehrermodus</div>
+        <div id="settTeacherActive" style="display:none">
+          <div class="ig" style="border-left:3px solid #1a7a1a">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">✅</span>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#1a7a1a">Lehrermodus aktiv</div>
+                <div style="font-size:12px;color:var(--dim);margin-top:2px">Alle Funktionen &amp; Premium freigeschaltet</div>
+              </div>
+            </div>
+            <button class="sbtn" onclick="deactivateTeacherMode()" style="background:#555">Lehrermodus beenden</button>
+          </div>
+        </div>
+        <div id="settTeacherInactive">
+          <div class="ig">
+            <div style="font-size:13px;color:var(--dim);margin-bottom:12px;line-height:1.5">
+              Lehrerinnen und Lehrer erhalten Zugriff auf alle Funktionen und Premium-Features kostenlos.
+            </div>
+            <label style="font-size:12px;color:var(--dim);margin-bottom:6px;display:block">Lehrercode eingeben</label>
+            <input id="settTeacherCodeInput" type="password" inputmode="numeric" placeholder="Code"
+              class="mi" style="text-align:center;font-size:20px;letter-spacing:6px;margin-bottom:8px"
+              oninput="document.getElementById('settTeacherErr').textContent=''"
+              onkeydown="if(event.key==='Enter')activateTeacherFromSettings()">
+            <div id="settTeacherErr" style="font-size:13px;color:#cc0000;min-height:18px;margin-bottom:8px"></div>
+            <button class="sbtn" onclick="activateTeacherFromSettings()">🔑 Lehrermodus aktivieren</button>
+          </div>
+        </div>
+
+        <div class="sect" style="margin-top:14px">Erweiterter Modus</div>
         <div class="ig">
           <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
             <span>Erweiterter Modus</span>
             <input type="checkbox" id="advancedModeToggle" onchange="toggleAdvancedMode(this.checked)" style="width:20px;height:20px;cursor:pointer">
           </label>
-          <div style="font-size:12px;color:var(--dim);margin-top:6px">Schaltet zusätzliche Optionen und Entwicklerfunktionen frei.</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:6px">Schaltet zusätzliche Entwickleroptionen frei.</div>
         </div>
         <div id="advancedOptions" style="display:none">
-          <div class="sect" style="margin-top:12px">Erweiterte Optionen</div>
           <div class="ig">
             <label>Koordinatensystem Debug</label>
             <button class="sbtn" onclick="alert('Debug-Modus aktiviert')">Debug starten</button>
           </div>
         </div>
+
       </div>
     </div><!-- end tabSettings -->
 
@@ -2527,7 +2593,6 @@ function launchApp() {
   renderCoordSysTabs();   // initialize multiple coord system tabs
   bildSetupDropZone();
   initPhysRulerDrag();
-  // Hide loading screen when app is ready
   // Load saved settings
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) applyTheme(savedTheme);
@@ -2537,6 +2602,21 @@ function launchApp() {
   if (savedAdvanced === '1') {
     document.getElementById('advancedModeToggle').checked = true;
     toggleAdvancedMode(true);
+  }
+  // Restore teacher mode if previously activated
+  if (isTeacher()) {
+    document.getElementById('teacherBadge').style.display = 'flex';
+    document.getElementById('settTeacherActive').style.display = 'block';
+    document.getElementById('settTeacherInactive').style.display = 'none';
+    document.getElementById('settTeacherBadgeLbl').style.display = 'block';
+    document.getElementById('settRoleLabel').textContent = 'Lehrer/in';
+    applyPreferences('lehrer', ['calc','koord','notizen','formeln','bild','agent']);
+  } else if (localStorage.getItem('ms_prefs_done') === '1') {
+    // Restore student preferences
+    loadAndApplyPreferences();
+  } else {
+    // First launch – show onboarding
+    showOnboarding(false);
   }
   if (window._hideLoadingScreen) window._hideLoadingScreen();
 }
@@ -7096,6 +7176,248 @@ function setAccentColor(color) {
   document.documentElement.style.setProperty('--acc2', color);
   document.documentElement.style.setProperty('--acc4', color);
   localStorage.setItem('accentColor', color);
+}
+
+/* ══════════════════════════════════════════════
+   TEACHER / STUDENT MODE
+══════════════════════════════════════════════ */
+const TEACHER_CODE = '1122';
+const TEACHER_KEY  = 'ms_teacher_mode';
+
+function isTeacher() {
+  try { return localStorage.getItem(TEACHER_KEY) === '1'; } catch(e) { return false; }
+}
+
+function activateTeacherMode() {
+  localStorage.setItem(TEACHER_KEY, '1');
+  setPremium(true);
+  // Show teacher badge in header
+  document.getElementById('teacherBadge').style.display = 'flex';
+  document.getElementById('settTeacherActive').style.display = 'block';
+  document.getElementById('settTeacherInactive').style.display = 'none';
+  document.getElementById('settTeacherBadgeLbl').style.display = 'block';
+  document.getElementById('settRoleLabel').textContent = 'Lehrer/in';
+  // Unlock all nav tabs
+  applyPreferences('lehrer', ['calc','koord','notizen','formeln','bild','agent']);
+  // Toast
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a7a1a;color:#fff;padding:14px 22px;font-size:15px;font-weight:700;z-index:13000;white-space:nowrap;';
+  el.textContent = '✅ Lehrermodus aktiviert!';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2500);
+}
+
+function deactivateTeacherMode() {
+  localStorage.removeItem(TEACHER_KEY);
+  setPremium(false);
+  document.getElementById('teacherBadge').style.display = 'none';
+  document.getElementById('settTeacherActive').style.display = 'none';
+  document.getElementById('settTeacherInactive').style.display = 'block';
+  document.getElementById('settTeacherBadgeLbl').style.display = 'none';
+  document.getElementById('settRoleLabel').textContent = 'Schüler/in';
+  // Re-apply student preferences
+  const grade = localStorage.getItem('ms_grade') || '';
+  const uses  = (localStorage.getItem('ms_uses') || 'calc').split(',');
+  applyPreferences(grade, uses);
+}
+
+function activateTeacherFromSettings() {
+  const code = document.getElementById('settTeacherCodeInput').value.trim();
+  if (code === TEACHER_CODE) {
+    document.getElementById('settTeacherCodeInput').value = '';
+    activateTeacherMode();
+  } else {
+    document.getElementById('settTeacherErr').textContent = '❌ Falscher Code.';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   PREFERENCES / NAV VISIBILITY
+══════════════════════════════════════════════ */
+// featId → navButtonId mapping
+const FEAT_NAV = {
+  calc:    'nbRechner',
+  koord:   'nbKoord',
+  notizen: 'nbNotizen',
+  formeln: 'nbKlasse',
+  bild:    'nbBild',
+  agent:   'nbAgent'
+};
+// Always-visible nav items (never hidden)
+const NAV_ALWAYS = ['nbHandbuch', 'nbSettings'];
+
+// Grade → recommended default features
+const GRADE_DEFAULTS = {
+  '5-6':   ['calc', 'notizen'],
+  '7-8':   ['calc', 'koord', 'notizen', 'formeln'],
+  '9-10':  ['calc', 'koord', 'notizen', 'formeln', 'bild'],
+  '11-13': ['calc', 'koord', 'notizen', 'formeln', 'bild', 'agent'],
+  'lehrer':['calc', 'koord', 'notizen', 'formeln', 'bild', 'agent']
+};
+
+function applyPreferences(grade, uses) {
+  // Save
+  if (grade) localStorage.setItem('ms_grade', grade);
+  if (uses)  localStorage.setItem('ms_uses', uses.join(','));
+
+  // Update settings labels
+  const gradeLabels = { '5-6':'Klasse 5 – 6','7-8':'Klasse 7 – 8','9-10':'Klasse 9 – 10','11-13':'Klasse 11 – 13','lehrer':'Lehrermodus' };
+  const glEl = document.getElementById('settGradeLabel');
+  if (glEl && grade) glEl.textContent = gradeLabels[grade] || grade;
+
+  // Show/hide nav buttons based on selected features
+  Object.entries(FEAT_NAV).forEach(([feat, navId]) => {
+    const btn = document.getElementById(navId);
+    if (!btn) return;
+    btn.style.display = uses.includes(feat) ? '' : 'none';
+  });
+
+  // If currently active tab is now hidden, switch to rechner
+  const activeNb = document.querySelector('#nav .nb.active');
+  if (activeNb && activeNb.style.display === 'none') {
+    switchTab('rechner');
+  }
+}
+
+function loadAndApplyPreferences() {
+  const grade = localStorage.getItem('ms_grade') || '';
+  const usesRaw = localStorage.getItem('ms_uses');
+  const uses = usesRaw ? usesRaw.split(',') : null;
+  if (uses) applyPreferences(grade, uses);
+}
+
+/* ══════════════════════════════════════════════
+   ONBOARDING
+══════════════════════════════════════════════ */
+let _obGrade = '';
+let _obReset = false;
+
+function showOnboarding(reset) {
+  _obReset = !!reset;
+  _obGrade = '';
+  // Reset step UI
+  document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('obStep0').classList.add('active');
+  document.querySelectorAll('.ob-dot').forEach(d => d.classList.remove('active'));
+  document.getElementById('obDot0').classList.add('active');
+  // Clear grade selection
+  document.querySelectorAll('.ob-grade-btn').forEach(b => b.classList.remove('sel'));
+  const nextBtn = document.getElementById('obNext0');
+  nextBtn.disabled = true;
+  nextBtn.style.opacity = '.4';
+  // Show overlay
+  document.getElementById('onboardOverlay').classList.add('open');
+}
+
+function obSelectGrade(grade) {
+  _obGrade = grade;
+  document.querySelectorAll('.ob-grade-btn').forEach(b => b.classList.remove('sel'));
+  const idMap = { '5-6':'obG56','7-8':'obG78','9-10':'obG910','11-13':'obG1113','lehrer':'obGTeacher' };
+  if (idMap[grade]) document.getElementById(idMap[grade]).classList.add('sel');
+  const nextBtn = document.getElementById('obNext0');
+  nextBtn.disabled = false;
+  nextBtn.style.opacity = '1';
+}
+
+function obGoStep1() {
+  if (!_obGrade) return;
+  if (_obGrade === 'lehrer') {
+    // Show teacher code step
+    document.getElementById('obStep0').classList.remove('active');
+    document.getElementById('obStep1').classList.add('active');
+    document.getElementById('obDot0').classList.remove('active');
+    document.getElementById('obDot1').classList.add('active');
+    document.getElementById('obTeacherCodeInput').value = '';
+    document.getElementById('obTeacherErr').textContent = '';
+    setTimeout(() => document.getElementById('obTeacherCodeInput').focus(), 150);
+  } else {
+    // Pre-check features for grade
+    obPreselectFeatures(_obGrade);
+    document.getElementById('obStep0').classList.remove('active');
+    document.getElementById('obStep2').classList.add('active');
+    document.getElementById('obDot0').classList.remove('active');
+    document.getElementById('obDot2').classList.add('active');
+  }
+}
+
+function obPreselectFeatures(grade) {
+  const defaults = GRADE_DEFAULTS[grade] || ['calc'];
+  const featMap = {
+    calc: 'obChkCalc', koord: 'obChkKoord', notizen: 'obChkNotizen',
+    formeln: 'obChkFormeln', bild: 'obChkBild', agent: 'obChkAgent'
+  };
+  const rowMap = {
+    calc: 'obFeatCalc', koord: 'obFeatKoord', notizen: 'obFeatNotizen',
+    formeln: 'obFeatFormeln', bild: 'obFeatBild', agent: 'obFeatAgent'
+  };
+  Object.keys(featMap).forEach(feat => {
+    const chk = document.getElementById(featMap[feat]);
+    const row = document.getElementById(rowMap[feat]);
+    const checked = defaults.includes(feat);
+    if (chk) chk.checked = checked;
+    if (row) row.classList.toggle('sel', checked);
+  });
+}
+
+function obToggleFeat(chk) {
+  const row = chk.closest('.ob-feat-row');
+  if (row) row.classList.toggle('sel', chk.checked);
+}
+
+function obCheckTeacherCode() {
+  const code = document.getElementById('obTeacherCodeInput').value.trim();
+  if (code === TEACHER_CODE) {
+    // Close onboarding and activate teacher mode
+    document.getElementById('onboardOverlay').classList.remove('open');
+    localStorage.setItem('ms_prefs_done', '1');
+    activateTeacherMode();
+  } else {
+    document.getElementById('obTeacherErr').textContent = '❌ Falscher Code. Bitte erneut versuchen.';
+    document.getElementById('obTeacherCodeInput').select();
+  }
+}
+
+function obClearTeacherErr() {
+  document.getElementById('obTeacherErr').textContent = '';
+}
+
+function obComplete() {
+  // Collect checked features
+  const uses = [];
+  ['calc','koord','notizen','formeln','bild','agent'].forEach(feat => {
+    const chkId = 'obChk' + feat.charAt(0).toUpperCase() + feat.slice(1);
+    const chk = document.getElementById(chkId);
+    if (chk && chk.checked) uses.push(feat);
+  });
+  if (uses.length === 0) uses.push('calc'); // always keep calc
+  applyPreferences(_obGrade, uses);
+  localStorage.setItem('ms_prefs_done', '1');
+  document.getElementById('onboardOverlay').classList.remove('open');
+  // Update settings grade label
+  const gradeLabels = { '5-6':'Klasse 5 – 6','7-8':'Klasse 7 – 8','9-10':'Klasse 9 – 10','11-13':'Klasse 11 – 13','lehrer':'Lehrermodus' };
+  const rl = document.getElementById('settRoleLabel');
+  if (rl) rl.textContent = 'Schüler/in';
+}
+
+function obBack() {
+  document.getElementById('obStep1').classList.remove('active');
+  document.getElementById('obStep0').classList.add('active');
+  document.getElementById('obDot1').classList.remove('active');
+  document.getElementById('obDot0').classList.add('active');
+}
+
+function obBackToGrade() {
+  document.getElementById('obStep2').classList.remove('active');
+  document.getElementById('obStep0').classList.add('active');
+  document.getElementById('obDot2').classList.remove('active');
+  document.getElementById('obDot0').classList.add('active');
+}
+
+function obSkip() {
+  // Apply all features as default
+  applyPreferences('', ['calc','koord','notizen','formeln','bild','agent']);
+  localStorage.setItem('ms_prefs_done', '1');
+  document.getElementById('onboardOverlay').classList.remove('open');
 }
 
 </script>
