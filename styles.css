@@ -108,6 +108,7 @@
       border: none; cursor: pointer; color: var(--dim); font-size: 11px; font-family: inherit; padding: 3px 0; transition: color .2s; }
     .nb.active { color: var(--acc); }
     .nb .ni { font-size: 22px; line-height: 1; }
+    .nb img.ni { width: 22px; height: 22px; object-fit: contain; font-size: 0; }
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
