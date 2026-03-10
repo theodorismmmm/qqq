@@ -1,5 +1,5 @@
 /* MathSpaces Service Worker */
-const CACHE = 'mathspaces-v1';
+const CACHE = 'mathspaces-v2';
 const ASSETS = [
   './',
   './index.html',
