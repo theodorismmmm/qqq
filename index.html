@@ -28,9 +28,9 @@
        ═══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     :root {
-      --bg: #ffffff; --bg2: #f5f5f5; --card: #eeeeee; --btn: #e0e0e0; --btn2: #d0d0d0;
-      --acc: #cc0000; --acc2: #cc0000; --acc3: #111111; --acc4: #cc0000;
-      --txt: #111111; --dim: #555555; --bdr: #cccccc;
+      --bg: #111111; --bg2: #1a1a1a; --card: #222222; --btn: #333333; --btn2: #444444;
+      --acc: #cc0000; --acc2: #cc0000; --acc3: #eeeeee; --acc4: #cc0000;
+      --txt: #eeeeee; --dim: #aaaaaa; --bdr: #444444;
       --nav: 64px; --hdr: 52px; --sb: env(safe-area-inset-bottom, 0px); --st: env(safe-area-inset-top, 0px);
       --r: 0;
     }
@@ -1098,7 +1098,12 @@
     if (done) return;
     progress = Math.min(1, progress + 0.012);
     drawLoadingBar(progress);
-    if (progress >= 1) { done = true; return; }
+    if (progress >= 1) {
+      done = true;
+      window._loadingAnimDone = true;
+      if (window._showUI) window._showUI();
+      return;
+    }
     requestAnimationFrame(animate);
   }
 
@@ -2622,8 +2627,8 @@
         <div class="ig">
           <label>Farbschema</label>
           <select class="mi" id="themeSelect" onchange="applyTheme(this.value)" style="border-radius:0">
-            <option value="light">Hell</option>
             <option value="dark">Dunkel</option>
+            <option value="light">Hell</option>
           </select>
         </div>
         <div class="ig">
@@ -2853,6 +2858,8 @@ function launchApp() {
   // ── Restore saved settings ──────────────────────────────────────────────
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) applyTheme(savedTheme);
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) themeSelect.value = savedTheme || 'dark';
   const savedAccent = localStorage.getItem('accentColor');
   if (savedAccent) setAccentColor(savedAccent);
   const savedAdvanced = localStorage.getItem('advancedMode') === '1';
@@ -2887,6 +2894,10 @@ window.addEventListener('load', () => {
       // If a specific tab was requested (e.g. from coordinates.html), switch to it
       if (window._autoLaunch) setTimeout(() => switchTab(window._autoLaunch), 0);
     } else {
+      // Apply saved theme so install screen matches user's preference
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) applyTheme(savedTheme);
+
       // Hide loading screen first, then show install screen
       const ls = document.getElementById('loadingScreen');
       if (ls && ls.style.display !== 'none') {
@@ -2906,10 +2917,10 @@ window.addEventListener('load', () => {
   };
 
   window._showUI = showUI;
-  // If the user already clicked skip before load fired, run showUI immediately
-  if (window._loadingSkipped) { showUI(); return; }
+  // Run immediately if animation already finished or user skipped
+  if (window._loadingSkipped || window._loadingAnimDone) { showUI(); return; }
 
-  // Wait at least 1.4s for the loading animation to play through
+  // Fallback: show after animation duration (≈1.4s from when the anim script ran)
   setTimeout(showUI, 1400);
 
   // Listen for display-mode change (after install)
