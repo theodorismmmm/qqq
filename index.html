@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════
        UI PROTOCOL: Each major UI region is scoped to its own ID
@@ -28,9 +28,9 @@
        ═══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     :root {
-      --bg: #ffffff; --bg2: #f5f5f5; --card: #eeeeee; --btn: #e0e0e0; --btn2: #d0d0d0;
-      --acc: #cc0000; --acc2: #cc0000; --acc3: #111111; --acc4: #cc0000;
-      --txt: #111111; --dim: #555555; --bdr: #cccccc;
+      --bg: #111111; --bg2: #1a1a1a; --card: #222222; --btn: #333333; --btn2: #444444;
+      --acc: #cc0000; --acc2: #cc0000; --acc3: #eeeeee; --acc4: #cc0000;
+      --txt: #eeeeee; --dim: #aaaaaa; --bdr: #444444;
       --nav: 64px; --hdr: 52px; --sb: env(safe-area-inset-bottom, 0px); --st: env(safe-area-inset-top, 0px);
       --r: 0;
     }
@@ -1098,7 +1098,12 @@
     if (done) return;
     progress = Math.min(1, progress + 0.012);
     drawLoadingBar(progress);
-    if (progress >= 1) { done = true; return; }
+    if (progress >= 1) {
+      done = true;
+      window._loadingAnimDone = true;
+      if (window._showUI) window._showUI();
+      return;
+    }
     requestAnimationFrame(animate);
   }
 
@@ -2622,8 +2627,8 @@
         <div class="ig">
           <label>Farbschema</label>
           <select class="mi" id="themeSelect" onchange="applyTheme(this.value)" style="border-radius:0">
-            <option value="light">Hell</option>
             <option value="dark">Dunkel</option>
+            <option value="light">Hell</option>
           </select>
         </div>
         <div class="ig">
@@ -2853,6 +2858,8 @@ function launchApp() {
   // ── Restore saved settings ──────────────────────────────────────────────
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) applyTheme(savedTheme);
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) themeSelect.value = savedTheme || 'dark';
   const savedAccent = localStorage.getItem('accentColor');
   if (savedAccent) setAccentColor(savedAccent);
   const savedAdvanced = localStorage.getItem('advancedMode') === '1';
@@ -2887,6 +2894,10 @@ window.addEventListener('load', () => {
       // If a specific tab was requested (e.g. from coordinates.html), switch to it
       if (window._autoLaunch) setTimeout(() => switchTab(window._autoLaunch), 0);
     } else {
+      // Apply saved theme so install screen matches user's preference
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) applyTheme(savedTheme);
+
       // Hide loading screen first, then show install screen
       const ls = document.getElementById('loadingScreen');
       if (ls && ls.style.display !== 'none') {
@@ -2906,10 +2917,10 @@ window.addEventListener('load', () => {
   };
 
   window._showUI = showUI;
-  // If the user already clicked skip before load fired, run showUI immediately
-  if (window._loadingSkipped) { showUI(); return; }
+  // Run immediately if animation already finished or user skipped
+  if (window._loadingSkipped || window._loadingAnimDone) { showUI(); return; }
 
-  // Wait at least 1.4s for the loading animation to play through
+  // Fallback: show after animation duration (≈1.4s from when the anim script ran)
   setTimeout(showUI, 1400);
 
   // Listen for display-mode change (after install)
@@ -7376,15 +7387,23 @@ const LIC_KEY_STORE   = 'ms_lic_key';    // stored key string
 const LIC_DATA_STORE  = 'ms_lic_data';  // stored license info JSON
 const LIC_CLASS_STORE = 'ms_lic_classes'; // teacher: class data JSON
 
-// Supabase config
-const SUPA_URL = 'https://gsfaxtajgqtexhxdjnwo.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZmF4dGFqZ3F0ZXhoeGRqbndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzY3MDksImV4cCI6MjA4ODY1MjcwOX0.POZYS8J23FVWvsgbU50IXC4scjd68h1pwLNEozzltYw';
-// WARNING: The service-role key bypasses Row Level Security. Keep it out of
-// client-side code that is shipped to end-users. Only use server-side / Edge Functions.
-// const SUPA_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZmF4dGFqZ3F0ZXhoeGRqbndvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA3NjcwOSwiZXhwIjoyMDg4NjUyNzA5fQ.iIwQMdNcq3oDS1YqItmD91FtHn3Cn82Q54x79eTS2go';
-const supabase = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+// Supabase config – replace with your own Project URL and anon public key
+const SUPA_URL = 'YOUR_SUPABASE_URL';
+const SUPA_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// const SUPA_SERVICE_KEY = 'YOUR_SERVICE_ROLE_KEY'; // Server-side only – never in client code
+// Lazily initialized so the CDN script (loaded with defer) is ready before first use
+let _supabase = undefined;
+function getSupabase() {
+  if (_supabase === undefined) {
+    _supabase = (window.supabase && SUPA_URL !== 'YOUR_SUPABASE_URL' && SUPA_KEY !== 'YOUR_SUPABASE_ANON_KEY')
+      ? window.supabase.createClient(SUPA_URL, SUPA_KEY)
+      : null;
+  }
+  return _supabase;
+}
 
 async function validateLicenseOnline(key) {
+  const supabase = getSupabase();
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('licenses')
@@ -7478,6 +7497,7 @@ function _deactivateLicenseForced() {
 }
 
 function stopLicenseWatch() {
+  const supabase = getSupabase();
   if (supabase) _licWatchChannels.forEach(ch => { try { supabase.removeChannel(ch); } catch(e) { console.warn('License channel cleanup error:', e); } });
   _licWatchChannels = [];
   _currentKey = null;
@@ -7486,6 +7506,7 @@ function stopLicenseWatch() {
 
 function startLicenseWatch(key, classId) {
   stopLicenseWatch();
+  const supabase = getSupabase();
   if (!key || !supabase) return;
   _currentKey = key;
   _currentClassId = classId || null;

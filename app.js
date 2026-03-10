@@ -4702,15 +4702,23 @@ const LIC_KEY_STORE   = 'ms_lic_key';    // stored key string
 const LIC_DATA_STORE  = 'ms_lic_data';  // stored license info JSON
 const LIC_CLASS_STORE = 'ms_lic_classes'; // teacher: class data JSON
 
-// Supabase config
-const SUPA_URL = 'https://gsfaxtajgqtexhxdjnwo.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZmF4dGFqZ3F0ZXhoeGRqbndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzY3MDksImV4cCI6MjA4ODY1MjcwOX0.POZYS8J23FVWvsgbU50IXC4scjd68h1pwLNEozzltYw';
-// WARNING: The service-role key bypasses Row Level Security. Keep it out of
-// client-side code that is shipped to end-users. Only use server-side / Edge Functions.
-// const SUPA_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZmF4dGFqZ3F0ZXhoeGRqbndvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA3NjcwOSwiZXhwIjoyMDg4NjUyNzA5fQ.iIwQMdNcq3oDS1YqItmD91FtHn3Cn82Q54x79eTS2go';
-const supabase = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+// Supabase config – replace with your own Project URL and anon public key
+const SUPA_URL = 'YOUR_SUPABASE_URL';
+const SUPA_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// const SUPA_SERVICE_KEY = 'YOUR_SERVICE_ROLE_KEY'; // Server-side only – never in client code
+// Lazily initialized so the CDN script (loaded with defer) is ready before first use
+let _supabase = undefined;
+function getSupabase() {
+  if (_supabase === undefined) {
+    _supabase = (window.supabase && SUPA_URL !== 'YOUR_SUPABASE_URL' && SUPA_KEY !== 'YOUR_SUPABASE_ANON_KEY')
+      ? window.supabase.createClient(SUPA_URL, SUPA_KEY)
+      : null;
+  }
+  return _supabase;
+}
 
 async function validateLicenseOnline(key) {
+  const supabase = getSupabase();
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('licenses')
@@ -4804,6 +4812,7 @@ function _deactivateLicenseForced() {
 }
 
 function stopLicenseWatch() {
+  const supabase = getSupabase();
   if (supabase) _licWatchChannels.forEach(ch => { try { supabase.removeChannel(ch); } catch(e) { console.warn('License channel cleanup error:', e); } });
   _licWatchChannels = [];
   _currentKey = null;
@@ -4812,6 +4821,7 @@ function stopLicenseWatch() {
 
 function startLicenseWatch(key, classId) {
   stopLicenseWatch();
+  const supabase = getSupabase();
   if (!key || !supabase) return;
   _currentKey = key;
   _currentClassId = classId || null;
