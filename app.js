@@ -4703,8 +4703,8 @@ const LIC_DATA_STORE  = 'ms_lic_data';  // stored license info JSON
 const LIC_CLASS_STORE = 'ms_lic_classes'; // teacher: class data JSON
 
 // Supabase config – replace with your own Project URL and anon public key
-const SUPA_URL = 'YOUR_SUPABASE_URL';
-const SUPA_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPA_URL = 'https://gsfaxtajgqtexhxdjnwo.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZmF4dGFqZ3F0ZXhoeGRqbndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzY3MDksImV4cCI6MjA4ODY1MjcwOX0.POZYS8J23FVWvsgbU50IXC4scjd68h1pwLNEozzltYw';
 // const SUPA_SERVICE_KEY = 'YOUR_SERVICE_ROLE_KEY'; // Server-side only – never in client code
 // Lazily initialized so the CDN script (loaded with defer) is ready before first use
 let _supabase = undefined;
