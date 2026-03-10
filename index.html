@@ -923,17 +923,39 @@
       color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; cursor: pointer;
       font-family: inherit; white-space: nowrap; }
     /* ─── License Settings Tab ─── */
+    /* Loading overlay for the Lizenz tab */
+    #licLoadingOverlay { display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:14px; padding:40px 0; }
+    #licLoadingOverlay .llo-title { font-size:15px; font-weight:700; color:var(--txt); letter-spacing:1px; }
+    #licLoadingOverlay .llo-sub { font-size:12px; color:var(--dim); letter-spacing:.5px; }
+    #licLoadingBar { display:block; }
+    /* Fade-in animation for license content */
+    @keyframes licFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    #licContent { animation: licFadeIn .35s ease; }
     .lic-status-box { display: flex; align-items: center; gap: 12px; padding: 14px;
       background: var(--bg2); border: 1px solid var(--bdr); margin-bottom: 12px; }
-    .lic-status-box .ls-icon { font-size: 28px; flex-shrink: 0; }
+    .lic-status-box .ls-icon { width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; border-radius:50%; }
+    .lic-status-box .ls-icon-free  { background:rgba(255,255,255,.06); }
+    .lic-status-box .ls-icon-pro   { background:rgba(196,116,0,.2); }
+    .lic-status-box .ls-icon-teacher { background:rgba(26,122,26,.2); }
+    .lic-status-box .ls-icon-student { background:rgba(0,85,204,.2); }
     .lic-status-box .ls-title { font-size: 14px; font-weight: 700; }
     .lic-status-box .ls-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
     .lic-badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 800;
-      letter-spacing: .5px; margin-left: 6px; }
+      letter-spacing: .5px; margin-left: 6px; border-radius:3px; }
     .lic-badge-free { background: var(--btn); color: var(--dim); }
     .lic-badge-pro { background: #c47400; color: white; }
     .lic-badge-teacher { background: #1a7a1a; color: white; }
     .lic-badge-student { background: #0055cc; color: white; }
+    /* Share/copy key row */
+    .lic-key-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .lic-key-row .lkr-key { flex:1; font-size:11px; color:var(--dim); font-family:monospace;
+      word-break:break-all; padding:8px 10px; background:var(--bg2); border:1px solid var(--bdr); }
+    .lic-key-row .lkr-btn { background:var(--btn); border:1px solid var(--bdr); color:var(--txt);
+      font-size:12px; padding:7px 11px; cursor:pointer; font-family:inherit; white-space:nowrap;
+      display:flex; align-items:center; gap:5px; flex-shrink:0; }
+    .lic-key-row .lkr-btn:active { background:var(--acc); }
     /* ─── Class Management (Teacher) ─── */
     .cls-student-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
       background: var(--bg2); border: 1px solid var(--bdr); margin-bottom: 6px; }
@@ -2605,7 +2627,7 @@
       <div class="stabs">
         <button class="stab active" onclick="switchSettingsTab('settGeneral')">Allgemein</button>
         <button class="stab" onclick="switchSettingsTab('settAdvanced')">Erweitert</button>
-        <button class="stab" onclick="switchSettingsTab('settLicenses')">🔑 Lizenz</button>
+        <button class="stab" onclick="switchSettingsTab('settLicenses')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Lizenz</button>
       </div>
 
       <!-- General tab -->
@@ -2695,19 +2717,45 @@
       </div>
 
       <!-- Licenses tab -->
-      <div id="settLicenses" class="spanel" style="overflow-y:auto;padding:14px;gap:12px">
+      <div id="settLicenses" class="spanel" style="overflow-y:auto;padding:0;gap:0">
+
+        <!-- Loading overlay (shown briefly when switching to this tab) -->
+        <div id="licLoadingOverlay">
+          <div class="llo-title">Lizenz laden …</div>
+          <canvas id="licLoadingBar" width="200" height="56"></canvas>
+          <div class="llo-sub">MathSpaces</div>
+        </div>
+
+        <!-- Actual content (hidden until animation finishes) -->
+        <div id="licContent" style="display:none;padding:14px;flex-direction:column;gap:12px">
 
         <div class="sect">Lizenzstatus</div>
         <div id="licStatusBox" class="lic-status-box">
-          <div class="ls-icon">🔓</div>
+          <div class="ls-icon ls-icon-free"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></div>
           <div>
             <div class="ls-title">Freier Modus <span class="lic-badge lic-badge-free">FREE</span></div>
             <div class="ls-sub" id="licStatusSub">Nur Grundrechner verfügbar</div>
           </div>
         </div>
-        <div id="licKeyDisplay" style="display:none;font-size:11px;color:var(--dim);font-family:monospace;word-break:break-all;margin-bottom:8px"></div>
-        <button class="sbtn" onclick="openLicenseGate()">🔑 Lizenzschlüssel eingeben</button>
-        <button id="licDeactivateBtn" class="sbtn" style="display:none;background:#555;margin-top:6px" onclick="deactivateLicense()">Lizenz entfernen</button>
+        <div id="licKeyRow" class="lic-key-row" style="display:none">
+          <div class="lkr-key" id="licKeyDisplay"></div>
+          <button class="lkr-btn" onclick="copyLicenseKey()" title="Key kopieren">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Kopieren
+          </button>
+          <button class="lkr-btn" onclick="shareLicenseKey()" title="Key teilen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Teilen
+          </button>
+        </div>
+        <button class="sbtn" onclick="openLicenseGate()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Lizenzschlüssel eingeben
+        </button>
+        <button id="licDeactivateBtn" class="sbtn" style="display:none;background:#555;margin-top:6px" onclick="deactivateLicense()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Lizenz entfernen
+        </button>
 
         <!-- Teacher: Class Management -->
         <div id="settTeacherClass" style="display:none">
@@ -2750,6 +2798,7 @@
           </div>
         </div>
 
+        </div><!-- end licContent -->
       </div><!-- end settLicenses -->
 
     </div><!-- end tabSettings -->
@@ -7313,7 +7362,9 @@ function switchSettingsTab(id) {
   const idx = tabs.indexOf(id);
   const stabs = document.querySelectorAll('#tabSettings .stab');
   if (idx >= 0 && stabs[idx]) stabs[idx].classList.add('active');
-  if (id === 'settLicenses') renderLicenseSettings();
+  if (id === 'settLicenses') {
+    showLicenseLoadingAnimation(renderLicenseSettings);
+  }
 }
 
 function toggleAdvancedMode(enabled) {
@@ -7745,13 +7796,25 @@ function renderLicenseSettings() {
   const data = getLicenseData();
   const type = data ? data.type : 'free';
 
+  // Ensure content is visible (in case called directly without animation)
+  const overlay = document.getElementById('licLoadingOverlay');
+  const content = document.getElementById('licContent');
+  if (overlay) overlay.style.display = 'none';
+  if (content) content.style.display = 'flex';
+
   // Status box
   const statusBox = document.getElementById('licStatusBox');
-  const statusSub = document.getElementById('licStatusSub');
+  const keyRow = document.getElementById('licKeyRow');
   const keyDisplay = document.getElementById('licKeyDisplay');
   const deactBtn = document.getElementById('licDeactivateBtn');
 
-  const icons = { free:'🔓', pro:'🌟', teacher:'🎓', student:'📚' };
+  const svgIcons = {
+    free:    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+    pro:     '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    teacher: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
+    student: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+  };
+  const iconClasses = { free:'ls-icon-free', pro:'ls-icon-pro', teacher:'ls-icon-teacher', student:'ls-icon-student' };
   const labels = { free:'Freier Modus', pro:'Pro-Lizenz', teacher:'Lehrer-Lizenz', student:'Schüler-Lizenz' };
   const badges = { free:'lic-badge-free', pro:'lic-badge-pro', teacher:'lic-badge-teacher', student:'lic-badge-student' };
   const badgeTxt = { free:'FREE', pro:'PRO', teacher:'LEHRER', student:'SCHÜLER' };
@@ -7763,16 +7826,16 @@ function renderLicenseSettings() {
   };
 
   statusBox.innerHTML = `
-    <div class="ls-icon">${icons[type]}</div>
+    <div class="ls-icon ${iconClasses[type]}">${svgIcons[type]}</div>
     <div>
       <div class="ls-title">${labels[type]} <span class="lic-badge ${badges[type]}">${badgeTxt[type]}</span></div>
       <div class="ls-sub">${subs[type]}</div>
     </div>`;
 
   if (data && data.raw && !data.legacyMode) {
-    keyDisplay.style.display = 'block';
-    keyDisplay.textContent = 'Key: ' + data.raw;
-  } else { keyDisplay.style.display = 'none'; }
+    keyRow.style.display = 'flex';
+    keyDisplay.textContent = data.raw;
+  } else { keyRow.style.display = 'none'; }
 
   deactBtn.style.display = (type !== 'free') ? 'block' : 'none';
 
@@ -7798,6 +7861,133 @@ function renderLicenseSettings() {
   if (type === 'student' && data && data.classId) {
     studentPanel.style.display = 'block';
     document.getElementById('stuClassIdDisplay').textContent = data.classId;
+  }
+}
+
+/* ── License tab loading animation ──────────── */
+function showLicenseLoadingAnimation(callback) {
+  const overlay = document.getElementById('licLoadingOverlay');
+  const content = document.getElementById('licContent');
+  const cvs = document.getElementById('licLoadingBar');
+  if (!overlay || !cvs) { if (callback) callback(); return; }
+
+  overlay.style.display = 'flex';
+  content.style.display = 'none';
+
+  const W = 200, H = 56;
+  const dpr = window.devicePixelRatio || 1;
+  cvs.width = W * dpr; cvs.height = H * dpr;
+  const ctx = cvs.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const fns = [
+    x => Math.sin(x * 1.5) * 0.7,
+    x => Math.cos(x * 2) * 0.6,
+    x => Math.sin(x) * Math.cos(x * 0.5) * 0.8,
+    x => x * x * 0.18 - 0.5
+  ];
+  const fn = fns[Math.floor(Math.random() * fns.length)];
+  let progress = 0;
+
+  function draw(p) {
+    ctx.clearRect(0, 0, W, H);
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx <= W; gx += W/8) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    }
+    for (let gy = 0; gy <= H; gy += H/4) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+    // Axes
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(12, H); ctx.stroke();
+    // Arrowheads
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath(); ctx.moveTo(W, H/2); ctx.lineTo(W-5, H/2-3); ctx.lineTo(W-5, H/2+3); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(9, 5); ctx.lineTo(15, 5); ctx.closePath(); ctx.fill();
+    // Curve
+    const maxX = p * (W - 12);
+    ctx.beginPath();
+    ctx.strokeStyle = '#cc0000';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#ff3333';
+    ctx.shadowBlur = 6;
+    let started = false;
+    for (let px = 12; px <= 12 + maxX; px++) {
+      const t = (px - 12) / (W - 12) * 6 - 3;
+      const cy = H/2 - fn(t) * (H/3);
+      if (!started) { ctx.moveTo(px, Math.max(2, Math.min(H-2, cy))); started = true; }
+      else ctx.lineTo(px, Math.max(2, Math.min(H-2, cy)));
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Dot at tip
+    if (p > 0.01 && p < 1) {
+      const px = 12 + maxX;
+      const t = (px - 12) / (W - 12) * 6 - 3;
+      const cy = H/2 - fn(t) * (H/3);
+      ctx.beginPath();
+      ctx.arc(px, Math.max(4, Math.min(H-4, cy)), 4, 0, Math.PI*2);
+      ctx.fillStyle = '#ff6666';
+      ctx.shadowColor = '#ff3333'; ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function tick() {
+    progress = Math.min(1, progress + 0.022);
+    draw(progress);
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      overlay.style.display = 'none';
+      content.style.display = 'flex';
+      if (callback) callback();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ── Copy / Share license key ─────────────────── */
+function copyLicenseKey() {
+  const key = document.getElementById('licKeyDisplay').textContent;
+  if (!key) return;
+  navigator.clipboard.writeText(key).then(() => {
+    _showLicenseToast('📋 Key kopiert!', '#1a7a1a');
+  }).catch(() => {
+    // Fallback for browsers that don't support Clipboard API (execCommand is deprecated but widely supported)
+    const ta = document.createElement('textarea');
+    ta.value = key; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    _showLicenseToast('📋 Key kopiert!', '#1a7a1a');
+  });
+}
+
+function shareLicenseKey() {
+  const key = document.getElementById('licKeyDisplay').textContent;
+  if (!key) return;
+  const text = 'Mein MathSpaces Lizenzschlüssel: ' + key;
+  if (navigator.share) {
+    navigator.share({ title: 'MathSpaces Lizenz', text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(key).then(() => {
+      _showLicenseToast('📋 Key in Zwischenablage kopiert!', '#0055cc');
+    }).catch(() => {
+      // Fallback for browsers that don't support Clipboard API (execCommand is deprecated but widely supported)
+      const ta = document.createElement('textarea');
+      ta.value = key; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      _showLicenseToast('📋 Key in Zwischenablage kopiert!', '#0055cc');
+    });
   }
 }
 
