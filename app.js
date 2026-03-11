@@ -4774,8 +4774,24 @@ function getLicenseType() {
   return d ? d.type : 'free';
 }
 
-/* ── Check if key is revoked/locked (uses lm_keys stored by license-manager) ─── */
-function checkKeyStatus(rawKey) {
+/* ── Check if key is revoked/locked (Supabase-first, fallback to lm_keys localStorage) ─── */
+async function checkKeyStatus(rawKey) {
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('licenses')
+        .select('revoked, locked')
+        .eq('key', rawKey.trim().toUpperCase())
+        .single();
+      if (!error && data) {
+        if (data.revoked) return 'revoked';
+        if (data.locked) return 'locked';
+        return 'ok';
+      }
+    } catch (e) { console.warn('checkKeyStatus Supabase error, falling back to localStorage:', e); }
+  }
+  // Fallback: check lm_keys stored by license-manager on this device
   try {
     const keys = JSON.parse(localStorage.getItem('lm_keys') || '[]');
     const entry = keys.find(k => k.key === rawKey);
@@ -4854,6 +4870,19 @@ function startLicenseWatch(key, classId) {
       }, payload => {
         applyRestrictions(payload.new.restrictions);
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'classes',
+        filter: `class_id=eq.${_currentClassId}`
+      }, payload => {
+        applyRestrictions(payload.new.restrictions);
+        const licData = getLicenseData();
+        if (licData && licData.type === 'teacher') {
+          renderTeacherFeatToggles(_currentClassId);
+          renderTeacherStudentList(_currentClassId);
+        }
+      })
       .subscribe();
     _licWatchChannels.push(clsCh);
   }
@@ -4887,15 +4916,17 @@ function applyLicense(licData) {
       document.getElementById('settRoleLabel').textContent = 'Lehrer/in';
       applyPreferences('lehrer', ['calc','koord','notizen','formeln','bild','agent']);
     } else if (type === 'student') {
-      const restrictions = getClassRestrictions(licData.classId);
-      const allowed = Object.entries(restrictions)
-        .filter(([, v]) => v !== false)
-        .map(([k]) => k);
-      // Default to all features if no restrictions set
-      const uses = allowed.length ? allowed : ['calc','koord','notizen','formeln','bild','agent'];
       setPremium(true);
       document.getElementById('teacherBadge').style.display = 'none';
-      applyPreferences('', uses);
+      // Apply immediately with localStorage fallback, then update asynchronously from Supabase
+      getClassRestrictions(licData.classId).then(restrictions => {
+        const allowed = Object.entries(restrictions)
+          .filter(([, v]) => v !== false)
+          .map(([k]) => k);
+        // Default to all features if no restrictions set
+        const uses = allowed.length ? allowed : ['calc','koord','notizen','formeln','bild','agent'];
+        applyPreferences('', uses);
+      });
     } else {
       // pro
       setPremium(true);
@@ -4908,9 +4939,21 @@ function applyLicense(licData) {
   }
 }
 
-/* ── Get class restrictions (stored by teacher or license manager) ─── */
-function getClassRestrictions(classId) {
+/* ── Get class restrictions (Supabase-first, fallback to lm_classes localStorage) ─── */
+async function getClassRestrictions(classId) {
   if (!classId || classId === '0000') return {};
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .select('restrictions')
+        .eq('class_id', classId)
+        .single();
+      if (!error && data && data.restrictions) return data.restrictions;
+    } catch (e) { console.warn('getClassRestrictions Supabase error, falling back to localStorage:', e); }
+  }
+  // Fallback to localStorage
   try {
     const classes = JSON.parse(localStorage.getItem('lm_classes') || '{}');
     return (classes[classId] && classes[classId].restrictions) ? classes[classId].restrictions : {};
@@ -4918,7 +4961,7 @@ function getClassRestrictions(classId) {
 }
 
 /* ── Check license on startup ─────────────────── */
-function checkLicenseOnStartup() {
+async function checkLicenseOnStartup() {
   const stored = getLicenseData();
   if (!stored) {
     // No license – check for legacy teacher or pro activation
@@ -4947,7 +4990,7 @@ function checkLicenseOnStartup() {
   }
   // Check if revoked/locked
   if (!stored.legacyMode && stored.raw) {
-    const status = checkKeyStatus(stored.raw);
+    const status = await checkKeyStatus(stored.raw);
     if (status === 'revoked') {
       setLicenseData(null);
       applyLicense(null);
@@ -4978,7 +5021,7 @@ function closeLicenseGate() {
   document.getElementById('licenseGate').classList.remove('open');
 }
 
-function activateLicenseKey() {
+async function activateLicenseKey() {
   const raw = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
   const errEl = document.getElementById('licenseKeyErr');
 
@@ -5009,7 +5052,7 @@ function activateLicenseKey() {
     return;
   }
   // Check revoked/locked
-  const status = checkKeyStatus(parsed.raw);
+  const status = await checkKeyStatus(parsed.raw);
   if (status === 'revoked') { errEl.textContent = '❌ Dieser Schlüssel wurde widerrufen.'; return; }
   if (status === 'locked') { errEl.textContent = '🔒 Dieser Zugang ist gesperrt. Wende dich an deine Lehrperson.'; return; }
 
@@ -5116,8 +5159,8 @@ function renderLicenseSettings() {
   }
 }
 
-function renderTeacherFeatToggles(classId) {
-  const restrictions = getClassRestrictions(classId);
+async function renderTeacherFeatToggles(classId) {
+  const restrictions = await getClassRestrictions(classId);
   const container = document.getElementById('teacherFeatToggles');
   container.innerHTML = LICENSE_FEATURES.map(f => {
     const enabled = restrictions[f.id] !== false; // default: enabled
@@ -5147,14 +5190,50 @@ function saveTeacherRestrictions() {
   });
   classes[classId].restrictions = restrictions;
   localStorage.setItem('lm_classes', JSON.stringify(classes));
+
+  // Also persist to Supabase classes table so other clients see the update
+  const supabase = getSupabase();
+  if (supabase) {
+    supabase.from('classes')
+      .upsert({ class_id: classId, restrictions, updated_at: new Date().toISOString() }, { onConflict: 'class_id' })
+      .then(({ error }) => {
+        if (error) {
+          console.warn('Supabase classes upsert error:', error);
+          _showLicenseToast('⚠️ Sync-Fehler: Einschränkungen nur lokal gespeichert', '#7a4400');
+        }
+      });
+  }
+
   _showLicenseToast('💾 Einschränkungen gespeichert', 'var(--acc)');
 }
 
 function renderTeacherStudentList(classId) {
+  const el = document.getElementById('teacherStudentList');
+  const supabase = getSupabase();
+  if (supabase) {
+    supabase.from('licenses')
+      .select('key, type, class_id, note, revoked, locked')
+      .eq('class_id', classId)
+      .eq('type', 'student')
+      .then(({ data, error }) => {
+        if (!error && data) {
+          _renderStudentRows(el, data.map(r => ({ key: r.key, type: 'STU', classId: r.class_id, note: r.note, revoked: r.revoked, locked: r.locked })));
+        } else {
+          _renderStudentRowsFromLocalStorage(el, classId);
+        }
+      });
+    return;
+  }
+  _renderStudentRowsFromLocalStorage(el, classId);
+}
+
+function _renderStudentRowsFromLocalStorage(el, classId) {
   let keys;
   try { keys = JSON.parse(localStorage.getItem('lm_keys') || '[]'); } catch { keys = []; }
-  const students = keys.filter(k => k.type === 'STU' && k.classId === classId);
-  const el = document.getElementById('teacherStudentList');
+  _renderStudentRows(el, keys.filter(k => k.type === 'STU' && k.classId === classId));
+}
+
+function _renderStudentRows(el, students) {
   if (!students.length) {
     el.innerHTML = '<div style="font-size:12px;color:var(--dim)">Noch keine Schüler-Keys in dieser Klasse.</div>';
     return;
