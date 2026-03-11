@@ -1,8 +1,10 @@
 /* MathSpaces Service Worker */
-const CACHE = 'mathspaces-v2';
+const CACHE = 'mathspaces-v3';
 const ASSETS = [
   './',
   './index.html',
+  './app.js',
+  './styles.css',
   './manifest.json',
   './icons/icon.svg',
   './icons/icon-192.png',
