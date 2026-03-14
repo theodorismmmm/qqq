@@ -560,6 +560,9 @@ const coord = {
   lcConnType: 'straight',  // 'straight' | 'curved' | 'hyperbola'
   dragPoint: null,         // {id, ...} – point being dragged in select mode
   editPointId: null,       // id of point being edited
+  smartDrawPts: [],        // [{x,y,name,id,isNew}] points being set in smart-draw mode
+  smartDrawHover: null,    // {mx,my,cx,cy} – current cursor position for preview
+  smartDrawType: 'straight', // autocorrected connector type for current smart-draw
 };
 
 /* ══════════════════════════════════════════════
@@ -608,6 +611,9 @@ function _applySnapshot(snap) {
   coord.currentStroke = null;
   coord.dragPoint = null;
   coord.editPointId = null;
+  coord.smartDrawPts = [];
+  coord.smartDrawHover = null;
+  coord.smartDrawType = 'straight';
 }
 
 function renderCoordSysTabs() {
@@ -885,6 +891,76 @@ function _drawCanvasNow() {
     drawConnector(ctx, coord.currentConnector.pts, coord.currentConnector.color, true, coord.currentConnector.type);
   }
 
+  // Draw smart-draw preview (tap-to-place mode)
+  if (coord.canvasMode === 'smartdraw') {
+    const sdPts = coord.smartDrawPts;
+    const sdType = coord.smartDrawType;
+    const sdColor = '#4ecdc4';
+
+    // Draw placed points and auto-fitted connector
+    if (sdPts.length >= 2) {
+      drawConnector(ctx, sdPts, sdColor, true, sdType);
+    } else if (sdPts.length === 1) {
+      const {cx: sx, cy: sy} = m2c(sdPts[0].x, sdPts[0].y);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = sdColor;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.9;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // Dashed preview line from last placed point to cursor
+    if (coord.smartDrawHover && sdPts.length > 0) {
+      const last = sdPts[sdPts.length - 1];
+      const {cx: lx, cy: ly} = m2c(last.x, last.y);
+      const hx = coord.smartDrawHover.cx, hy = coord.smartDrawHover.cy;
+      ctx.beginPath();
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = sdColor;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.55;
+      ctx.moveTo(lx, ly);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+
+    // Snap-to-point indicator: highlight nearest point when cursor is close
+    if (coord.smartDrawHover) {
+      const snapR = 22;
+      let nearSnap = null, nearDist = Infinity;
+      coord.points.forEach(pt => {
+        const {cx: pcx, cy: pcy} = m2c(pt.x, pt.y);
+        const d = Math.sqrt((coord.smartDrawHover.cx - pcx) ** 2 + (coord.smartDrawHover.cy - pcy) ** 2);
+        if (d < snapR && d < nearDist) { nearSnap = pt; nearDist = d; }
+      });
+      if (nearSnap) {
+        const {cx: scx, cy: scy} = m2c(nearSnap.x, nearSnap.y);
+        ctx.beginPath();
+        ctx.arc(scx, scy, 14, 0, Math.PI * 2);
+        ctx.strokeStyle = sdColor;
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.85;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      // Crosshair dot at cursor snap position
+      const {mx: hmx, my: hmy} = c2m(coord.smartDrawHover.cx, coord.smartDrawHover.cy);
+      const snapped = coord.showGrid ? snapToGrid(hmx, hmy) : {mx: hmx, my: hmy};
+      const {cx: dcx, cy: dcy} = m2c(snapped.mx, snapped.my);
+      ctx.beginPath();
+      ctx.arc(dcx, dcy, 4, 0, Math.PI * 2);
+      ctx.fillStyle = sdColor;
+      ctx.globalAlpha = nearSnap ? 0 : 0.7;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
   ctx.restore();
 }
 
@@ -1115,6 +1191,43 @@ function onPointerDown(e) {
     return;
   }
 
+  // Smart draw mode: tap to place/snap points and build a connector with autocorrect
+  if (coord.canvasMode === 'smartdraw') {
+    const snapR = 22; // pixel snap radius
+    let {mx, my} = c2m(cx, cy);
+
+    // Try to snap to nearest existing point first
+    let snapPt = null, snapDist = Infinity;
+    coord.points.forEach(pt => {
+      const {cx: pcx, cy: pcy} = m2c(pt.x, pt.y);
+      const d = Math.sqrt((cx - pcx) ** 2 + (cy - pcy) ** 2);
+      if (d < snapR && d < snapDist) { snapPt = pt; snapDist = d; }
+    });
+
+    let newPt;
+    if (snapPt) {
+      // Snap to the existing point (don't create a duplicate)
+      // Avoid adding the same point twice in a row
+      const last = coord.smartDrawPts[coord.smartDrawPts.length - 1];
+      if (last && last.id === snapPt.id) return;
+      newPt = { id: snapPt.id, x: snapPt.x, y: snapPt.y, name: snapPt.name, isNew: false };
+    } else {
+      // Snap to grid and create a new point
+      if (coord.showGrid) { const s = snapToGrid(mx, my); mx = s.mx; my = s.my; }
+      const id = coord.nextId++;
+      const name = 'SD' + id; // SD = Smart Draw auto-point
+      coord.points.push({ id, x: mx, y: my, name });
+      renderPtList();
+      newPt = { id, x: mx, y: my, name, isNew: true };
+    }
+
+    coord.smartDrawPts.push(newPt);
+    coord.smartDrawType = detectSmartDrawType(coord.smartDrawPts);
+    _updateSmartDrawUI();
+    drawCanvas();
+    return;
+  }
+
   // Line connector mode: click near a point to add it to the connector
   if (coord.lineConnectMode) {
     const hitR = 20; // pixels hit radius
@@ -1287,6 +1400,10 @@ function onPointerMove(e) {
     if (coord.canvasMode === 'snap') { const s = snapToGrid(pmx, pmy); pmx = s.mx; pmy = s.my; }
     const {cx: scx, cy: scy} = m2c(pmx, pmy);
     coord.currentStroke.pts.push({cx: scx, cy: scy});
+    drawCanvas();
+  } else if (coord.canvasMode === 'smartdraw') {
+    // Update hover for live preview
+    coord.smartDrawHover = { mx, my, cx, cy };
     drawCanvas();
   }
 }
@@ -1626,8 +1743,124 @@ function renderLcConnectors() {
     </div>`).join('');
 }
 
+/* ─ Smart Draw: autocorrect type detection ─ */
+// Thresholds for the smart-draw type detection algorithm (all values in math-coordinate units)
+const SD_LEN2_EPSILON    = 1e-4; // squared length below which two endpoint are considered the same
+const SD_COLLINEAR_DIST  = 0.5;  // max perpendicular deviation (in math units) that still counts as "straight"
+const SD_HYPER_X_MIN     = 0.2;  // min |x| for a point to be used in hyperbola x*y product check
+const SD_HYPER_PROD_MIN  = 0.2;  // min |avg(x*y)| to consider the hyperbola hypothesis
+const SD_HYPER_MAX_CV    = 0.45; // max coefficient of variation of x*y products (lower = tighter fit)
+
+function detectSmartDrawType(pts) {
+  if (pts.length < 3) return 'straight';
+
+  const p0 = pts[0], pN = pts[pts.length - 1];
+  const dx = pN.x - p0.x, dy = pN.y - p0.y;
+  const len2 = dx * dx + dy * dy;
+
+  // Check collinearity: max perpendicular distance from the p0→pN line
+  if (len2 > SD_LEN2_EPSILON) {
+    let maxDev = 0;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const t = ((pts[i].x - p0.x) * dx + (pts[i].y - p0.y) * dy) / len2;
+      const projX = p0.x + t * dx, projY = p0.y + t * dy;
+      const dev = Math.sqrt((pts[i].x - projX) ** 2 + (pts[i].y - projY) ** 2);
+      maxDev = Math.max(maxDev, dev);
+    }
+    if (maxDev < SD_COLLINEAR_DIST) return 'straight';
+  }
+
+  // Check for hyperbola: points roughly satisfy x * y ≈ constant and span both x sides
+  if (pts.length >= 3) {
+    const hasNegX = pts.some(p => p.x < -SD_HYPER_X_MIN);
+    const hasPosX = pts.some(p => p.x > SD_HYPER_X_MIN);
+    if (hasNegX && hasPosX) {
+      const valid = pts.filter(p => Math.abs(p.x) > SD_HYPER_X_MIN);
+      if (valid.length >= 3) {
+        const products = valid.map(p => p.x * p.y);
+        const avg = products.reduce((a, b) => a + b, 0) / products.length;
+        if (Math.abs(avg) > SD_HYPER_PROD_MIN) {
+          const variance = products.reduce((s, p) => s + (p - avg) ** 2, 0) / products.length;
+          const cv = Math.sqrt(variance) / Math.abs(avg);
+          if (cv < SD_HYPER_MAX_CV) return 'hyperbola';
+        }
+      }
+    }
+  }
+
+  return 'curved';
+}
+
+function _updateSmartDrawUI() {
+  const bar = document.getElementById('smartDrawBar');
+  if (!bar) return;
+  const typeLabel = document.getElementById('smartDrawTypeLabel');
+  if (!typeLabel) return;
+  const icons = { straight: '━ Gerade', curved: '∿ Kurve', hyperbola: '⋈ Hyperbel' };
+  typeLabel.textContent = coord.smartDrawPts.length < 2
+    ? '● Punkte setzen…'
+    : (icons[coord.smartDrawType] || coord.smartDrawType);
+}
+
+function finishSmartDraw() {
+  if (coord.smartDrawPts.length < 2) {
+    const bar = document.getElementById('smartDrawBar');
+    if (bar) {
+      const lbl = document.getElementById('smartDrawTypeLabel');
+      if (lbl) { lbl.textContent = '⚠ Mind. 2 Punkte'; }
+    }
+    return;
+  }
+  const id = coord.nextId++;
+  coord.connectors.push({
+    id,
+    pts: coord.smartDrawPts.map(p => ({ id: p.id, x: p.x, y: p.y, name: p.name })),
+    color: '#4ecdc4',
+    type: coord.smartDrawType,
+  });
+  coord.smartDrawPts = [];
+  coord.smartDrawHover = null;
+  coord.smartDrawType = 'straight';
+  renderLcConnectors();
+  setCanvasMode('pan');
+  drawCanvas();
+}
+
+function cancelSmartDraw() {
+  // Remove newly-created temp points from coord.points
+  const newIds = coord.smartDrawPts.filter(p => p.isNew).map(p => p.id);
+  coord.points = coord.points.filter(p => !newIds.includes(p.id));
+  coord.smartDrawPts = [];
+  coord.smartDrawHover = null;
+  coord.smartDrawType = 'straight';
+  renderPtList();
+  setCanvasMode('pan');
+  drawCanvas();
+}
+
+function undoSmartDrawPoint() {
+  if (coord.smartDrawPts.length === 0) return;
+  const last = coord.smartDrawPts.pop();
+  if (last.isNew) {
+    coord.points = coord.points.filter(p => p.id !== last.id);
+    renderPtList();
+  }
+  coord.smartDrawType = detectSmartDrawType(coord.smartDrawPts);
+  _updateSmartDrawUI();
+  drawCanvas();
+}
+
 /* ─ Canvas Mode (replaces draw mode) ─ */
 function setCanvasMode(mode) {
+  // If leaving smartdraw without finishing, cancel it
+  if (coord.canvasMode === 'smartdraw' && mode !== 'smartdraw') {
+    const newIds = coord.smartDrawPts.filter(p => p.isNew).map(p => p.id);
+    coord.points = coord.points.filter(p => !newIds.includes(p.id));
+    coord.smartDrawPts = [];
+    coord.smartDrawHover = null;
+    coord.smartDrawType = 'straight';
+  }
+
   coord.canvasMode = mode;
   // Map draw modes for backward compat
   if (mode === 'draw') coord.drawMode = 'free';
@@ -1644,12 +1877,18 @@ function setCanvasMode(mode) {
   else if (mode === 'delete') cvs.classList.add('mode-delete');
   else if (mode === 'edit') cvs.classList.add('mode-edit');
   else if (mode === 'text') cvs.style.cursor = 'text';
-  else cvs.style.cursor = 'crosshair'; // draw / snap
+  else cvs.style.cursor = 'crosshair'; // draw / snap / smartdraw
+
+  // Show/hide smart draw control bar
+  const smartBar = document.getElementById('smartDrawBar');
+  if (smartBar) smartBar.style.display = (mode === 'smartdraw') ? 'flex' : 'none';
+  if (mode === 'smartdraw') _updateSmartDrawUI();
 
   // Update button states
   const modeMap = {
     pan: 'modePanBtn', select: 'modeSelectBtn', draw: 'modeDrawBtn',
-    snap: 'modeSnapBtn', text: 'modeTextBtn', delete: 'modeDeleteBtn', edit: 'modeEditBtn',
+    snap: 'modeSnapBtn', text: 'modeTextBtn', delete: 'modeDeleteBtn',
+    edit: 'modeEditBtn', smartdraw: 'modeSmartDrawBtn',
   };
   Object.values(modeMap).forEach(id => { const b = document.getElementById(id); if (b) b.classList.remove('act'); });
   const activeBtn = modeMap[mode];
