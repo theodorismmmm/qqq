@@ -125,7 +125,6 @@
       border: none; cursor: pointer; color: var(--dim); font-size: 11px; font-family: inherit; padding: 3px 0; transition: color .2s; }
     .nb.active { color: var(--acc); }
     .nb .ni { font-size: 22px; line-height: 1; }
-    .nb img.ni { width: 22px; height: 22px; object-fit: contain; font-size: 0; }
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
@@ -1506,7 +1505,9 @@
           <button class="lc-type-btn active" id="lcTypeStraight" onclick="setLcType('straight')">━ Gerade</button>
           <button class="lc-type-btn" id="lcTypeCurved" onclick="setLcType('curved')">∿ Kurve</button>
           <button class="lc-type-btn" id="lcTypeHyperbola" onclick="setLcType('hyperbola')">⋈ Hyperbel</button>
+          <button class="lc-type-btn" id="lcTypeAuto" onclick="setLcType('auto')">✨ Auto</button>
         </div>
+        <div id="lcAutoTypeLabel" style="font-size:11px;color:var(--acc);margin-top:4px;min-height:16px"></div>
       </div>
       <div>
         <div class="psect" style="margin-bottom:6px">Linienfarbe</div>
@@ -2807,28 +2808,28 @@
 
   <nav id="nav">
     <button class="nb active" id="nbRechner" onclick="switchTab('rechner')">
-      <img class="ni" src="icons/rechner.jpeg" alt="">Rechner
+      <span class="ni">🧮</span>Rechner
     </button>
     <button class="nb" id="nbKoord" onclick="switchTab('koordinaten')">
-      <img class="ni" src="icons/coordinates.png" alt="">Koordinaten
+      <span class="ni">📐</span>Koordinaten
     </button>
     <button class="nb" id="nbNotizen" onclick="switchTab('notizen')">
-      <img class="ni" src="icons/notes.jpeg" alt="">Notizen
+      <span class="ni">📝</span>Notizen
     </button>
     <button class="nb" id="nbKlasse" onclick="switchTab('klasse')">
-      <img class="ni" src="icons/formeln+.jpeg" alt="">Formeln +
+      <span class="ni">🎓</span>Formeln +
     </button>
     <button class="nb" id="nbBild" onclick="switchTab('bild')">
-      <img class="ni" src="icons/camera.png" alt="">Bild
+      <span class="ni">📷</span>Bild
     </button>
     <button class="nb" id="nbAgent" onclick="switchTab('agent')">
-      <img class="ni" src="icons/agent.jpeg" alt="">Agent
+      <span class="ni">🤖</span>Agent
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
       <span class="ni">📖</span>Handbuch
     </button>
     <button class="nb" id="nbSettings" onclick="switchTab('settings')">
-      <img class="ni" src="icons/settings.png" alt="">Einstellungen
+      <span class="ni">⚙️</span>Einstellungen
     </button>
   </nav>
 </div><!-- app -->
