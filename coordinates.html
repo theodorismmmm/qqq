@@ -35,7 +35,7 @@
       then JS reveals this or the main app after animation)
 ══════════════════════════════════════════ -->
 <div id="installScreen" style="display:none">
-  <div class="ic">∑</div>
+  <div class="ic"><img src="icons/icon.svg" alt="MathSpaces" style="width:100%;height:100%;display:block;"></div>
   <h1>MathSpaces</h1>
 
   <p class="sub">Mathekeyboard, Koordinatensystem &amp; Gleichungslöser</p>
@@ -158,7 +158,7 @@
      ONBOARDING OVERLAY
 ══════════════════════════════════════════ -->
 <div id="onboardOverlay">
-  <div class="ob-logo">M</div>
+  <div class="ob-logo"><img src="icons/icon.svg" alt="MathSpaces" style="width:100%;height:100%;display:block;"></div>
   <div class="ob-title">Willkommen bei MathSpaces</div>
   <div class="ob-sub">Kurze Fragen, damit wir dir nur die Funktionen zeigen, die du wirklich brauchst.</div>
 
@@ -388,7 +388,9 @@
           <button class="lc-type-btn active" id="lcTypeStraight" onclick="setLcType('straight')">━ Gerade</button>
           <button class="lc-type-btn" id="lcTypeCurved" onclick="setLcType('curved')">∿ Kurve</button>
           <button class="lc-type-btn" id="lcTypeHyperbola" onclick="setLcType('hyperbola')">⋈ Hyperbel</button>
+          <button class="lc-type-btn" id="lcTypeAuto" onclick="setLcType('auto')">✨ Auto</button>
         </div>
+        <div id="lcAutoTypeLabel" style="font-size:11px;color:var(--acc);margin-top:4px;min-height:16px"></div>
       </div>
       <div>
         <div class="psect" style="margin-bottom:6px">Linienfarbe</div>
@@ -719,7 +721,16 @@
         <button class="tbtn" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
         <button class="tbtn" id="modeDeleteBtn" title="Element löschen (Klicken)" onclick="setCanvasMode('delete')">🗑</button>
         <button class="tbtn" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
+        <button class="tbtn" id="modeSmartDrawBtn" title="Smart Draw: Punkte antippen, Typ wird automatisch erkannt" onclick="setCanvasMode('smartdraw')">✨</button>
         <button class="tbtn" title="Rückgängig" onclick="undoStroke()">↩</button>
+      </div>
+
+      <!-- Smart Draw control bar -->
+      <div id="smartDrawBar" style="display:none">
+        <span id="smartDrawTypeLabel">● Tippe, um Punkte zu setzen…</span>
+        <button class="sd-btn" title="Letzten Punkt rückgängig" onclick="undoSmartDrawPoint()">↩</button>
+        <button class="sd-btn ok" title="Verbindung speichern" onclick="finishSmartDraw()">✓ Fertig</button>
+        <button class="sd-btn" title="Abbrechen" onclick="cancelSmartDraw()">✕</button>
       </div>
 
       <!-- Point edit overlay -->

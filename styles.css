@@ -23,8 +23,8 @@
     /* ─── Install Screen ─── */
     #installScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex;
       flex-direction: column; align-items: center; padding: 28px 20px 80px; text-align: center; overflow-y: auto; }
-    #installScreen .ic { width: 96px; height: 96px; background: var(--acc);
-      border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 52px;
+    #installScreen .ic { width: 96px; height: 96px; background: none;
+      border-radius: 22px; overflow: hidden; display: flex; align-items: center; justify-content: center;
       margin-bottom: 20px; flex-shrink:0; }
     #installScreen h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px; color: var(--txt); }
     #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 28px; }
@@ -108,7 +108,6 @@
       border: none; cursor: pointer; color: var(--dim); font-size: 11px; font-family: inherit; padding: 3px 0; transition: color .2s; }
     .nb.active { color: var(--acc); }
     .nb .ni { font-size: 22px; line-height: 1; }
-    .nb img.ni { width: 22px; height: 22px; object-fit: contain; font-size: 0; }
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
@@ -229,6 +228,17 @@
       border: 1px solid var(--bdr); border-radius: 0; padding: 5px 9px; font-size: 11px; color: var(--dim); z-index: 5; }
     /* ─── Template preview canvas ─── */
     .vtpl-prev { width: 52px; height: 38px; border-radius: 0; border: 1px solid var(--bdr); flex-shrink: 0; background: #fff; }
+    /* ─── Smart Draw bar ─── */
+    #smartDrawBar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      background: var(--card); border: 1px solid var(--bdr); border-radius: 0;
+      padding: 7px 10px; display: flex; align-items: center; gap: 8px; z-index: 25;
+      box-shadow: 0 4px 16px rgba(0,0,0,.22); font-size: 12px; color: var(--txt);
+      white-space: nowrap; }
+    #smartDrawTypeLabel { color: var(--acc); font-weight: 600; min-width: 140px; }
+    .sd-btn { background: var(--btn); border: 1px solid var(--bdr); border-radius: 0; color: var(--txt);
+      font-size: 12px; font-family: inherit; cursor: pointer; padding: 5px 9px; transition: all .15s; }
+    .sd-btn:active { opacity: .75; }
+    .sd-btn.ok { background: var(--acc); color: white; border-color: var(--acc); }
     /* ─── Connector type buttons ─── */
     .lc-type-row { display: flex; gap: 5px; flex-wrap: wrap; }
     .lc-type-btn { flex: 1; min-width: 60px; padding: 7px 4px; background: var(--btn); border: 2px solid transparent;
@@ -957,9 +967,8 @@
       display: none; flex-direction: column; align-items: center; overflow-y: auto;
       padding: 32px 20px 40px; }
     #onboardOverlay.open { display: flex; }
-    .ob-logo { width: 72px; height: 72px; background: var(--acc); display: flex;
-      align-items: center; justify-content: center; font-size: 36px; font-weight: 900;
-      color: white; flex-shrink: 0; margin-bottom: 16px; }
+    .ob-logo { width: 72px; height: 72px; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 16px; border-radius: 16px; overflow: hidden; }
     .ob-title { font-size: 24px; font-weight: 800; color: var(--txt); margin-bottom: 4px; text-align: center; }
     .ob-sub { font-size: 13px; color: var(--dim); margin-bottom: 28px; text-align: center; max-width: 360px; }
     .ob-step { display: none; flex-direction: column; width: 100%; max-width: 420px; }
