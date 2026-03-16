@@ -719,7 +719,6 @@
         <button class="tbtn" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
         <button class="tbtn" id="modeDeleteBtn" title="Element löschen (Klicken)" onclick="setCanvasMode('delete')">🗑</button>
         <button class="tbtn" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
-        <button class="tbtn" id="modeSmartDrawBtn" title="Smart Draw: Antippen um Punkte zu setzen &amp; automatisch verbinden" onclick="setCanvasMode('smartdraw')">✨</button>
         <button class="tbtn" title="Rückgängig" onclick="undoStroke()">↩</button>
       </div>
 
@@ -732,14 +731,6 @@
           <button class="pte-btn ok" onclick="applyPtEdit()">✓</button>
           <button class="pte-btn cancel" onclick="closePtEdit()">✕</button>
         </div>
-      </div>
-
-      <!-- Smart Draw control bar (visible only in smartdraw mode) -->
-      <div id="smartDrawBar" style="display:none">
-        <span id="smartDrawTypeLabel">● Punkte setzen…</span>
-        <button class="sdb-btn" onclick="undoSmartDrawPoint()" title="Letzten Punkt entfernen">↩</button>
-        <button class="sdb-btn ok" onclick="finishSmartDraw()" title="Verbindung speichern">✓ Speichern</button>
-        <button class="sdb-btn" onclick="cancelSmartDraw()" title="Abbrechen">✕</button>
       </div>
 
       <!-- Ruler overlays -->

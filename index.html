@@ -40,8 +40,8 @@
     /* ─── Install Screen ─── */
     #installScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex;
       flex-direction: column; align-items: center; padding: 28px 20px 80px; text-align: center; overflow-y: auto; }
-    #installScreen .ic { width: 96px; height: 96px; background: var(--acc);
-      border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 52px;
+    #installScreen .ic { width: 96px; height: 96px; background: none;
+      border-radius: 22px; overflow: hidden; display: flex; align-items: center; justify-content: center;
       margin-bottom: 20px; flex-shrink:0; }
     #installScreen h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px; color: var(--txt); }
     #installScreen .sub { font-size: 14px; color: var(--dim); margin-bottom: 28px; }
@@ -109,8 +109,8 @@
     body.sidebar-open #app { margin-left: 280px; }
     #appHdr { height: var(--hdr); background: var(--bg2); border-bottom: 1px solid var(--bdr);
       display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; gap: 10px; }
-    #appHdr .logo { width: 32px; height: 32px; background: var(--acc);
-      border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    #appHdr .logo { width: 32px; height: 32px; background: none;
+      border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     #appHdr h1 { font-size: 19px; font-weight: 700; color: var(--txt); }
     #content { flex: 1; overflow: hidden; position: relative; }
 
@@ -125,6 +125,7 @@
       border: none; cursor: pointer; color: var(--dim); font-size: 11px; font-family: inherit; padding: 3px 0; transition: color .2s; }
     .nb.active { color: var(--acc); }
     .nb .ni { font-size: 22px; line-height: 1; }
+    .nb img.ni { width: 22px; height: 22px; object-fit: contain; font-size: 0; }
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
@@ -995,9 +996,8 @@
       display: none; flex-direction: column; align-items: center; overflow-y: auto;
       padding: 32px 20px 40px; }
     #onboardOverlay.open { display: flex; }
-    .ob-logo { width: 72px; height: 72px; background: var(--acc); display: flex;
-      align-items: center; justify-content: center; font-size: 36px; font-weight: 900;
-      color: white; flex-shrink: 0; margin-bottom: 16px; }
+    .ob-logo { width: 72px; height: 72px; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 16px; border-radius: 16px; overflow: hidden; }
     .ob-title { font-size: 24px; font-weight: 800; color: var(--txt); margin-bottom: 4px; text-align: center; }
     .ob-sub { font-size: 13px; color: var(--dim); margin-bottom: 28px; text-align: center; max-width: 360px; }
     .ob-step { display: none; flex-direction: column; width: 100%; max-width: 420px; }
@@ -1153,7 +1153,7 @@
       then JS reveals this or the main app after animation)
 ══════════════════════════════════════════ -->
 <div id="installScreen" style="display:none">
-  <div class="ic">∑</div>
+  <div class="ic"><img src="icons/icon.svg" alt="MathSpaces" style="width:100%;height:100%;display:block;"></div>
   <h1>MathSpaces</h1>
 
   <p class="sub">Mathekeyboard, Koordinatensystem &amp; Gleichungslöser</p>
@@ -1276,7 +1276,7 @@
      ONBOARDING OVERLAY
 ══════════════════════════════════════════ -->
 <div id="onboardOverlay">
-  <div class="ob-logo">M</div>
+  <div class="ob-logo"><img src="icons/icon.svg" alt="MathSpaces" style="width:100%;height:100%;display:block;"></div>
   <div class="ob-title">Willkommen bei MathSpaces</div>
   <div class="ob-sub">Kurze Fragen, damit wir dir nur die Funktionen zeigen, die du wirklich brauchst.</div>
 
@@ -1621,7 +1621,7 @@
   </div>
   <header id="appHdr">
     <button id="sidebarToggle" onclick="toggleSidebar()" title="Sidebar ein/ausblenden" aria-label="Sidebar ein/ausblenden">☰</button>
-    <div class="logo">🧮</div>
+    <div class="logo"><img src="icons/icon.svg" alt="MathSpaces" style="width:100%;height:100%;display:block;"></div>
     <div style="display:flex;flex-direction:column;gap:0">
       <h1>MathSpaces</h1>
     </div>

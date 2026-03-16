@@ -251,18 +251,6 @@
     .pte-btn.ok { background: var(--acc); color: white; }
     .pte-btn.cancel { background: var(--btn); color: var(--txt); }
 
-    /* ─── Smart Draw Bar ─── */
-    #smartDrawBar { position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
-      background: rgba(10,10,26,0.92); border: 1px solid #4ecdc4; border-radius: 6px;
-      padding: 6px 10px; display: flex; align-items: center; gap: 8px; z-index: 30;
-      backdrop-filter: blur(4px); box-shadow: 0 2px 12px rgba(78,205,196,.25); white-space: nowrap; }
-    #smartDrawTypeLabel { font-size: 12px; font-weight: 700; color: #4ecdc4; min-width: 90px; text-align: center; }
-    .sdb-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      color: var(--txt); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
-      font-family: inherit; }
-    .sdb-btn:active { background: rgba(255,255,255,0.16); }
-    .sdb-btn.ok { background: rgba(0,187,136,0.18); border-color: #00bb88; color: #00bb88; font-weight: 700; }
-
     /* ─── Slide-Up Panel ─── */
     /* kpanel: peek as absolute inside tabKoord; lifts to position:fixed when fully open
        so it overlays the bottom nav and all toolbars. */
