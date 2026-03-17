@@ -1833,6 +1833,7 @@
         <button class="tbtn act" id="modePanBtn" title="Verschieben (Pan)" onclick="setCanvasMode('pan')">✋</button>
         <button class="tbtn" id="modeSelectBtn" title="Punkte verschieben (Select)" onclick="setCanvasMode('select')">↖</button>
         <button class="tbtn" id="modeDrawBtn" title="Freies Zeichnen" onclick="setCanvasMode('draw')">✏️</button>
+        <button class="tbtn" id="modeSmartBtn" title="Smart Draw – Formen erkennen" onclick="setCanvasMode('smart')">✨</button>
         <button class="tbtn" id="modeSnapBtn" title="Eingerastet Zeichnen" onclick="setCanvasMode('snap')">⊞</button>
         <button class="tbtn" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
         <button class="tbtn" id="modeDeleteBtn" title="Element löschen (Klicken)" onclick="setCanvasMode('delete')">🗑</button>
@@ -2807,28 +2808,28 @@
 
   <nav id="nav">
     <button class="nb active" id="nbRechner" onclick="switchTab('rechner')">
-      <img class="ni" src="icons/rechner.jpeg" alt="">Rechner
+      <span class="ni">🧮</span>Rechner
     </button>
     <button class="nb" id="nbKoord" onclick="switchTab('koordinaten')">
-      <img class="ni" src="icons/coordinates.png" alt="">Koordinaten
+      <span class="ni">📐</span>Koordinaten
     </button>
     <button class="nb" id="nbNotizen" onclick="switchTab('notizen')">
-      <img class="ni" src="icons/notes.jpeg" alt="">Notizen
+      <span class="ni">📝</span>Notizen
     </button>
     <button class="nb" id="nbKlasse" onclick="switchTab('klasse')">
-      <img class="ni" src="icons/formeln+.jpeg" alt="">Formeln +
+      <span class="ni">🎓</span>Formeln +
     </button>
     <button class="nb" id="nbBild" onclick="switchTab('bild')">
-      <img class="ni" src="icons/camera.png" alt="">Bild
+      <span class="ni">📷</span>Bild
     </button>
     <button class="nb" id="nbAgent" onclick="switchTab('agent')">
-      <img class="ni" src="icons/agent.jpeg" alt="">Agent
+      <span class="ni">🤖</span>Agent
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
       <span class="ni">📖</span>Handbuch
     </button>
     <button class="nb" id="nbSettings" onclick="switchTab('settings')">
-      <img class="ni" src="icons/settings.png" alt="">Einstellungen
+      <span class="ni">⚙️</span>Einstellungen
     </button>
   </nav>
 </div><!-- app -->

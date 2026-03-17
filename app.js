@@ -548,7 +548,7 @@ const coord = {
   lineConnectMode: false,
   currentStroke: null,
   drawMode: 'none',
-  canvasMode: 'pan',   // 'pan' | 'select' | 'draw' | 'snap' | 'text' | 'delete' | 'edit'
+  canvasMode: 'pan',   // 'pan' | 'select' | 'draw' | 'smart' | 'snap' | 'text' | 'delete' | 'edit'
   drawColor: '#cc0000',
   showGrid: true,
   showLabels: true,
@@ -1219,7 +1219,7 @@ function onPointerDown(e) {
       coord.panStart = { cx, cy, ox: coord.ox, oy: coord.oy };
       cvs.classList.add('panning', 'dragging');
     }
-  } else if (coord.canvasMode === 'draw' || coord.canvasMode === 'snap') {
+  } else if (coord.canvasMode === 'draw' || coord.canvasMode === 'snap' || coord.canvasMode === 'smart') {
     let {mx, my} = c2m(cx, cy);
     if (coord.canvasMode === 'snap') { const s = snapToGrid(mx, my); mx = s.mx; my = s.my; }
     const {cx: scx, cy: scy} = m2c(mx, my);
@@ -1305,6 +1305,11 @@ function onPointerUp(e) {
     return;
   }
   if (coord.currentStroke) {
+    if (coord.canvasMode === 'smart') {
+      // Apply shape recognition before committing the stroke
+      const recognized = smartRecognizeStroke(coord.currentStroke.pts);
+      coord.currentStroke.pts = recognized;
+    }
     if (coord.currentStroke.pts.length >= 2) coord.strokes.push(coord.currentStroke);
     coord.currentStroke = null;
     drawCanvas();
@@ -1644,12 +1649,13 @@ function setCanvasMode(mode) {
   else if (mode === 'delete') cvs.classList.add('mode-delete');
   else if (mode === 'edit') cvs.classList.add('mode-edit');
   else if (mode === 'text') cvs.style.cursor = 'text';
-  else cvs.style.cursor = 'crosshair'; // draw / snap
+  else cvs.style.cursor = 'crosshair'; // draw / smart / snap
 
   // Update button states
   const modeMap = {
     pan: 'modePanBtn', select: 'modeSelectBtn', draw: 'modeDrawBtn',
-    snap: 'modeSnapBtn', text: 'modeTextBtn', delete: 'modeDeleteBtn', edit: 'modeEditBtn',
+    smart: 'modeSmartBtn', snap: 'modeSnapBtn', text: 'modeTextBtn',
+    delete: 'modeDeleteBtn', edit: 'modeEditBtn',
   };
   Object.values(modeMap).forEach(id => { const b = document.getElementById(id); if (b) b.classList.remove('act'); });
   const activeBtn = modeMap[mode];
@@ -1670,6 +1676,91 @@ function setDrawMode(mode) {
   if (mode === 'none') setCanvasMode('pan');
   else if (mode === 'free') setCanvasMode('draw');
   else if (mode === 'snap') setCanvasMode('snap');
+}
+
+/* ─ Smart Draw – shape recognition ─ */
+function smartRecognizeStroke(pts) {
+  if (!pts || pts.length < 3) return pts;
+
+  // Compute bounding box
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const p of pts) {
+    if (p.cx < minX) minX = p.cx;
+    if (p.cx > maxX) maxX = p.cx;
+    if (p.cy < minY) minY = p.cy;
+    if (p.cy > maxY) maxY = p.cy;
+  }
+  const w = maxX - minX, h = maxY - minY;
+  const diag = Math.sqrt(w * w + h * h);
+  if (diag < 5) return pts;
+
+  // ── 1. Line detection ──
+  // Check max perpendicular distance from the line between first and last point
+  const p0 = pts[0], pN = pts[pts.length - 1];
+  const dx = pN.cx - p0.cx, dy = pN.cy - p0.cy;
+  const lineLen = Math.sqrt(dx * dx + dy * dy);
+  if (lineLen > 10) {
+    let maxDist = 0;
+    for (const p of pts) {
+      const d = Math.abs(dy * (p.cx - p0.cx) - dx * (p.cy - p0.cy)) / lineLen;
+      if (d > maxDist) maxDist = d;
+    }
+    if (maxDist < diag * 0.12) {
+      // Recognized as a straight line – return just the two endpoints
+      return [p0, pN];
+    }
+  }
+
+  // ── 2. Closed shape detection (circle or rectangle) ──
+  const startEndDist = Math.sqrt(
+    (pts[pts.length - 1].cx - pts[0].cx) ** 2 + (pts[pts.length - 1].cy - pts[0].cy) ** 2
+  );
+  const isClosed = startEndDist < diag * 0.35;
+
+  if (isClosed) {
+    // Centroid
+    let cx = 0, cy = 0;
+    for (const p of pts) { cx += p.cx; cy += p.cy; }
+    cx /= pts.length; cy /= pts.length;
+
+    // Radii from centroid
+    const radii = pts.map(p => Math.sqrt((p.cx - cx) ** 2 + (p.cy - cy) ** 2));
+    const meanR = radii.reduce((a, b) => a + b, 0) / radii.length;
+    const stdR = Math.sqrt(radii.reduce((a, b) => a + (b - meanR) ** 2, 0) / radii.length);
+
+    // ── 2a. Circle detection ──
+    if (meanR > 5 && stdR < meanR * 0.22) {
+      const N = 64;
+      const circlePts = [];
+      for (let i = 0; i <= N; i++) {
+        const angle = (2 * Math.PI * i) / N;
+        circlePts.push({ cx: cx + meanR * Math.cos(angle), cy: cy + meanR * Math.sin(angle) });
+      }
+      return circlePts;
+    }
+
+    // ── 2b. Rectangle detection ──
+    // Check if the majority of points lie near the edges of the bounding box
+    const margin = diag * 0.18;
+    let nearEdgeCount = 0;
+    for (const p of pts) {
+      if (
+        Math.abs(p.cx - minX) < margin || Math.abs(p.cx - maxX) < margin ||
+        Math.abs(p.cy - minY) < margin || Math.abs(p.cy - maxY) < margin
+      ) nearEdgeCount++;
+    }
+    if (nearEdgeCount / pts.length > 0.65 && w > 5 && h > 5) {
+      // Recognized as a rectangle
+      return [
+        { cx: minX, cy: minY }, { cx: maxX, cy: minY },
+        { cx: maxX, cy: maxY }, { cx: minX, cy: maxY },
+        { cx: minX, cy: minY }
+      ];
+    }
+  }
+
+  // No shape recognized – return original stroke
+  return pts;
 }
 
 /* ─ Left Toolbar Collapse ─ */
