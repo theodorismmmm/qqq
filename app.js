@@ -103,7 +103,14 @@ window.addEventListener('load', () => {
     if (isStandalone() || window._autoLaunch) {
       launchApp();
       // If a specific tab was requested (e.g. from coordinates.html), switch to it
-      if (window._autoLaunch) setTimeout(() => switchTab(window._autoLaunch), 0);
+      if (window._autoLaunch) setTimeout(() => {
+        const targetTab = window._autoLaunch;
+        if (LICENSE_PROTECTED_TABS.includes(targetTab) && getLicenseType() === 'free') {
+          openLicenseGate(true);
+        } else {
+          switchTab(targetTab);
+        }
+      }, 0);
     } else {
       // Hide loading screen first, then show install screen
       const ls = document.getElementById('loadingScreen');
@@ -2156,6 +2163,11 @@ function closeFsMenu() {
 }
 function fsSwitchTab(tab) {
   closeFsMenu();
+  // Protected tabs require a license; show security check if user is unlicensed
+  if (LICENSE_PROTECTED_TABS.includes(tab) && getLicenseType() === 'free') {
+    openLicenseGate(true);
+    return;
+  }
   switchTab(tab);
 }
 function closeFsMenuAndExit() {
@@ -5103,14 +5115,36 @@ function checkLicenseOnStartup() {
 }
 
 /* ── License gate UI ─────────────────────────── */
-function openLicenseGate() {
+function openLicenseGate(securityMode) {
   document.getElementById('licenseKeyInput').value = '';
   document.getElementById('licenseKeyErr').textContent = '';
+  const modal = document.getElementById('licenseGateModal');
+  const icon  = modal.querySelector('.lg-icon');
+  const title = modal.querySelector('.lg-title');
+  const sub   = modal.querySelector('.lg-sub');
+  const skip  = modal.querySelector('.lg-skip');
+  if (securityMode) {
+    icon.textContent  = '🔒';
+    title.textContent = 'Sicherheitscheck';
+    sub.textContent   = 'Unberechtigter Zugriff erkannt. Dieses Feature ist nur mit einer gültigen Lizenz zugänglich. Bitte Lizenzschlüssel eingeben, um fortzufahren.';
+    if (skip) skip.style.display = 'none';
+    modal.dataset.securityMode = '1';
+  } else {
+    icon.textContent  = '🔑';
+    title.textContent = 'Lizenzschlüssel eingeben';
+    sub.textContent   = 'Gib deinen Lizenzschlüssel ein, um alle Features freizuschalten. Ohne Key steht nur der Grundrechner zur Verfügung.';
+    if (skip) skip.style.display = '';
+    delete modal.dataset.securityMode;
+  }
   document.getElementById('licenseGate').classList.add('open');
   setTimeout(() => document.getElementById('licenseKeyInput').focus(), 200);
 }
 
-function closeLicenseGate() {
+function closeLicenseGate(force) {
+  const modal = document.getElementById('licenseGateModal');
+  // Do not allow closing if in security mode – user must enter a valid license
+  if (!force && modal && modal.dataset.securityMode === '1') return;
+  if (modal) delete modal.dataset.securityMode;
   document.getElementById('licenseGate').classList.remove('open');
 }
 
@@ -5123,7 +5157,7 @@ function activateLicenseKey() {
     const data = { type: 'pro', classId: null, raw: '_legacy_pro_', legacyMode: true };
     setPremium(true);
     applyLicense(data);
-    closeLicenseGate();
+    closeLicenseGate(true);
     _showLicenseToast('🎉 Pro-Lizenz aktiviert!', '#c47400');
     renderLicenseSettings();
     return;
@@ -5132,7 +5166,7 @@ function activateLicenseKey() {
     activateTeacherMode();
     const data = { type: 'teacher', classId: null, raw: '_legacy_teacher_', legacyMode: true };
     setLicenseData(data);
-    closeLicenseGate();
+    closeLicenseGate(true);
     _showLicenseToast('✅ Lehrermodus aktiviert!', '#1a7a1a');
     renderLicenseSettings();
     return;
@@ -5154,7 +5188,7 @@ function activateLicenseKey() {
   if (parsed.type === 'teacher') localStorage.setItem(TEACHER_KEY, '1');
   applyLicense(parsed);
   startLicenseWatch(parsed.raw, parsed.classId);
-  closeLicenseGate();
+  closeLicenseGate(true);
 
   const msgs = { pro: '🎉 Pro-Lizenz aktiviert!', teacher: '✅ Lehrer-Lizenz aktiviert!', student: '🎓 Schüler-Lizenz aktiviert!' };
   const cols = { pro: '#c47400', teacher: '#1a7a1a', student: '#0055cc' };
@@ -5430,6 +5464,8 @@ const FEAT_NAV = {
 };
 // Always-visible nav items (never hidden)
 const NAV_ALWAYS = ['nbHandbuch', 'nbSettings'];
+// Tabs that require a valid license to access
+const LICENSE_PROTECTED_TABS = ['koordinaten', 'notizen', 'klasse', 'bild', 'agent'];
 
 // navButtonId → fsMenu buttonId (used to sync fullscreen-menu visibility with nav)
 const FS_NAV_MAP = {
