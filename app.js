@@ -808,7 +808,30 @@ function _drawCanvasNow() {
 
   // Grid
   if (coord.showGrid) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    const pixPerStep = gs * coord.scale;
+
+    // Millimeter sub-grid: 10 subdivisions per grid unit (draw first, below main grid)
+    const subGs = gs / 10;
+    const pixPerSubStep = subGs * coord.scale;
+    if (pixPerSubStep >= 3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+      ctx.lineWidth = 0.5;
+      const sxStart = Math.floor(c2m(0, 0).mx / subGs) * subGs;
+      const sxEnd = Math.ceil(c2m(W, 0).mx / subGs) * subGs;
+      const syStart = Math.floor(c2m(0, H).my / subGs) * subGs;
+      const syEnd = Math.ceil(c2m(0, 0).my / subGs) * subGs;
+      for (let x = sxStart; x <= sxEnd + subGs * 0.01; x += subGs) { // +0.01 tolerance for float precision
+        const {cx} = m2c(x, 0);
+        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      }
+      for (let y = syStart; y <= syEnd + subGs * 0.01; y += subGs) { // +0.01 tolerance for float precision
+        const {cy} = m2c(0, y);
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+      }
+    }
+
+    // Main grid lines (on top of sub-grid)
+    ctx.strokeStyle = pixPerStep >= 8 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)';
     ctx.lineWidth = 1;
     const xStart = Math.floor(c2m(0, 0).mx / gs) * gs;
     const xEnd = Math.ceil(c2m(W, 0).mx / gs) * gs;
@@ -847,23 +870,36 @@ function _drawCanvasNow() {
 
   // Axis tick labels
   if (coord.showLabels && coord.showAxes) {
+    const pixPerStep = gs * coord.scale;
+    // Auto-scale: pick label interval so labels are at least ~40px apart
+    const niceMultiples = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+    const minPixBetweenLabels = 40;
+    const rawEvery = Math.ceil(minPixBetweenLabels / Math.max(pixPerStep, 0.1)); // 0.1 avoids division by zero
+    const labelEvery = niceMultiples.find(m => m >= rawEvery) || rawEvery;
+    // Scale font size with zoom: smaller when zoomed out, capped between 8px (min readable) and 13px (max)
+    const fontSize = Math.round(Math.min(13, Math.max(8, pixPerStep * 0.18))); // 0.18 ≈ 1/5.5 for natural scaling
+
     const xStart2 = Math.floor(c2m(0, 0).mx / gs) * gs;
     const xEnd2 = Math.ceil(c2m(W, 0).mx / gs) * gs;
     const yStart2 = Math.floor(c2m(0, H).my / gs) * gs;
     const yEnd2 = Math.ceil(c2m(0, 0).my / gs) * gs;
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.font = '10px -apple-system, sans-serif';
+    ctx.font = `${fontSize}px -apple-system, sans-serif`;
     ctx.textAlign = 'center';
-    for (let x = xStart2; x <= xEnd2; x += gs) {
+    let xi = 0;
+    for (let x = xStart2; x <= xEnd2; x += gs, xi++) {
+      if (xi % labelEvery !== 0) continue;
       if (Math.abs(x) < gs * 0.1) continue;
       const {cx, cy} = m2c(x, 0);
-      ctx.fillText(round(x), cx, Math.min(Math.max(cy + 14, 14), H - 4));
+      ctx.fillText(round(x), cx, Math.min(Math.max(cy + fontSize + 2, fontSize + 2), H - 4));
     }
     ctx.textAlign = 'right';
-    for (let y = yStart2; y <= yEnd2; y += gs) {
+    let yi = 0;
+    for (let y = yStart2; y <= yEnd2; y += gs, yi++) {
+      if (yi % labelEvery !== 0) continue;
       if (Math.abs(y) < gs * 0.1) continue;
       const {cx, cy} = m2c(0, y);
-      ctx.fillText(round(y), Math.max(cx - 5, 20), Math.min(Math.max(cy + 4, 4), H - 4));
+      ctx.fillText(round(y), Math.max(cx - 5, 20), Math.min(Math.max(cy + fontSize * 0.4, 4), H - 4));
     }
     ctx.textAlign = 'left';
   }
@@ -983,8 +1019,14 @@ function drawStroke(ctx, stroke) {
   ctx.lineWidth = stroke.width;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.moveTo(stroke.pts[0].cx, stroke.pts[0].cy);
-  for (let i = 1; i < stroke.pts.length; i++) ctx.lineTo(stroke.pts[i].cx, stroke.pts[i].cy);
+  // Use math coordinates if available (auto-scales with zoom), fall back to canvas coords
+  const toCanvas = (p) => p.mx !== undefined ? m2c(p.mx, p.my) : {cx: p.cx, cy: p.cy};
+  const {cx: cx0, cy: cy0} = toCanvas(stroke.pts[0]);
+  ctx.moveTo(cx0, cy0);
+  for (let i = 1; i < stroke.pts.length; i++) {
+    const {cx, cy} = toCanvas(stroke.pts[i]);
+    ctx.lineTo(cx, cy);
+  }
   ctx.stroke();
 }
 
@@ -1159,7 +1201,10 @@ function onPointerDown(e) {
     // Delete last stroke if clicked anywhere (within hitR of a stroke point)
     for (let i = coord.strokes.length - 1; i >= 0; i--) {
       const st = coord.strokes[i];
-      if (st.pts.some(p => Math.sqrt((cx - p.cx) ** 2 + (cy - p.cy) ** 2) < hitR)) {
+      if (st.pts.some(p => {
+        const {cx: pcx, cy: pcy} = p.mx !== undefined ? m2c(p.mx, p.my) : {cx: p.cx, cy: p.cy};
+        return Math.sqrt((cx - pcx) ** 2 + (cy - pcy) ** 2) < hitR;
+      })) {
         coord.strokes.splice(i, 1);
         drawCanvas();
         return;
@@ -1224,7 +1269,7 @@ function onPointerDown(e) {
     if (coord.canvasMode === 'snap') { const s = snapToGrid(mx, my); mx = s.mx; my = s.my; }
     const {cx: scx, cy: scy} = m2c(mx, my);
     const w = parseInt(document.getElementById('lineWidth').value) || 3;
-    coord.currentStroke = { mode: coord.canvasMode, color: coord.drawColor, width: w, pts: [{cx: scx, cy: scy}] };
+    coord.currentStroke = { mode: coord.canvasMode, color: coord.drawColor, width: w, pts: [{cx: scx, cy: scy, mx, my}] };
   }
 }
 
@@ -1286,7 +1331,7 @@ function onPointerMove(e) {
     let {mx: pmx, my: pmy} = c2m(cx, cy);
     if (coord.canvasMode === 'snap') { const s = snapToGrid(pmx, pmy); pmx = s.mx; pmy = s.my; }
     const {cx: scx, cy: scy} = m2c(pmx, pmy);
-    coord.currentStroke.pts.push({cx: scx, cy: scy});
+    coord.currentStroke.pts.push({cx: scx, cy: scy, mx: pmx, my: pmy});
     drawCanvas();
   }
 }
