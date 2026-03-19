@@ -4604,7 +4604,7 @@ function activatePro() {
     document.getElementById('activateOverlay').classList.remove('open');
     // Update agent counter to reflect new limit
     agentRenderTasks();
-    showProWelcome();
+    showActivationFlow('pro');
   } else {
     document.getElementById('activateError').textContent = '❌ Ungültiger Code. Bitte versuche es erneut.';
     document.getElementById('activateCodeInput').select();
@@ -4612,12 +4612,7 @@ function activatePro() {
 }
 
 function showProWelcome() {
-  // Show a simple confirmation toast-style message
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f5a623;color:#fff;padding:14px 22px;border-radius:0;font-size:15px;font-weight:700;z-index:13000;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
-  el.textContent = '🎉 MathSpaces Pro aktiviert!';
-  document.body.appendChild(el);
-  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
+  showActivationFlow('pro');
 }
 
 /* ══════════════════════════════════════════════
@@ -5158,8 +5153,8 @@ function activateLicenseKey() {
     setPremium(true);
     applyLicense(data);
     closeLicenseGate(true);
-    _showLicenseToast('🎉 Pro-Lizenz aktiviert!', '#c47400');
     renderLicenseSettings();
+    showActivationFlow('pro');
     return;
   }
   if (raw === TEACHER_CODE) {
@@ -5167,8 +5162,8 @@ function activateLicenseKey() {
     const data = { type: 'teacher', classId: null, raw: '_legacy_teacher_', legacyMode: true };
     setLicenseData(data);
     closeLicenseGate(true);
-    _showLicenseToast('✅ Lehrermodus aktiviert!', '#1a7a1a');
     renderLicenseSettings();
+    showActivationFlow('teacher');
     return;
   }
 
@@ -5189,13 +5184,10 @@ function activateLicenseKey() {
   applyLicense(parsed);
   startLicenseWatch(parsed.raw, parsed.classId);
   closeLicenseGate(true);
-
-  const msgs = { pro: '🎉 Pro-Lizenz aktiviert!', teacher: '✅ Lehrer-Lizenz aktiviert!', student: '🎓 Schüler-Lizenz aktiviert!' };
-  const cols = { pro: '#c47400', teacher: '#1a7a1a', student: '#0055cc' };
-  _showLicenseToast(msgs[parsed.type], cols[parsed.type]);
   renderLicenseSettings();
   // If student, reload prefs
   if (parsed.type === 'student') applyLicense(parsed);
+  showActivationFlow(parsed.type);
 }
 
 function deactivateLicense() {
@@ -5216,7 +5208,48 @@ function _showLicenseToast(msg, color) {
   setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
 }
 
-/* ── License Settings Panel Renderer ─────────── */
+/* ── License Activation Flow ─────────────────── */
+const _LAC_FEATURES = [
+  { icon: '🧮', name: 'Rechner',      desc: 'Erweiterter Taschenrechner mit allen Funktionen' },
+  { icon: '📐', name: 'Koordinaten',  desc: 'Interaktives Koordinatensystem & Geometrie' },
+  { icon: '📝', name: 'Notizen',      desc: 'Notizen, Aufgaben & Formelblätter' },
+  { icon: '🎓', name: 'Formeln+',     desc: 'Vollständige Formelsammlung & Checklisten' },
+  { icon: '📷', name: 'Bild / OCR',   desc: 'Foto-Upload & Texterkennung für Aufgaben' },
+  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent' }
+];
+const _LAC_CARD_DELAY_STEP = 0.09; // seconds per card stagger
+
+function showActivationFlow(licType) {
+  const titles = { pro: 'Pro-Lizenz aktiviert!', teacher: 'Lehrer-Lizenz aktiviert!', student: 'Schüler-Lizenz aktiviert!' };
+  const subs   = { pro: 'Willkommen bei MathSpaces Pro 🎉', teacher: 'Alle Features + Klassen-Management 🎓', student: 'Willkommen bei MathSpaces 📚' };
+  document.getElementById('lacConfirmTitle').textContent = titles[licType] || 'Lizenz aktiviert!';
+  document.getElementById('lacConfirmSub').textContent   = subs[licType]   || 'Viel Spaß beim Lernen! 🚀';
+  document.getElementById('licActStep1').style.display = 'flex';
+  document.getElementById('licActStep2').style.display = 'none';
+  document.getElementById('licActStep3').style.display = 'none';
+  document.getElementById('licActFlow').classList.add('open');
+  setTimeout(() => _lacShowFeatures(licType), 2800);
+}
+
+function _lacShowFeatures(licType) {
+  document.getElementById('licActStep1').style.display = 'none';
+  const grid = document.getElementById('lacFeatGrid');
+  grid.innerHTML = '';
+  _LAC_FEATURES.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'lac-feat-card';
+    card.style.animationDelay = (i * _LAC_CARD_DELAY_STEP) + 's';
+    card.innerHTML = `<div class="lac-feat-card-icon">${f.icon}</div><div class="lac-feat-card-name">${f.name}</div><div class="lac-feat-card-desc">${f.desc}</div>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('licActStep2').style.display = 'flex';
+}
+
+function lacStartReady() {
+  document.getElementById('licActStep2').style.display = 'none';
+  document.getElementById('licActStep3').style.display = 'flex';
+  setTimeout(() => { document.getElementById('licActFlow').classList.remove('open'); }, 1800);
+}
 const LICENSE_FEATURES = [
   { id: 'calc',    label: '🧮 Rechner'      },
   { id: 'koord',   label: '📐 Koordinaten'  },

@@ -915,6 +915,43 @@
     #licenseGate .lg-btn:active { opacity: .85; }
     #licenseGate .lg-skip { width: 100%; padding: 12px; background: var(--btn); border: none;
       color: var(--dim); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    /* ─── License Activation Flow Overlay ─── */
+    #licActFlow { position: fixed; inset: 0; background: #07071a; z-index: 20000;
+      display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
+    #licActFlow.open { display: flex; }
+    .lac-step { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+    .lac-check-wrap { margin-bottom: 28px; }
+    .lac-check-svg { width: 120px; height: 120px; overflow: visible; }
+    .lac-circle { stroke-dasharray: 290; stroke-dashoffset: 290;
+      animation: lacDrawCircle .65s cubic-bezier(.4,0,.2,1) .15s forwards; }
+    .lac-tick { stroke-dasharray: 90; stroke-dashoffset: 90; fill: none;
+      animation: lacDrawTick .4s ease-out .85s forwards; }
+    @keyframes lacDrawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes lacDrawTick   { to { stroke-dashoffset: 0; } }
+    .lac-confirm-title { font-size: 30px; font-weight: 900; color: #fff;
+      opacity: 0; animation: lacFadeUp .5s ease 1.25s forwards; }
+    .lac-confirm-sub { font-size: 15px; color: rgba(255,255,255,.65); margin-top: 8px;
+      opacity: 0; animation: lacFadeUp .5s ease 1.55s forwards; }
+    @keyframes lacFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .lac-feat-header { font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 20px;
+      opacity: 0; animation: lacFadeUp .4s ease .05s forwards; }
+    .lac-feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+      width: 100%; margin-bottom: 22px; }
+    .lac-feat-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+      padding: 16px 10px; text-align: center; opacity: 0; animation: lacFadeUp .4s ease forwards; }
+    .lac-feat-card-icon { font-size: 30px; margin-bottom: 7px; }
+    .lac-feat-card-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .lac-feat-card-desc { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; line-height: 1.45; }
+    .lac-ready-btn { width: 100%; padding: 15px; background: #f5a623; border: none;
+      color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+      letter-spacing: .4px; opacity: 0; animation: lacFadeUp .4s ease .55s forwards; }
+    .lac-ready-btn:active { opacity: .85; }
+    .lac-spinner { width: 58px; height: 58px; border: 5px solid rgba(255,255,255,.15);
+      border-top-color: #f5a623; border-radius: 50%;
+      animation: lacSpin .75s linear infinite; margin-bottom: 26px; }
+    @keyframes lacSpin { to { transform: rotate(360deg); } }
+    .lac-loading-txt { font-size: 20px; font-weight: 700; color: #fff;
+      opacity: 0; animation: lacFadeUp .5s ease .1s forwards; }
     /* ─── Limited Mode Banner ─── */
     #limitedBanner { background: #7a0000; color: white; font-size: 12px; font-weight: 700;
       padding: 7px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
@@ -7284,7 +7321,7 @@ function activatePro() {
     document.getElementById('activateOverlay').classList.remove('open');
     // Update agent counter to reflect new limit
     agentRenderTasks();
-    showProWelcome();
+    showActivationFlow('pro');
   } else {
     document.getElementById('activateError').textContent = '❌ Ungültiger Code. Bitte versuche es erneut.';
     document.getElementById('activateCodeInput').select();
@@ -7292,12 +7329,7 @@ function activatePro() {
 }
 
 function showProWelcome() {
-  // Show a simple confirmation toast-style message
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f5a623;color:#fff;padding:14px 22px;border-radius:0;font-size:15px;font-weight:700;z-index:13000;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
-  el.textContent = '🎉 MathSpaces Pro aktiviert!';
-  document.body.appendChild(el);
-  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
+  showActivationFlow('pro');
 }
 
 /* ══════════════════════════════════════════════
@@ -7840,8 +7872,8 @@ function activateLicenseKey() {
     setPremium(true);
     applyLicense(data);
     closeLicenseGate(true);
-    _showLicenseToast('🎉 Pro-Lizenz aktiviert!', '#c47400');
     renderLicenseSettings();
+    showActivationFlow('pro');
     return;
   }
   if (raw === TEACHER_CODE) {
@@ -7849,8 +7881,8 @@ function activateLicenseKey() {
     const data = { type: 'teacher', classId: null, raw: '_legacy_teacher_', legacyMode: true };
     setLicenseData(data);
     closeLicenseGate(true);
-    _showLicenseToast('✅ Lehrermodus aktiviert!', '#1a7a1a');
     renderLicenseSettings();
+    showActivationFlow('teacher');
     return;
   }
 
@@ -7871,13 +7903,10 @@ function activateLicenseKey() {
   applyLicense(parsed);
   startLicenseWatch(parsed.raw, parsed.classId);
   closeLicenseGate(true);
-
-  const msgs = { pro: '🎉 Pro-Lizenz aktiviert!', teacher: '✅ Lehrer-Lizenz aktiviert!', student: '🎓 Schüler-Lizenz aktiviert!' };
-  const cols = { pro: '#c47400', teacher: '#1a7a1a', student: '#0055cc' };
-  _showLicenseToast(msgs[parsed.type], cols[parsed.type]);
   renderLicenseSettings();
   // If student, reload prefs
   if (parsed.type === 'student') applyLicense(parsed);
+  showActivationFlow(parsed.type);
 }
 
 function deactivateLicense() {
@@ -7896,6 +7925,49 @@ function _showLicenseToast(msg, color) {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2800);
+}
+
+/* ── License Activation Flow ─────────────────── */
+const _LAC_FEATURES = [
+  { icon: '🧮', name: 'Rechner',      desc: 'Erweiterter Taschenrechner mit allen Funktionen' },
+  { icon: '📐', name: 'Koordinaten',  desc: 'Interaktives Koordinatensystem & Geometrie' },
+  { icon: '📝', name: 'Notizen',      desc: 'Notizen, Aufgaben & Formelblätter' },
+  { icon: '🎓', name: 'Formeln+',     desc: 'Vollständige Formelsammlung & Checklisten' },
+  { icon: '📷', name: 'Bild / OCR',   desc: 'Foto-Upload & Texterkennung für Aufgaben' },
+  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent' }
+];
+const _LAC_CARD_DELAY_STEP = 0.09; // seconds per card stagger
+
+function showActivationFlow(licType) {
+  const titles = { pro: 'Pro-Lizenz aktiviert!', teacher: 'Lehrer-Lizenz aktiviert!', student: 'Schüler-Lizenz aktiviert!' };
+  const subs   = { pro: 'Willkommen bei MathSpaces Pro 🎉', teacher: 'Alle Features + Klassen-Management 🎓', student: 'Willkommen bei MathSpaces 📚' };
+  document.getElementById('lacConfirmTitle').textContent = titles[licType] || 'Lizenz aktiviert!';
+  document.getElementById('lacConfirmSub').textContent   = subs[licType]   || 'Viel Spaß beim Lernen! 🚀';
+  document.getElementById('licActStep1').style.display = 'flex';
+  document.getElementById('licActStep2').style.display = 'none';
+  document.getElementById('licActStep3').style.display = 'none';
+  document.getElementById('licActFlow').classList.add('open');
+  setTimeout(() => _lacShowFeatures(licType), 2800);
+}
+
+function _lacShowFeatures(licType) {
+  document.getElementById('licActStep1').style.display = 'none';
+  const grid = document.getElementById('lacFeatGrid');
+  grid.innerHTML = '';
+  _LAC_FEATURES.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'lac-feat-card';
+    card.style.animationDelay = (i * _LAC_CARD_DELAY_STEP) + 's';
+    card.innerHTML = `<div class="lac-feat-card-icon">${f.icon}</div><div class="lac-feat-card-name">${f.name}</div><div class="lac-feat-card-desc">${f.desc}</div>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('licActStep2').style.display = 'flex';
+}
+
+function lacStartReady() {
+  document.getElementById('licActStep2').style.display = 'none';
+  document.getElementById('licActStep3').style.display = 'flex';
+  setTimeout(() => { document.getElementById('licActFlow').classList.remove('open'); }, 1800);
 }
 
 /* ── License Settings Panel Renderer ─────────── */
@@ -8631,6 +8703,34 @@ function obSkip() {
     <div class="lg-err" id="licenseKeyErr"></div>
     <button class="lg-btn" onclick="activateLicenseKey()">✅ Aktivieren</button>
     <button class="lg-skip" onclick="closeLicenseGate()">Später – eingeschränkt weiternutzen</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LICENSE ACTIVATION FLOW
+══════════════════════════════════════════ -->
+<div id="licActFlow" role="dialog" aria-modal="true">
+  <!-- Step 1: Confirmation animation -->
+  <div id="licActStep1" class="lac-step">
+    <div class="lac-check-wrap">
+      <svg class="lac-check-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle class="lac-circle" cx="50" cy="50" r="46" stroke="#22c55e" stroke-width="5"/>
+        <polyline class="lac-tick" points="27,52 43,68 75,33" stroke="#22c55e" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="lac-confirm-title" id="lacConfirmTitle">Lizenz aktiviert!</div>
+    <div class="lac-confirm-sub" id="lacConfirmSub">Willkommen bei MathSpaces Pro 🎉</div>
+  </div>
+  <!-- Step 2: Feature showcase -->
+  <div id="licActStep2" class="lac-step" style="display:none">
+    <div class="lac-feat-header">✨ Freigeschaltete Features</div>
+    <div class="lac-feat-grid" id="lacFeatGrid"></div>
+    <button class="lac-ready-btn" onclick="lacStartReady()">Bereit starten →</button>
+  </div>
+  <!-- Step 3: Loading -->
+  <div id="licActStep3" class="lac-step" style="display:none">
+    <div class="lac-spinner"></div>
+    <div class="lac-loading-txt">Wir machen alles bereit…</div>
   </div>
 </div>
 
