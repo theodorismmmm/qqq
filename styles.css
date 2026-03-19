@@ -898,6 +898,43 @@
     #licenseGate .lg-btn:active { opacity: .85; }
     #licenseGate .lg-skip { width: 100%; padding: 12px; background: var(--btn); border: none;
       color: var(--dim); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    /* ─── License Activation Flow Overlay ─── */
+    #licActFlow { position: fixed; inset: 0; background: #07071a; z-index: 20000;
+      display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
+    #licActFlow.open { display: flex; }
+    .lac-step { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+    .lac-check-wrap { margin-bottom: 28px; }
+    .lac-check-svg { width: 120px; height: 120px; overflow: visible; }
+    .lac-circle { stroke-dasharray: 290; stroke-dashoffset: 290;
+      animation: lacDrawCircle .65s cubic-bezier(.4,0,.2,1) .15s forwards; }
+    .lac-tick { stroke-dasharray: 90; stroke-dashoffset: 90; fill: none;
+      animation: lacDrawTick .4s ease-out .85s forwards; }
+    @keyframes lacDrawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes lacDrawTick   { to { stroke-dashoffset: 0; } }
+    .lac-confirm-title { font-size: 30px; font-weight: 900; color: #fff;
+      opacity: 0; animation: lacFadeUp .5s ease 1.25s forwards; }
+    .lac-confirm-sub { font-size: 15px; color: rgba(255,255,255,.65); margin-top: 8px;
+      opacity: 0; animation: lacFadeUp .5s ease 1.55s forwards; }
+    @keyframes lacFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .lac-feat-header { font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 20px;
+      opacity: 0; animation: lacFadeUp .4s ease .05s forwards; }
+    .lac-feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+      width: 100%; margin-bottom: 22px; }
+    .lac-feat-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+      padding: 16px 10px; text-align: center; opacity: 0; animation: lacFadeUp .4s ease forwards; }
+    .lac-feat-card-icon { font-size: 30px; margin-bottom: 7px; }
+    .lac-feat-card-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .lac-feat-card-desc { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; line-height: 1.45; }
+    .lac-ready-btn { width: 100%; padding: 15px; background: #f5a623; border: none;
+      color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+      letter-spacing: .4px; opacity: 0; animation: lacFadeUp .4s ease .55s forwards; }
+    .lac-ready-btn:active { opacity: .85; }
+    .lac-spinner { width: 58px; height: 58px; border: 5px solid rgba(255,255,255,.15);
+      border-top-color: #f5a623; border-radius: 50%;
+      animation: lacSpin .75s linear infinite; margin-bottom: 26px; }
+    @keyframes lacSpin { to { transform: rotate(360deg); } }
+    .lac-loading-txt { font-size: 20px; font-weight: 700; color: #fff;
+      opacity: 0; animation: lacFadeUp .5s ease .1s forwards; }
     /* ─── Limited Mode Banner ─── */
     #limitedBanner { background: #7a0000; color: white; font-size: 12px; font-weight: 700;
       padding: 7px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
