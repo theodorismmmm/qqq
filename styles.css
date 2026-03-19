@@ -900,17 +900,23 @@
       color: var(--dim); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
     /* ─── License Activation Flow Overlay ─── */
     #licActFlow { position: fixed; inset: 0; background: #07071a; z-index: 20000;
-      display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
+      display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; overflow: hidden; }
     #licActFlow.open { display: flex; }
-    .lac-step { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
-    .lac-check-wrap { margin-bottom: 28px; }
-    .lac-check-svg { width: 120px; height: 120px; overflow: visible; }
+    .lac-step { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .lac-check-wrap { margin-bottom: 28px; position: relative; }
+    .lac-check-svg { width: 120px; height: 120px; overflow: visible;
+      animation: lacPop .45s cubic-bezier(.34,1.56,.64,1) 1.2s both; }
     .lac-circle { stroke-dasharray: 290; stroke-dashoffset: 290;
       animation: lacDrawCircle .65s cubic-bezier(.4,0,.2,1) .15s forwards; }
     .lac-tick { stroke-dasharray: 90; stroke-dashoffset: 90; fill: none;
       animation: lacDrawTick .4s ease-out .85s forwards; }
+    .lac-glow-ring { position: absolute; inset: -20px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(34,197,94,.35) 0%, transparent 70%);
+      opacity: 0; animation: lacGlowPulse 1.1s ease-out 1.1s forwards; pointer-events: none; }
     @keyframes lacDrawCircle { to { stroke-dashoffset: 0; } }
     @keyframes lacDrawTick   { to { stroke-dashoffset: 0; } }
+    @keyframes lacPop  { from { transform: scale(.8); } to { transform: scale(1); } }
+    @keyframes lacGlowPulse { 0%{opacity:0;transform:scale(.7)} 40%{opacity:1} 100%{opacity:0;transform:scale(1.5)} }
     .lac-confirm-title { font-size: 30px; font-weight: 900; color: #fff;
       opacity: 0; animation: lacFadeUp .5s ease 1.25s forwards; }
     .lac-confirm-sub { font-size: 15px; color: rgba(255,255,255,.65); margin-top: 8px;
