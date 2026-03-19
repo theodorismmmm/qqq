@@ -567,6 +567,8 @@ const coord = {
   lcConnType: 'straight',  // 'straight' | 'curved' | 'hyperbola'
   dragPoint: null,         // {id, ...} – point being dragged in select mode
   editPointId: null,       // id of point being edited
+  showMmGrid: true,        // show millimeter sub-grid
+  editBendConn: null,      // { connIdx, ptIdx } – connector bend point being dragged in edit mode
 };
 
 /* ══════════════════════════════════════════════
@@ -591,6 +593,7 @@ function _snapshotCoord() {
     showGrid: coord.showGrid,
     showLabels: coord.showLabels,
     showAxes: coord.showAxes,
+    showMmGrid: coord.showMmGrid,
     nextId: coord.nextId,
     lcConnType: coord.lcConnType,
   };
@@ -608,6 +611,7 @@ function _applySnapshot(snap) {
   coord.showGrid = snap.showGrid;
   coord.showLabels = snap.showLabels;
   coord.showAxes = snap.showAxes;
+  coord.showMmGrid = snap.showMmGrid !== undefined ? snap.showMmGrid : true;
   coord.nextId = snap.nextId;
   coord.lcConnType = snap.lcConnType || 'straight';
   coord.currentConnector = null;
@@ -615,6 +619,7 @@ function _applySnapshot(snap) {
   coord.currentStroke = null;
   coord.dragPoint = null;
   coord.editPointId = null;
+  coord.editBendConn = null;
 }
 
 function renderCoordSysTabs() {
@@ -658,6 +663,7 @@ function switchCoordSystem(idx) {
   document.getElementById('togGrid').classList.toggle('active', coord.showGrid);
   document.getElementById('togLabels').classList.toggle('active', coord.showLabels);
   document.getElementById('togAxes').classList.toggle('active', coord.showAxes);
+  const togMm = document.getElementById('togMmGrid'); if (togMm) togMm.classList.toggle('active', coord.showMmGrid);
   drawCanvas();
 }
 
@@ -820,8 +826,8 @@ function _drawCanvasNow() {
     // Millimeter sub-grid: 10 subdivisions per grid unit (draw first, below main grid)
     const subGs = gs / 10;
     const pixPerSubStep = subGs * coord.scale;
-    if (pixPerSubStep >= 3) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+    if (coord.showMmGrid && pixPerSubStep >= 3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
       ctx.lineWidth = 0.5;
       const sxStart = Math.floor(c2m(0, 0).mx / subGs) * subGs;
       const sxEnd = Math.ceil(c2m(W, 0).mx / subGs) * subGs;
@@ -926,6 +932,36 @@ function _drawCanvasNow() {
   // Draw current connector being built
   if (coord.currentConnector && coord.currentConnector.pts.length >= 1) {
     drawConnector(ctx, coord.currentConnector.pts, coord.currentConnector.color, true, coord.currentConnector.type);
+  }
+
+  // In edit mode: draw bend point handles on connectors
+  if (coord.canvasMode === 'edit') {
+    coord.connectors.forEach((con, ci) => {
+      con.pts.forEach((p, pi) => {
+        if (!p._bend) return; // only show user-added bend points
+        const {cx: bx, cy: by} = m2c(p.x, p.y);
+        ctx.beginPath();
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(245,166,35,0.85)';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+      // Show midpoint handles for non-bend segments to indicate draggable edges
+      for (let si = 1; si < con.pts.length; si++) {
+        const {cx: ax, cy: ay} = m2c(con.pts[si-1].x, con.pts[si-1].y);
+        const {cx: bx, cy: by} = m2c(con.pts[si].x, con.pts[si].y);
+        const mx = (ax + bx) / 2, my = (ay + by) / 2;
+        ctx.beginPath();
+        ctx.arc(mx, my, 5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(245,166,35,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    });
   }
 
   ctx.restore();
@@ -1220,16 +1256,54 @@ function onPointerDown(e) {
     return;
   }
 
-  // Edit mode: click near a point to open edit panel
+  // Edit mode: click near a point to open edit panel, or click near a connector to bend it
   if (coord.canvasMode === 'edit') {
     const hitR = 20;
+    // 1. Check if clicking near a named coordinate point → open edit panel
     let hitPt = null;
     coord.points.forEach(pt => {
       const {cx: pcx, cy: pcy} = m2c(pt.x, pt.y);
       const d = Math.sqrt((cx - pcx) ** 2 + (cy - pcy) ** 2);
       if (d < hitR) hitPt = pt;
     });
-    if (hitPt) { openPtEdit(hitPt, cx, cy); }
+    if (hitPt) { openPtEdit(hitPt, cx, cy); return; }
+
+    // 2. Check if clicking near an existing connector bend/control point → start drag
+    for (let ci = 0; ci < coord.connectors.length; ci++) {
+      const con = coord.connectors[ci];
+      for (let pi = 0; pi < con.pts.length; pi++) {
+        const {cx: pcx, cy: pcy} = m2c(con.pts[pi].x, con.pts[pi].y);
+        if (Math.sqrt((cx - pcx) ** 2 + (cy - pcy) ** 2) < hitR) {
+          coord.editBendConn = { connIdx: ci, ptIdx: pi };
+          return;
+        }
+      }
+    }
+
+    // 3. Check if clicking near a connector segment → insert a new bend point, then drag it
+    const segHitR = 14;
+    for (let ci = 0; ci < coord.connectors.length; ci++) {
+      const con = coord.connectors[ci];
+      const cPts = con.pts.map(p => m2c(p.x, p.y));
+      for (let si = 1; si < cPts.length; si++) {
+        const ax = cPts[si-1].cx, ay = cPts[si-1].cy;
+        const bx = cPts[si].cx,   by = cPts[si].cy;
+        const dx = bx - ax, dy = by - ay;
+        const len2 = dx*dx + dy*dy;
+        if (len2 === 0) continue;
+        const t = Math.max(0, Math.min(1, ((cx - ax) * dx + (cy - ay) * dy) / len2));
+        const nearX = ax + t * dx, nearY = ay + t * dy;
+        if (Math.sqrt((cx - nearX)**2 + (cy - nearY)**2) < segHitR) {
+          // Insert a new bend point at the click location
+          const {mx: bmx, my: bmy} = c2m(cx, cy);
+          const newBendPt = { _bend: true, x: bmx, y: bmy };
+          con.pts.splice(si, 0, newBendPt);
+          coord.editBendConn = { connIdx: ci, ptIdx: si };
+          drawCanvas();
+          return;
+        }
+      }
+    }
     return;
   }
 
@@ -1329,6 +1403,18 @@ function onPointerMove(e) {
     return;
   }
 
+  // Drag connector bend point in edit mode
+  if (coord.editBendConn) {
+    const {mx: dmx, my: dmy} = c2m(cx, cy);
+    const con = coord.connectors[coord.editBendConn.connIdx];
+    if (con && con.pts[coord.editBendConn.ptIdx]) {
+      con.pts[coord.editBendConn.ptIdx].x = parseFloat(dmx.toFixed(4));
+      con.pts[coord.editBendConn.ptIdx].y = parseFloat(dmy.toFixed(4));
+      drawCanvas();
+    }
+    return;
+  }
+
   if (coord.isPanning && coord.panStart) {
     coord.ox = coord.panStart.ox + (cx - coord.panStart.cx);
     coord.oy = coord.panStart.oy + (cy - coord.panStart.cy);
@@ -1356,13 +1442,65 @@ function onPointerUp(e) {
     drawCanvas();
     return;
   }
+  // Edit mode: release bend point drag
+  if (coord.editBendConn) {
+    coord.editBendConn = null;
+    drawCanvas();
+    return;
+  }
   if (coord.currentStroke) {
     if (coord.canvasMode === 'smart') {
-      // Apply shape recognition before committing the stroke
-      const recognized = smartRecognizeStroke(coord.currentStroke.pts);
+      const rawPts = coord.currentStroke.pts;
+
+      // ── Smart Draw: short tap → create a point on 1×1 grid ──
+      if (rawPts.length < 5) {
+        const fp = rawPts[0];
+        const {mx, my} = c2m(fp.cx, fp.cy);
+        const snapX = Math.round(mx);
+        const snapY = Math.round(my);
+        const ptName = 'P' + coord.nextId;
+        coord.points.push({ x: snapX, y: snapY, name: ptName, id: coord.nextId++ });
+        coord.currentStroke = null;
+        renderPtList();
+        drawCanvas();
+        return;
+      }
+
+      // ── Smart Draw: apply shape recognition ──
+      const recognized = smartRecognizeStroke(rawPts);
       coord.currentStroke.pts = recognized;
+
+      // ── Smart Draw: auto-connect if stroke endpoints are near existing points ──
+      if (recognized.length >= 2) {
+        const hitR = 24; // px
+        const fp = recognized[0], lp = recognized[recognized.length - 1];
+        let startPt = null, endPt = null;
+        coord.points.forEach(pt => {
+          const {cx: pcx, cy: pcy} = m2c(pt.x, pt.y);
+          if (Math.sqrt((fp.cx - pcx) ** 2 + (fp.cy - pcy) ** 2) < hitR) startPt = pt;
+          if (Math.sqrt((lp.cx - pcx) ** 2 + (lp.cy - pcy) ** 2) < hitR) endPt = pt;
+        });
+        if (startPt && endPt && startPt.id !== endPt.id) {
+          // Determine type: exactly 2 pts → straight line, more → curved
+          const connType = recognized.length === 2 ? 'straight' : 'curved';
+          const connId = coord.nextId++;
+          coord.connectors.push({
+            id: connId,
+            pts: [
+              { id: startPt.id, x: startPt.x, y: startPt.y, name: startPt.name },
+              { id: endPt.id,   x: endPt.x,   y: endPt.y,   name: endPt.name   }
+            ],
+            color: coord.lcColor || '#4ecdc4',
+            type: connType
+          });
+          coord.currentStroke = null;
+          renderLcConnectors();
+          drawCanvas();
+          return;
+        }
+      }
     }
-    if (coord.currentStroke.pts.length >= 2) coord.strokes.push(coord.currentStroke);
+    if (coord.currentStroke && coord.currentStroke.pts.length >= 2) coord.strokes.push(coord.currentStroke);
     coord.currentStroke = null;
     drawCanvas();
   }
@@ -1720,7 +1858,7 @@ function setCanvasMode(mode) {
   });
 
   // Close pt edit overlay if switching away from edit mode
-  if (mode !== 'edit') closePtEdit();
+  if (mode !== 'edit') { closePtEdit(); coord.editBendConn = null; }
 }
 
 /* ─ Draw Mode (legacy, called from pZeichnen panel buttons) ─ */
@@ -2027,6 +2165,13 @@ function toggleSetting(s) {
   const btn = document.getElementById('tog' + s.charAt(0).toUpperCase() + s.slice(1));
   coord[map[s]] = !coord[map[s]];
   btn.classList.toggle('active', coord[map[s]]);
+  drawCanvas();
+}
+
+function toggleMmGrid() {
+  coord.showMmGrid = !coord.showMmGrid;
+  const btn = document.getElementById('togMmGrid');
+  if (btn) btn.classList.toggle('active', coord.showMmGrid);
   drawCanvas();
 }
 
@@ -5228,7 +5373,71 @@ function showActivationFlow(licType) {
   document.getElementById('licActStep2').style.display = 'none';
   document.getElementById('licActStep3').style.display = 'none';
   document.getElementById('licActFlow').classList.add('open');
+  // Launch confetti burst after tick finishes
+  setTimeout(() => _lacLaunchConfetti(licType), 1300);
   setTimeout(() => _lacShowFeatures(licType), 2800);
+}
+
+/* Confetti burst for license activation */
+function _lacLaunchConfetti(licType) {
+  const canvas = document.getElementById('lacConfettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = licType === 'pro'
+    ? ['#f5a623','#fff','#22c55e','#60a5fa','#f472b6']
+    : licType === 'teacher'
+    ? ['#a78bfa','#60a5fa','#fff','#34d399','#fbbf24']
+    : ['#34d399','#60a5fa','#fff','#fb923c','#a78bfa'];
+
+  const particles = [];
+  const count = 110;
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 80,
+      y: canvas.height * 0.38,
+      vx: (Math.random() - 0.5) * 14,
+      vy: -(Math.random() * 12 + 5),
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 7 + 4,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.25,
+      shape: Math.random() < 0.5 ? 'rect' : 'circle',
+      alpha: 1
+    });
+  }
+
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.42; // gravity
+      p.vx *= 0.985;
+      p.rotation += p.rotSpeed;
+      if (frame > 40) p.alpha -= 0.016;
+      if (p.alpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 100) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animate();
 }
 
 function _lacShowFeatures(licType) {
