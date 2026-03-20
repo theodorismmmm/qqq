@@ -233,6 +233,8 @@
     #ltoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
     #ltoolbar.collapsed > *:not(#ltoolbarCollapseBtn) { display: none !important; }
     #ltoolbarCollapseBtn { flex-shrink: 0; }
+    .ltb-more { display: none !important; }
+    #ltoolbar.ltb-expanded .ltb-more { display: flex !important; }
     /* Auto-dim toolbars while actively drawing/panning */
     #tabKoord.canvas-busy #ltoolbar,
     #tabKoord.canvas-busy #rtoolbar { opacity: 0.13; pointer-events: none; }
@@ -1884,14 +1886,14 @@
         <button class="tbtn" id="ltoolbarCollapseBtn" title="Modi ein/ausblenden" onclick="toggleLtoolbar()">‹</button>
         <button class="tbtn act" id="modePanBtn" title="Verschieben (Pan)" onclick="setCanvasMode('pan')">✋</button>
         <button class="tbtn" id="modeSelectBtn" title="Punkte verschieben (Select)" onclick="setCanvasMode('select')">↖</button>
+        <button class="tbtn" id="modeSmartBtn" title="Smart Draw – Tippen: Punkt setzen · Linie zwischen 2 Punkten: Verbinder · Zeichnen: Formen erkennen" onclick="setCanvasMode('smart')">✨</button>
         <button class="tbtn" id="modeDrawBtn" title="Freies Zeichnen" onclick="setCanvasMode('draw')">✏️</button>
-        <button class="tbtn" id="modeSmartBtn" title="Smart Draw – Formen erkennen" onclick="setCanvasMode('smart')">✨</button>
-        <button class="tbtn" id="modeSnapBtn" title="Eingerastet Zeichnen" onclick="setCanvasMode('snap')">⊞</button>
-        <button class="tbtn" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
-        <button class="tbtn" id="modePointBtn" title="Punkt-Setzer – Klicken um Punkt zu platzieren" onclick="setCanvasMode('pointplace')">⊕</button>
         <button class="tbtn" id="modeDeleteBtn" title="Element löschen (Klicken)" onclick="setCanvasMode('delete')">🗑</button>
-        <button class="tbtn" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
         <button class="tbtn" title="Rückgängig" onclick="undoStroke()">↩</button>
+        <button class="tbtn" id="ltbMoreBtn" title="Mehr Werkzeuge ein/ausblenden" onclick="toggleLtbMore()" style="font-size:14px;letter-spacing:1px;opacity:.7">···</button>
+        <button class="tbtn ltb-more" id="modeSnapBtn" title="Eingerastet Zeichnen" onclick="setCanvasMode('snap')">⊞</button>
+        <button class="tbtn ltb-more" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
+        <button class="tbtn ltb-more" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
       </div>
 
       <!-- Point edit overlay -->

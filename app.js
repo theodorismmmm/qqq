@@ -1200,27 +1200,6 @@ function onPointerDown(e) {
     return;
   }
 
-  // Point-placer mode: click anywhere to place a named point
-  if (coord.canvasMode === 'pointplace') {
-    const { mx, my } = c2m(cx, cy);
-    const snap = Number(document.getElementById('gridStep')?.value || 1);
-    const rx = Math.round(mx / snap) * snap;
-    const ry = Math.round(my / snap) * snap;
-    const names = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const usedNames = new Set(coord.points.map(p => p.name));
-    let nextName = '';
-    for (let i = 0; i < names.length; i++) {
-      if (!usedNames.has(names[i])) { nextName = names[i]; break; }
-    }
-    if (!nextName) nextName = 'P' + (coord.points.length + 1);
-    const newPt = { id: Date.now() + '_' + Math.random().toString(36).slice(2), name: nextName, x: +rx.toFixed(3), y: +ry.toFixed(3) };
-    coord.points.push(newPt);
-    renderPtList();
-    saveCoordSystem();
-    drawCanvas();
-    return;
-  }
-
   // Line connector mode: click near a point to add it to the connector
   if (coord.lineConnectMode) {
     const hitR = 20; // pixels hit radius
@@ -1477,12 +1456,20 @@ function onPointerUp(e) {
       if (rawPts.length < 5) {
         const fp = rawPts[0];
         const {mx, my} = c2m(fp.cx, fp.cy);
-        const snapX = Math.round(mx);
-        const snapY = Math.round(my);
-        const ptName = 'P' + coord.nextId;
+        const snapStep = Number(document.getElementById('gridStep')?.value || 1);
+        const snapX = Math.round(mx / snapStep) * snapStep;
+        const snapY = Math.round(my / snapStep) * snapStep;
+        // Auto-name: A, B, C… then fallback to P<id>
+        const usedNames = new Set(coord.points.map(p => p.name));
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let ptName = 'P' + coord.nextId;
+        for (let i = 0; i < letters.length; i++) {
+          if (!usedNames.has(letters[i])) { ptName = letters[i]; break; }
+        }
         coord.points.push({ x: snapX, y: snapY, name: ptName, id: coord.nextId++ });
         coord.currentStroke = null;
         renderPtList();
+        saveCoordSystem();
         drawCanvas();
         return;
       }
@@ -1860,14 +1847,13 @@ function setCanvasMode(mode) {
   else if (mode === 'delete') cvs.classList.add('mode-delete');
   else if (mode === 'edit') cvs.classList.add('mode-edit');
   else if (mode === 'text') cvs.style.cursor = 'text';
-  else if (mode === 'pointplace') cvs.style.cursor = 'cell';
   else cvs.style.cursor = 'crosshair'; // draw / smart / snap
 
   // Update button states
   const modeMap = {
     pan: 'modePanBtn', select: 'modeSelectBtn', draw: 'modeDrawBtn',
     smart: 'modeSmartBtn', snap: 'modeSnapBtn', text: 'modeTextBtn',
-    delete: 'modeDeleteBtn', edit: 'modeEditBtn', pointplace: 'modePointBtn',
+    delete: 'modeDeleteBtn', edit: 'modeEditBtn',
   };
   Object.values(modeMap).forEach(id => { const b = document.getElementById(id); if (b) b.classList.remove('act'); });
   const activeBtn = modeMap[mode];
@@ -1982,6 +1968,13 @@ function toggleLtoolbar() {
   const collapsed = tb.classList.toggle('collapsed');
   btn.textContent = collapsed ? '›' : '‹';
   btn.title = collapsed ? 'Modi anzeigen' : 'Modi ausblenden';
+}
+
+function toggleLtbMore() {
+  const tb = document.getElementById('ltoolbar');
+  const btn = document.getElementById('ltbMoreBtn');
+  const expanded = tb.classList.toggle('ltb-expanded');
+  if (btn) btn.style.opacity = expanded ? '1' : '.7';
 }
 
 /* ─ Connector Type ─ */
@@ -3515,7 +3508,6 @@ function bildSendAllToAgent() {
 /* ═══════════════════════════════════════════════════════
    MATH AGENT
 ═══════════════════════════════════════════════════════ */
-const AGENT_MAX = 100;
 
 // Data model: array of task objects, each with { name, items[] }
 let agentTasks = [];
@@ -4759,7 +4751,7 @@ function _setAgentDaily(count) {
 
 function agentGetMax() {
   if (isUltra()) return AGENT_MAX_ULTRA;
-  return AGENT_MAX_DAILY; // 100 daily
+  return AGENT_MAX_DAILY; // AGENT_MAX_DAILY requests per day for free/pro
 }
 function agentGetDailyRemaining() {
   if (isUltra()) return AGENT_MAX_ULTRA;
@@ -5626,9 +5618,15 @@ function renderLicenseSettings() {
   const deactBtn = document.getElementById('licDeactivateBtn');
 
   const icons = { free:'🔓', pro:'🌟', teacher:'🎓', student:'📚' };
-  const labels = { free:'Freier Modus', pro:'Pro-Lizenz', teacher:'Lehrer-Lizenz (Ultra +)', student:'Schüler-Lizenz (Ultra)' };
+  const ultraLabel = { teacher: 'Ultra +', student: 'Ultra' };
+  const labels = {
+    free: 'Freier Modus',
+    pro:  'Pro-Lizenz',
+    teacher: `Lehrer-Lizenz (${ultraLabel.teacher})`,
+    student: `Schüler-Lizenz (${ultraLabel.student})`
+  };
   const badges = { free:'lic-badge-free', pro:'lic-badge-pro', teacher:'lic-badge-ultra', student:'lic-badge-ultra' };
-  const badgeTxt = { free:'FREE', pro:'PRO', teacher:'⚡ ULTRA +', student:'⚡ ULTRA' };
+  const badgeTxt = { free:'FREE', pro:'PRO', teacher:`⚡ ${ultraLabel.teacher}`, student:`⚡ ${ultraLabel.student}` };
   const agentInfo = (type === 'teacher' || type === 'student')
     ? ` · ${AGENT_MAX_ULTRA.toLocaleString()} Agent-Anfragen`
     : (type === 'pro' || type === 'free') ? ` · ${AGENT_MAX_DAILY} Anfragen/Tag` : '';
