@@ -216,6 +216,8 @@
     #ltoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
     #ltoolbar.collapsed > *:not(#ltoolbarCollapseBtn) { display: none !important; }
     #ltoolbarCollapseBtn { flex-shrink: 0; }
+    .ltb-more { display: none !important; }
+    #ltoolbar.ltb-expanded .ltb-more { display: flex !important; }
     /* Auto-dim toolbars while actively drawing/panning */
     #tabKoord.canvas-busy #ltoolbar,
     #tabKoord.canvas-busy #rtoolbar { opacity: 0.13; pointer-events: none; }
@@ -956,11 +958,17 @@
     .lic-status-box .ls-title { font-size: 14px; font-weight: 700; }
     .lic-status-box .ls-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
     .lic-badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 800;
-      letter-spacing: .5px; margin-left: 6px; }
+      letter-spacing: .5px; margin-left: 6px; border-radius: 3px; }
     .lic-badge-free { background: var(--btn); color: var(--dim); }
     .lic-badge-pro { background: #c47400; color: white; }
     .lic-badge-teacher { background: #1a7a1a; color: white; }
     .lic-badge-student { background: #0055cc; color: white; }
+    .lic-badge-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6); color: white;
+      box-shadow: 0 0 8px rgba(59,130,246,.5); animation: ultraPulse 2s ease-in-out infinite; }
+    @keyframes ultraPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(59,130,246,.5); }
+      50% { box-shadow: 0 0 18px rgba(59,130,246,.9), 0 0 30px rgba(59,130,246,.4); }
+    }
     /* ─── Class Management (Teacher) ─── */
     .cls-student-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
       background: var(--bg2); border: 1px solid var(--bdr); margin-bottom: 6px; }

@@ -233,6 +233,8 @@
     #ltoolbar { position: absolute; top: calc(var(--csys-bar-h) + 12px); left: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 15; }
     #ltoolbar.collapsed > *:not(#ltoolbarCollapseBtn) { display: none !important; }
     #ltoolbarCollapseBtn { flex-shrink: 0; }
+    .ltb-more { display: none !important; }
+    #ltoolbar.ltb-expanded .ltb-more { display: flex !important; }
     /* Auto-dim toolbars while actively drawing/panning */
     #tabKoord.canvas-busy #ltoolbar,
     #tabKoord.canvas-busy #rtoolbar { opacity: 0.13; pointer-events: none; }
@@ -986,6 +988,20 @@
     .lic-badge-pro { background: #c47400; color: white; }
     .lic-badge-teacher { background: #1a7a1a; color: white; }
     .lic-badge-student { background: #0055cc; color: white; }
+    .lic-badge-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6); color: white;
+      box-shadow: 0 0 8px rgba(59,130,246,.5); animation: ultraPulse 2s ease-in-out infinite; }
+    @keyframes ultraPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(59,130,246,.5); }
+      50% { box-shadow: 0 0 18px rgba(59,130,246,.9), 0 0 30px rgba(59,130,246,.4); }
+    }
+    /* Ultra activation theme */
+    #licActFlow.lac-theme-ultra { background: radial-gradient(ellipse at 50% 30%, #0c1a4a 0%, #07071a 70%); }
+    #licActFlow.lac-theme-pro { background: #07071a; }
+    .lac-feat-card-ultra { background: rgba(59,130,246,.12) !important; border: 1px solid rgba(59,130,246,.35) !important; }
+    .lac-feat-card-ultra .lac-feat-card-icon { text-shadow: 0 0 12px rgba(59,130,246,.8); }
+    .lac-ready-btn-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6) !important;
+      box-shadow: 0 4px 20px rgba(59,130,246,.4) !important; }
+    .lac-ready-btn-ultra:active { opacity: .9 !important; }
     /* Share/copy key row */
     .lic-key-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
     .lic-key-row .lkr-key { flex:1; font-size:11px; color:var(--dim); font-family:monospace;
@@ -1663,6 +1679,7 @@
       <h1>MathSpaces</h1>
     </div>
     <div id="teacherBadge" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px;letter-spacing:.5px;flex-shrink:0">LEHRER</div>
+    <div id="ultraBadge" style="display:none;font-size:11px;font-weight:900;padding:4px 10px;letter-spacing:.5px;flex-shrink:0;background:linear-gradient(90deg,#1d4ed8,#3b82f6);color:#fff;border-radius:4px;box-shadow:0 0 10px rgba(59,130,246,.6);animation:ultraPulse 2s ease-in-out infinite">⚡ ULTRA</div>
     <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
   </header>
 
@@ -1869,13 +1886,14 @@
         <button class="tbtn" id="ltoolbarCollapseBtn" title="Modi ein/ausblenden" onclick="toggleLtoolbar()">‹</button>
         <button class="tbtn act" id="modePanBtn" title="Verschieben (Pan)" onclick="setCanvasMode('pan')">✋</button>
         <button class="tbtn" id="modeSelectBtn" title="Punkte verschieben (Select)" onclick="setCanvasMode('select')">↖</button>
+        <button class="tbtn" id="modeSmartBtn" title="Smart Draw – Tippen: Punkt setzen · Linie zwischen 2 Punkten: Verbinder · Zeichnen: Formen erkennen" onclick="setCanvasMode('smart')">✨</button>
         <button class="tbtn" id="modeDrawBtn" title="Freies Zeichnen" onclick="setCanvasMode('draw')">✏️</button>
-        <button class="tbtn" id="modeSmartBtn" title="Smart Draw – Formen erkennen" onclick="setCanvasMode('smart')">✨</button>
-        <button class="tbtn" id="modeSnapBtn" title="Eingerastet Zeichnen" onclick="setCanvasMode('snap')">⊞</button>
-        <button class="tbtn" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
         <button class="tbtn" id="modeDeleteBtn" title="Element löschen (Klicken)" onclick="setCanvasMode('delete')">🗑</button>
-        <button class="tbtn" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
         <button class="tbtn" title="Rückgängig" onclick="undoStroke()">↩</button>
+        <button class="tbtn" id="ltbMoreBtn" title="Mehr Werkzeuge ein/ausblenden" onclick="toggleLtbMore()" style="font-size:14px;letter-spacing:1px;opacity:.7">···</button>
+        <button class="tbtn ltb-more" id="modeSnapBtn" title="Eingerastet Zeichnen" onclick="setCanvasMode('snap')">⊞</button>
+        <button class="tbtn ltb-more" id="modeTextBtn" title="Text einfügen" onclick="setCanvasMode('text')">T</button>
+        <button class="tbtn ltb-more" id="modeEditBtn" title="Punkt bearbeiten" onclick="setCanvasMode('edit')">✎</button>
       </div>
 
       <!-- Point edit overlay -->
@@ -2037,6 +2055,10 @@
             <div class="psect" style="margin-top:10px">Verbinder-Optionen</div>
             <div class="togrow">
               <button class="togbtn active" id="togConnDots" onclick="toggleConnectorDots()">Punkt-Kreise</button>
+            </div>
+            <div class="psect" style="margin-top:10px">Gitter-Optionen</div>
+            <div class="togrow">
+              <button class="togbtn active" id="togMmGrid" onclick="toggleMmGrid()" title="Millimeter-Feingitter ein/ausblenden">mm-Gitter</button>
             </div>
             <div class="psect" style="margin-top:10px">Verhältnis (Pixel/Einheit)</div>
             <div class="srow">
@@ -8710,6 +8732,7 @@ function obSkip() {
      LICENSE ACTIVATION FLOW
 ══════════════════════════════════════════ -->
 <div id="licActFlow" role="dialog" aria-modal="true">
+  <canvas id="lacConfettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1"></canvas>
   <!-- Step 1: Confirmation animation -->
   <div id="licActStep1" class="lac-step">
     <div class="lac-check-wrap">
