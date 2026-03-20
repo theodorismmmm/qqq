@@ -1213,7 +1213,7 @@ function onPointerDown(e) {
       if (!usedNames.has(names[i])) { nextName = names[i]; break; }
     }
     if (!nextName) nextName = 'P' + (coord.points.length + 1);
-    const newPt = { id: Date.now() + Math.random(), name: nextName, x: +rx.toFixed(3), y: +ry.toFixed(3) };
+    const newPt = { id: Date.now() + '_' + Math.random().toString(36).slice(2), name: nextName, x: +rx.toFixed(3), y: +ry.toFixed(3) };
     coord.points.push(newPt);
     renderPtList();
     saveCoordSystem();
@@ -3528,12 +3528,12 @@ function agentTotalItems() {
 
 function agentAddTask() {
   const max = agentGetMax();
-  if (!isUltra() && _getAgentDaily() >= AGENT_MAX_FREE) {
-    showPremiumModal('Du hast dein tägliches Limit von ' + AGENT_MAX_FREE + ' Aufgaben erreicht. Ultra-Mitglieder erhalten bis zu ' + AGENT_MAX_ULTRA.toLocaleString() + ' Anfragen!');
+  if (!isUltra() && _getAgentDaily() >= AGENT_MAX_DAILY) {
+    showPremiumModal('Du hast dein tägliches Limit von ' + AGENT_MAX_DAILY + ' Anfragen erreicht. Ultra-Mitglieder erhalten bis zu ' + AGENT_MAX_ULTRA.toLocaleString() + ' Anfragen!');
     return;
   }
   if (agentTasks.length >= max) {
-    showPremiumModal('Du hast das Maximum von ' + max.toLocaleString() + ' Aufgaben erreicht.');
+    showPremiumModal('Du hast das Maximum von ' + max.toLocaleString() + ' Anfragen erreicht.');
     return;
   }
   if (!isUltra()) _setAgentDaily(_getAgentDaily() + 1);
@@ -4723,8 +4723,7 @@ function renderMkVarBtns() {
 ══════════════════════════════════════════════ */
 const PRO_CODE = 'Kostenlos123';
 const PRO_KEY  = 'mathspaces_pro';
-const AGENT_MAX_FREE  = 100;   // daily limit for free/pro users
-const AGENT_MAX_PRO   = 100;   // daily limit for pro users
+const AGENT_MAX_DAILY = 100;   // daily limit for free/pro users
 const AGENT_MAX_ULTRA = 100000; // Ultra members (teacher + student)
 
 function isPremium() {
@@ -4760,11 +4759,11 @@ function _setAgentDaily(count) {
 
 function agentGetMax() {
   if (isUltra()) return AGENT_MAX_ULTRA;
-  return AGENT_MAX_FREE; // 100 daily
+  return AGENT_MAX_DAILY; // 100 daily
 }
 function agentGetDailyRemaining() {
   if (isUltra()) return AGENT_MAX_ULTRA;
-  return Math.max(0, AGENT_MAX_FREE - _getAgentDaily());
+  return Math.max(0, AGENT_MAX_DAILY - _getAgentDaily());
 }
 
 // ── Premium modal ──────────────────────────────
@@ -4773,7 +4772,7 @@ function showPremiumModal(reason) {
   else document.getElementById('premiumSubText').textContent = 'Schalte alle Pro-Features frei';
   // Update benefit description with actual pro limit
   const desc = document.getElementById('premBenefitAgentDesc');
-  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_FREE + ' täglich)';
+  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_DAILY + ' täglich)';
   document.getElementById('premiumOverlay').classList.add('open');
 }
 
@@ -5632,7 +5631,7 @@ function renderLicenseSettings() {
   const badgeTxt = { free:'FREE', pro:'PRO', teacher:'⚡ ULTRA +', student:'⚡ ULTRA' };
   const agentInfo = (type === 'teacher' || type === 'student')
     ? ` · ${AGENT_MAX_ULTRA.toLocaleString()} Agent-Anfragen`
-    : (type === 'pro' || type === 'free') ? ` · ${AGENT_MAX_FREE} Anfragen/Tag` : '';
+    : (type === 'pro' || type === 'free') ? ` · ${AGENT_MAX_DAILY} Anfragen/Tag` : '';
   const subs = {
     free: 'Nur Grundrechner verfügbar – Lizenz eingeben um alle Features freizuschalten',
     pro: 'Alle Features freigeschaltet' + agentInfo,
