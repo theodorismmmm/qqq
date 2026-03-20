@@ -961,6 +961,12 @@
     .lic-badge-pro { background: #c47400; color: white; }
     .lic-badge-teacher { background: #1a7a1a; color: white; }
     .lic-badge-student { background: #0055cc; color: white; }
+    .lic-badge-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6); color: white;
+      box-shadow: 0 0 8px rgba(59,130,246,.5); animation: ultraPulse 2s ease-in-out infinite; border-radius: 3px; }
+    @keyframes ultraPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(59,130,246,.5); }
+      50% { box-shadow: 0 0 18px rgba(59,130,246,.9), 0 0 30px rgba(59,130,246,.4); }
+    }
     /* ─── Class Management (Teacher) ─── */
     .cls-student-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
       background: var(--bg2); border: 1px solid var(--bdr); margin-bottom: 6px; }
