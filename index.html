@@ -997,11 +997,17 @@
     /* Ultra activation theme */
     #licActFlow.lac-theme-ultra { background: radial-gradient(ellipse at 50% 30%, #0c1a4a 0%, #07071a 70%); }
     #licActFlow.lac-theme-pro { background: #07071a; }
+    #licActFlow.lac-theme-pro-blue { background: radial-gradient(ellipse at 50% 30%, #0a1e3a 0%, #030d1a 70%); }
     .lac-feat-card-ultra { background: rgba(59,130,246,.12) !important; border: 1px solid rgba(59,130,246,.35) !important; }
     .lac-feat-card-ultra .lac-feat-card-icon { text-shadow: 0 0 12px rgba(59,130,246,.8); }
+    .lac-feat-card-pro { background: rgba(56,189,248,.10) !important; border: 1px solid rgba(56,189,248,.30) !important; }
+    .lac-feat-card-pro .lac-feat-card-icon { text-shadow: 0 0 10px rgba(56,189,248,.7); }
     .lac-ready-btn-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6) !important;
       box-shadow: 0 4px 20px rgba(59,130,246,.4) !important; }
     .lac-ready-btn-ultra:active { opacity: .9 !important; }
+    .lac-ready-btn-pro { background: linear-gradient(90deg,#0369a1,#38bdf8) !important;
+      box-shadow: 0 4px 20px rgba(56,189,248,.4) !important; }
+    .lac-ready-btn-pro:active { opacity: .9 !important; }
     /* Share/copy key row */
     .lic-key-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
     .lic-key-row .lkr-key { flex:1; font-size:11px; color:var(--dim); font-family:monospace;
@@ -1679,7 +1685,7 @@
       <h1>MathSpaces</h1>
     </div>
     <div id="teacherBadge" style="display:none;background:#1a7a1a;color:white;font-size:11px;font-weight:700;padding:3px 8px;letter-spacing:.5px;flex-shrink:0">LEHRER</div>
-    <div id="ultraBadge" style="display:none;font-size:11px;font-weight:900;padding:4px 10px;letter-spacing:.5px;flex-shrink:0;background:linear-gradient(90deg,#1d4ed8,#3b82f6);color:#fff;border-radius:4px;box-shadow:0 0 10px rgba(59,130,246,.6);animation:ultraPulse 2s ease-in-out infinite">⚡ ULTRA</div>
+    <div id="ultraBadge" style="display:none;font-size:11px;font-weight:900;padding:5px 12px;letter-spacing:.8px;flex-shrink:0;background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 50%,#60a5fa 100%);color:#fff;border-radius:5px;">⚡ ULTRA</div>
     <button id="hideUIBtn" onclick="toggleHideUI()">UI aus</button>
   </header>
 
@@ -6199,7 +6205,7 @@ function bildSendAllToAgent() {
 /* ═══════════════════════════════════════════════════════
    MATH AGENT
 ═══════════════════════════════════════════════════════ */
-const AGENT_MAX = 50;
+const AGENT_MAX = 100; // default fallback (Pro: 100, Ultra: 1,000,000)
 
 // Data model: array of task objects, each with { name, items[] }
 let agentTasks = [];
@@ -6213,7 +6219,7 @@ function agentTotalItems() {
 function agentAddTask() {
   const max = agentGetMax();
   if (agentTasks.length >= max) {
-    showPremiumModal('Als Free-Nutzer kannst du maximal 5 Aufgaben erstellen. Werde Premium für bis zu 50!');
+    showPremiumModal('Als Free-Nutzer kannst du maximal 5 Aufgaben erstellen. Pro: 100 täglich, Ultra: 1.000.000!');
     return;
   }
   const n = agentTasks.length + 1;
@@ -7284,8 +7290,9 @@ function renderMkVarBtns() {
 ══════════════════════════════════════════════ */
 const PRO_CODE = 'Kostenlos123';
 const PRO_KEY  = 'mathspaces_pro';
-const AGENT_MAX_FREE = 5;
-const AGENT_MAX_PRO  = 50;
+const AGENT_MAX_FREE  = 5;
+const AGENT_MAX_PRO   = 100;
+const AGENT_MAX_ULTRA_DAILY = 1000000;
 
 function isPremium() {
   try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
@@ -7296,6 +7303,8 @@ function setPremium(val) {
 }
 
 function agentGetMax() {
+  const lic = getLicenseData ? getLicenseData() : null;
+  if (lic && (lic.type === 'teacher' || lic.type === 'student')) return AGENT_MAX_ULTRA_DAILY;
   return isPremium() ? AGENT_MAX_PRO : AGENT_MAX_FREE;
 }
 
@@ -7305,7 +7314,7 @@ function showPremiumModal(reason) {
   else document.getElementById('premiumSubText').textContent = 'Schalte alle Pro-Features frei';
   // Update benefit description with actual pro limit
   const desc = document.getElementById('premBenefitAgentDesc');
-  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_PRO + ')';
+  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_PRO + ' täglich – Ultra: 1.000.000)';
   document.getElementById('premiumOverlay').classList.add('open');
 }
 
@@ -7951,38 +7960,89 @@ function _showLicenseToast(msg, color) {
 
 /* ── License Activation Flow ─────────────────── */
 const _LAC_FEATURES = [
-  { icon: '🧮', name: 'Rechner',      desc: 'Erweiterter Taschenrechner mit allen Funktionen' },
-  { icon: '📐', name: 'Koordinaten',  desc: 'Interaktives Koordinatensystem & Geometrie' },
-  { icon: '📝', name: 'Notizen',      desc: 'Notizen, Aufgaben & Formelblätter' },
-  { icon: '🎓', name: 'Formeln+',     desc: 'Vollständige Formelsammlung & Checklisten' },
-  { icon: '📷', name: 'Bild / OCR',   desc: 'Foto-Upload & Texterkennung für Aufgaben' },
-  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent' }
+  { icon: '🧮', name: 'Rechner',      desc: 'Erweiterter Taschenrechner mit allen Operationen und Brüchen' },
+  { icon: '📐', name: 'Koordinaten',  desc: 'mm-Gitter, Smart-Draw Verbinder & Punkt-Placer inklusive' },
+  { icon: '📝', name: 'Notizen',      desc: 'Notizen, Aufgaben & persönliche Formelblätter – überall dabei' },
+  { icon: '🎓', name: 'Formeln+',     desc: 'Vollständige Formelsammlung & Checklisten für alle Klassen' },
+  { icon: '📷', name: 'Bild / OCR',   desc: 'Foto-Upload & Texterkennung für Aufgaben direkt aus der Kamera' },
+  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent – bis zu 100 Anfragen täglich' }
 ];
 const _LAC_CARD_DELAY_STEP = 0.09; // seconds per card stagger
 
 function showActivationFlow(licType) {
-  const titles = { pro: 'Pro-Lizenz aktiviert!', teacher: 'Lehrer-Lizenz aktiviert!', student: 'Schüler-Lizenz aktiviert!' };
-  const subs   = { pro: 'Willkommen bei MathSpaces Pro 🎉', teacher: 'Alle Features + Klassen-Management 🎓', student: 'Willkommen bei MathSpaces 📚' };
+  const isUltraType = licType === 'teacher' || licType === 'student';
+  const isProType   = licType === 'pro';
+  const titles = {
+    pro:     '🔵 Pro aktiviert! 🌟',
+    teacher: '⚡ Ultra + aktiviert!',
+    student: '⚡ Ultra aktiviert!'
+  };
+  const subs = {
+    pro:     'Willkommen bei MathSpaces Pro 🎉 Genieße alle Pro-Features!',
+    teacher: 'Willkommen im Ultra+-Bereich! Alle Features + Klassen-Management ⚡',
+    student: 'Willkommen im Ultra-Bereich! Lerne mit 1.000.000 KI-Anfragen ⚡'
+  };
   document.getElementById('lacConfirmTitle').textContent = titles[licType] || 'Lizenz aktiviert!';
   document.getElementById('lacConfirmSub').textContent   = subs[licType]   || 'Viel Spaß beim Lernen! 🚀';
+
+  // Style the activation flow based on type
+  const flow = document.getElementById('licActFlow');
+  flow.classList.remove('lac-theme-ultra', 'lac-theme-pro', 'lac-theme-pro-blue');
+  if (isUltraType) flow.classList.add('lac-theme-ultra');
+  else if (isProType) flow.classList.add('lac-theme-pro-blue');
+  else flow.classList.add('lac-theme-pro');
+
+  // Color SVG circle/tick
+  const circle = document.querySelector('#licActStep1 .lac-circle');
+  const tick   = document.querySelector('#licActStep1 .lac-tick');
+  if (circle && tick) {
+    const col = isUltraType ? '#3b82f6' : (isProType ? '#38bdf8' : '#22c55e');
+    circle.setAttribute('stroke', col);
+    tick.setAttribute('stroke', col);
+  }
+
   document.getElementById('licActStep1').style.display = 'flex';
   document.getElementById('licActStep2').style.display = 'none';
   document.getElementById('licActStep3').style.display = 'none';
   document.getElementById('licActFlow').classList.add('open');
-  setTimeout(() => _lacShowFeatures(licType), 2800);
+  const featDelay = isUltraType ? 3800 : 3200;
+  setTimeout(() => _lacShowFeatures(licType), featDelay);
 }
 
 function _lacShowFeatures(licType) {
   document.getElementById('licActStep1').style.display = 'none';
   const grid = document.getElementById('lacFeatGrid');
   grid.innerHTML = '';
+  const isUltraType = licType === 'teacher' || licType === 'student';
+  const isProType   = licType === 'pro';
   _LAC_FEATURES.forEach((f, i) => {
     const card = document.createElement('div');
-    card.className = 'lac-feat-card';
+    card.className = 'lac-feat-card'
+      + (isUltraType ? ' lac-feat-card-ultra' : '')
+      + (isProType   ? ' lac-feat-card-pro'   : '');
     card.style.animationDelay = (i * _LAC_CARD_DELAY_STEP) + 's';
     card.innerHTML = `<div class="lac-feat-card-icon">${f.icon}</div><div class="lac-feat-card-name">${f.name}</div><div class="lac-feat-card-desc">${f.desc}</div>`;
     grid.appendChild(card);
   });
+  // Update ready button
+  const readyBtn = document.querySelector('.lac-ready-btn');
+  if (readyBtn) {
+    if (isUltraType) {
+      readyBtn.textContent = '⚡ Jetzt mit Ultra starten →';
+      readyBtn.classList.add('lac-ready-btn-ultra');
+      readyBtn.classList.remove('lac-ready-btn-pro');
+    } else if (isProType) {
+      readyBtn.textContent = '🔵 Jetzt mit Pro starten →';
+      readyBtn.classList.add('lac-ready-btn-pro');
+      readyBtn.classList.remove('lac-ready-btn-ultra');
+    } else {
+      readyBtn.textContent = 'Bereit starten →';
+      readyBtn.classList.remove('lac-ready-btn-ultra', 'lac-ready-btn-pro');
+    }
+  }
+  // Update header
+  const hdr = document.querySelector('#licActStep2 .lac-feat-header');
+  if (hdr) hdr.textContent = isUltraType ? '⚡ Ultra-Features freigeschaltet' : (isProType ? '🔵 Pro-Features freigeschaltet' : '✨ Freigeschaltete Features');
   document.getElementById('licActStep2').style.display = 'flex';
 }
 
@@ -8025,14 +8085,14 @@ function renderLicenseSettings() {
     student: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
   };
   const iconClasses = { free:'ls-icon-free', pro:'ls-icon-pro', teacher:'ls-icon-teacher', student:'ls-icon-student' };
-  const labels = { free:'Freier Modus', pro:'Pro-Lizenz', teacher:'Lehrer-Lizenz', student:'Schüler-Lizenz' };
-  const badges = { free:'lic-badge-free', pro:'lic-badge-pro', teacher:'lic-badge-teacher', student:'lic-badge-student' };
-  const badgeTxt = { free:'FREE', pro:'PRO', teacher:'LEHRER', student:'SCHÜLER' };
+  const labels = { free:'Freier Modus', pro:'Pro-Lizenz', teacher:'Lehrer-Lizenz (Ultra +)', student:'Schüler-Lizenz (Ultra)' };
+  const badges = { free:'lic-badge-free', pro:'lic-badge-pro', teacher:'lic-badge-ultra', student:'lic-badge-ultra' };
+  const badgeTxt = { free:'FREE', pro:'PRO', teacher:'⚡ Ultra +', student:'⚡ Ultra' };
   const subs = {
     free: 'Nur Grundrechner verfügbar – Lizenz eingeben um alle Features freizuschalten',
-    pro: 'Alle Features freigeschaltet',
-    teacher: 'Alle Features + Klassen-Management freigeschaltet',
-    student: 'Features gemäß Klassen-Einstellungen'
+    pro: 'Alle Features freigeschaltet · 100 Agent-Anfragen täglich',
+    teacher: 'Ultra+: Alle Features + Klassen-Management · 1.000.000 Agent-Anfragen ⚡',
+    student: 'Ultra: Features gemäß Klassen-Einstellungen · 1.000.000 Agent-Anfragen ⚡'
   };
 
   statusBox.innerHTML = `

@@ -960,7 +960,7 @@
     .lic-badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 800;
       letter-spacing: .5px; margin-left: 6px; border-radius: 3px; }
     .lic-badge-free { background: var(--btn); color: var(--dim); }
-    .lic-badge-pro { background: #c47400; color: white; }
+    .lic-badge-pro { background: linear-gradient(90deg,#0369a1,#38bdf8); color: white; }
     .lic-badge-teacher { background: #1a7a1a; color: white; }
     .lic-badge-student { background: #0055cc; color: white; }
     .lic-badge-ultra { background: linear-gradient(90deg,#1d4ed8,#3b82f6); color: white;
@@ -968,6 +968,12 @@
     @keyframes ultraPulse {
       0%,100% { box-shadow: 0 0 8px rgba(59,130,246,.5); }
       50% { box-shadow: 0 0 18px rgba(59,130,246,.9), 0 0 30px rgba(59,130,246,.4); }
+    }
+    /* Ultra header badge glow animation */
+    #ultraBadge { animation: ultraBadgeGlow 2.5s ease-in-out infinite; }
+    @keyframes ultraBadgeGlow {
+      0%,100% { box-shadow: 0 0 10px rgba(59,130,246,.6), 0 0 20px rgba(59,130,246,.2); }
+      50% { box-shadow: 0 0 20px rgba(59,130,246,1), 0 0 40px rgba(59,130,246,.5), 0 0 60px rgba(59,130,246,.2); }
     }
     /* ─── Class Management (Teacher) ─── */
     .cls-student-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
@@ -1041,3 +1047,28 @@
     .ob-step-indicator { display: flex; gap: 6px; margin-bottom: 24px; }
     .ob-dot { width: 8px; height: 8px; background: var(--bdr); }
     .ob-dot.active { background: var(--acc); }
+
+    /* ── Ultra/Pro enhanced sidebar & coordinate panel styles ── */
+    .togbtn[id="togMmGrid"].active { background: linear-gradient(90deg,#0369a1,#38bdf8); color: #fff; border-color: #38bdf8; }
+    .psect { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: var(--dim); text-transform: uppercase; margin-bottom: 6px; }
+
+    /* ── Ultra status panel glow ── */
+    .lic-status-box.ultra-active { border: 1px solid rgba(59,130,246,.4) !important;
+      box-shadow: 0 0 16px rgba(59,130,246,.15); background: rgba(59,130,246,.05) !important; }
+
+    /* ── Pro blue gradient accent for activation card ── */
+    .lac-confirm-title.pro-blue { background: linear-gradient(90deg,#38bdf8,#7dd3fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ── Smooth card entrance animation ── */
+    .lac-feat-card { animation: lacCardIn .35s ease-out both; }
+    @keyframes lacCardIn {
+      from { opacity: 0; transform: translateY(12px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Ultra lightning particle burst overlay ── */
+    #lacConfettiCanvas { pointer-events: none; }
+
+    /* ── mm-grid label hint ── */
+    .mm-grid-hint { font-size: 10px; color: var(--dim); margin-left: 6px; opacity: .7; }
