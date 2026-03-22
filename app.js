@@ -4715,8 +4715,8 @@ function renderMkVarBtns() {
 ══════════════════════════════════════════════ */
 const PRO_CODE = 'Kostenlos123';
 const PRO_KEY  = 'mathspaces_pro';
-const AGENT_MAX_DAILY = 100;   // daily limit for free/pro users
-const AGENT_MAX_ULTRA = 100000; // Ultra members (teacher + student)
+const AGENT_MAX_DAILY = 100;     // daily limit for free/pro users
+const AGENT_MAX_ULTRA = 1000000; // Ultra members (teacher + student) – 1 million requests
 
 function isPremium() {
   try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
@@ -4764,7 +4764,7 @@ function showPremiumModal(reason) {
   else document.getElementById('premiumSubText').textContent = 'Schalte alle Pro-Features frei';
   // Update benefit description with actual pro limit
   const desc = document.getElementById('premBenefitAgentDesc');
-  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_DAILY + ' täglich)';
+  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_DAILY + ' täglich – Ultra: ' + AGENT_MAX_ULTRA.toLocaleString() + ')';
   document.getElementById('premiumOverlay').classList.add('open');
 }
 
@@ -5417,27 +5417,27 @@ function _showLicenseToast(msg, color) {
 /* ── License Activation Flow ─────────────────── */
 const _LAC_FEATURES_PRO = [
   { icon: '🧮', name: 'Rechner',        desc: 'Erweiterter Taschenrechner mit allen Operationen und Brüchen' },
-  { icon: '📐', name: 'Koordinaten',    desc: 'Interaktives Koordinatensystem mit mm-Gitter & Smart-Draw' },
-  { icon: '📝', name: 'Notizen',        desc: 'Notizen, Aufgaben & persönliche Formelblätter' },
+  { icon: '📐', name: 'Koordinaten',    desc: 'Interaktives Koordinatensystem mit mm-Gitter, Smart-Draw & Verbindern' },
+  { icon: '📝', name: 'Notizen',        desc: 'Notizen, Aufgaben & persönliche Formelblätter – überall dabei' },
   { icon: '🎓', name: 'Formeln+',       desc: 'Vollständige Formelsammlung & Checklisten für alle Klassen' },
-  { icon: '📷', name: 'Bild / OCR',     desc: 'Foto-Upload & Texterkennung für Aufgaben' },
+  { icon: '📷', name: 'Bild / OCR',     desc: 'Foto-Upload & Texterkennung für Aufgaben direkt aus der Kamera' },
   { icon: '🤖', name: 'KI-Agent',       desc: 'KI-gestützter Mathe-Assistent – bis zu 100 Anfragen täglich' }
 ];
 const _LAC_FEATURES_ULTRA = [
-  { icon: '⚡', name: 'Ultra-Status',   desc: '100.000 Agent-Anfragen & alle exklusiven Ultra-Features' },
+  { icon: '⚡', name: 'Ultra-Status',   desc: '1.000.000 Agent-Anfragen & alle exklusiven Ultra-Features' },
   { icon: '🧮', name: 'Rechner',        desc: 'Erweiterter Taschenrechner mit allen Operationen und Brüchen' },
-  { icon: '📐', name: 'Koordinaten',    desc: 'Interaktives Koordinatensystem mit mm-Gitter & Smart-Draw' },
-  { icon: '📝', name: 'Notizen',        desc: 'Notizen, Aufgaben & persönliche Formelblätter' },
+  { icon: '📐', name: 'Koordinaten',    desc: 'mm-Gitter, Smart-Draw Verbinder & Punkt-Placer inklusive' },
+  { icon: '📝', name: 'Notizen',        desc: 'Notizen, Aufgaben & persönliche Formelblätter – überall dabei' },
   { icon: '🎓', name: 'Formeln+',       desc: 'Vollständige Formelsammlung & Checklisten für alle Klassen' },
-  { icon: '🤖', name: 'KI-Agent',       desc: '100.000 Anfragen – unbegrenzt lernen mit KI-Unterstützung' }
+  { icon: '🤖', name: 'KI-Agent',       desc: '1.000.000 Anfragen – nahezu unbegrenzt lernen mit KI ⚡' }
 ];
 const _LAC_FEATURES_TEACHER = [
   { icon: '⚡', name: 'Ultra + Status', desc: 'Ultra-Plus: alle Features + Klassen-Management inklusive' },
   { icon: '👩‍🏫', name: 'Klasse leiten', desc: 'Schüler-Keys verwalten, sperren & Feature-Zugriff steuern' },
-  { icon: '📐', name: 'Koordinaten',    desc: 'Interaktives Koordinatensystem mit mm-Gitter & Smart-Draw' },
+  { icon: '📐', name: 'Koordinaten',    desc: 'mm-Gitter, Smart-Draw Verbinder & Punkt-Placer für den Unterricht' },
   { icon: '🧮', name: 'Rechner',        desc: 'Alle Rechner-Features für dich und deine Klasse' },
   { icon: '🎓', name: 'Formeln+',       desc: 'Vollständige Formelsammlung für den Unterricht' },
-  { icon: '🤖', name: 'KI-Agent',       desc: '100.000 Anfragen täglich für Unterrichtsvorbereitung' }
+  { icon: '🤖', name: 'KI-Agent',       desc: '1.000.000 Anfragen täglich für Unterrichtsvorbereitung ⚡' }
 ];
 // Kept for backward compat
 const _LAC_FEATURES = _LAC_FEATURES_PRO;
@@ -5445,30 +5445,32 @@ const _LAC_CARD_DELAY_STEP = 0.09; // seconds per card stagger
 
 function showActivationFlow(licType) {
   const isUltraType = licType === 'teacher' || licType === 'student';
+  const isProType = licType === 'pro';
   const titles = {
-    pro:     'Pro-Lizenz aktiviert! 🌟',
+    pro:     '🔵 Pro aktiviert! 🌟',
     teacher: '⚡ Ultra + aktiviert!',
     student: '⚡ Ultra aktiviert!'
   };
   const subs = {
-    pro:     'Willkommen bei MathSpaces Pro 🎉 Viel Spaß mit allen Features!',
+    pro:     'Willkommen bei MathSpaces Pro 🎉 Genieße alle Pro-Features!',
     teacher: 'Willkommen im Ultra+-Bereich! Alle Features + Klassen-Management ⚡',
-    student: 'Willkommen im Ultra-Bereich! Lerne mit unbegrenzter KI-Unterstützung ⚡'
+    student: 'Willkommen im Ultra-Bereich! Lerne mit 1.000.000 KI-Anfragen ⚡'
   };
   document.getElementById('lacConfirmTitle').textContent = titles[licType] || 'Lizenz aktiviert!';
   document.getElementById('lacConfirmSub').textContent   = subs[licType]   || 'Viel Spaß beim Lernen! 🚀';
 
   // Style the activation flow based on type
   const flow = document.getElementById('licActFlow');
-  flow.classList.remove('lac-theme-ultra', 'lac-theme-pro');
+  flow.classList.remove('lac-theme-ultra', 'lac-theme-pro', 'lac-theme-pro-blue');
   if (isUltraType) flow.classList.add('lac-theme-ultra');
+  else if (isProType) flow.classList.add('lac-theme-pro-blue');
   else flow.classList.add('lac-theme-pro');
 
-  // Color the SVG circle/tick for ultra (blue) or pro (green)
+  // Color the SVG circle/tick – ultra=blue, pro=blue-teal
   const circle = document.querySelector('#licActStep1 .lac-circle');
   const tick   = document.querySelector('#licActStep1 .lac-tick');
   if (circle && tick) {
-    const col = isUltraType ? '#3b82f6' : '#22c55e';
+    const col = isUltraType ? '#3b82f6' : (isProType ? '#38bdf8' : '#22c55e');
     circle.setAttribute('stroke', col);
     tick.setAttribute('stroke', col);
   }
@@ -5477,9 +5479,9 @@ function showActivationFlow(licType) {
   document.getElementById('licActStep2').style.display = 'none';
   document.getElementById('licActStep3').style.display = 'none';
   document.getElementById('licActFlow').classList.add('open');
-  // Launch confetti burst after tick finishes — longer for ultra
+  // Launch confetti burst after tick finishes — longer for ultra & pro
   setTimeout(() => _lacLaunchConfetti(licType), 1300);
-  const featDelay = isUltraType ? 3400 : 2800;
+  const featDelay = isUltraType ? 3800 : 3200; // extended duration for both
   setTimeout(() => _lacShowFeatures(licType), featDelay);
 }
 
@@ -5491,23 +5493,24 @@ function _lacLaunchConfetti(licType) {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   const isUltraType = licType === 'teacher' || licType === 'student';
+  const isProType   = licType === 'pro';
   const colors = isUltraType
     ? ['#3b82f6','#60a5fa','#93c5fd','#1d4ed8','#fff','#e0f2fe','#7dd3fc','#0ea5e9']
-    : licType === 'pro'
-    ? ['#f5a623','#fff','#22c55e','#60a5fa','#f472b6']
-    : ['#34d399','#60a5fa','#fff','#fb923c','#a78bfa'];
+    : isProType
+    ? ['#38bdf8','#0ea5e9','#7dd3fc','#fff','#bae6fd','#60a5fa','#e0f2fe','#0284c7']
+    : ['#34d399','#60a5fa','#fff','#fb923c','#a78bfa','#f472b6','#fbbf24','#4ade80'];
 
   const particles = [];
-  const count = isUltraType ? 180 : 110; // bigger burst for Ultra
+  const count = isUltraType ? 180 : (isProType ? 150 : 110); // bigger burst for Ultra & Pro
   for (let i = 0; i < count; i++) {
-    const shape = isUltraType
+    const shape = (isUltraType || isProType)
       ? (['rect','circle','bolt'][Math.floor(Math.random() * 3)])
       : (Math.random() < 0.5 ? 'rect' : 'circle');
     particles.push({
-      x: canvas.width / 2 + (Math.random() - 0.5) * (isUltraType ? 120 : 80),
+      x: canvas.width / 2 + (Math.random() - 0.5) * (isUltraType ? 120 : (isProType ? 100 : 80)),
       y: canvas.height * 0.38,
-      vx: (Math.random() - 0.5) * (isUltraType ? 18 : 14),
-      vy: -(Math.random() * (isUltraType ? 16 : 12) + 5),
+      vx: (Math.random() - 0.5) * (isUltraType ? 18 : (isProType ? 16 : 14)),
+      vy: -(Math.random() * (isUltraType ? 16 : (isProType ? 14 : 12)) + 5),
       color: colors[Math.floor(Math.random() * colors.length)],
       size: Math.random() * 7 + 4,
       rotation: Math.random() * Math.PI * 2,
@@ -5518,8 +5521,8 @@ function _lacLaunchConfetti(licType) {
   }
 
   let frame = 0;
-  const fadeStart = isUltraType ? 60 : 40;
-  const totalFrames = isUltraType ? 140 : 100;
+  const fadeStart   = isUltraType ? 60 : (isProType ? 55 : 40);
+  const totalFrames = isUltraType ? 140 : (isProType ? 130 : 100); // longer for both ultra & pro
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => {
@@ -5569,27 +5572,35 @@ function _lacShowFeatures(licType) {
   const featureSet = licType === 'teacher' ? _LAC_FEATURES_TEACHER
     : (licType === 'student' ? _LAC_FEATURES_ULTRA : _LAC_FEATURES_PRO);
   const isUltraType = licType === 'teacher' || licType === 'student';
+  const isProType   = licType === 'pro';
   featureSet.forEach((f, i) => {
     const card = document.createElement('div');
-    card.className = 'lac-feat-card' + (isUltraType ? ' lac-feat-card-ultra' : '');
+    card.className = 'lac-feat-card'
+      + (isUltraType ? ' lac-feat-card-ultra' : '')
+      + (isProType   ? ' lac-feat-card-pro'   : '');
     card.style.animationDelay = (i * _LAC_CARD_DELAY_STEP) + 's';
     card.innerHTML = `<div class="lac-feat-card-icon">${f.icon}</div><div class="lac-feat-card-name">${f.name}</div><div class="lac-feat-card-desc">${f.desc}</div>`;
     grid.appendChild(card);
   });
-  // Update "ready" button label for ultra
+  // Update "ready" button label
   const readyBtn = document.querySelector('.lac-ready-btn');
   if (readyBtn) {
     if (isUltraType) {
       readyBtn.textContent = '⚡ Jetzt mit Ultra starten →';
       readyBtn.classList.add('lac-ready-btn-ultra');
+      readyBtn.classList.remove('lac-ready-btn-pro');
+    } else if (isProType) {
+      readyBtn.textContent = '🔵 Jetzt mit Pro starten →';
+      readyBtn.classList.add('lac-ready-btn-pro');
+      readyBtn.classList.remove('lac-ready-btn-ultra');
     } else {
       readyBtn.textContent = 'Bereit starten →';
-      readyBtn.classList.remove('lac-ready-btn-ultra');
+      readyBtn.classList.remove('lac-ready-btn-ultra', 'lac-ready-btn-pro');
     }
   }
   // Update header
   const hdr = document.querySelector('#licActStep2 .lac-feat-header');
-  if (hdr) hdr.textContent = isUltraType ? '⚡ Ultra-Features freigeschaltet' : '✨ Freigeschaltete Features';
+  if (hdr) hdr.textContent = isUltraType ? '⚡ Ultra-Features freigeschaltet' : (isProType ? '🔵 Pro-Features freigeschaltet' : '✨ Freigeschaltete Features');
   document.getElementById('licActStep2').style.display = 'flex';
 }
 
@@ -6050,3 +6061,18 @@ function obSkip() {
   applyLicense(getLicenseData());
   _obFinish();
 }
+
+/* ══════════════════════════════════════════════
+   CROSS-TAB / PWA SYNC
+   Keeps browser tab and web app (PWA) in sync
+   via the localStorage 'storage' event.
+══════════════════════════════════════════════ */
+window.addEventListener('storage', (e) => {
+  if (e.key === LIC_DATA_STORE || e.key === LIC_KEY_STORE || e.key === PRO_KEY) {
+    // License or premium state changed in another tab/window – reapply
+    const stored = getLicenseData();
+    applyLicense(stored);
+    if (typeof renderLicenseSettings === 'function') renderLicenseSettings();
+    if (typeof agentRenderTasks === 'function') agentRenderTasks();
+  }
+});
