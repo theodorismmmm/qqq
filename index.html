@@ -885,6 +885,23 @@
     .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
+    /* ─── Basic Task Hint Modal ─── */
+    #basicTaskOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12100;
+      display: none; align-items: center; justify-content: center; padding: 20px; }
+    #basicTaskOverlay.open { display: flex; }
+    #basicTaskModal { background: var(--bg); border-radius: 0; padding: 24px 20px;
+      width: 100%; max-width: 430px; animation: suUp .3s ease; text-align: center; }
+    .bt-icon { font-size: 40px; margin-bottom: 10px; }
+    .bt-title { font-size: 20px; font-weight: 800; color: var(--txt); margin-bottom: 8px; }
+    .bt-sub { font-size: 13px; color: var(--dim); line-height: 1.55; margin-bottom: 14px; }
+    .bt-task { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 0; padding: 10px 12px;
+      font-size: 15px; font-family: 'Courier New', monospace; color: var(--txt); margin-bottom: 14px;
+      word-break: break-word; text-align: left; }
+    .bt-open-btn { width: 100%; padding: 13px; background: var(--acc); border: none; border-radius: 0;
+      color: white; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 8px; }
+    .bt-ai-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
+      color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
     /* ─── 3D Model Overlay ─── */
     #model3dOverlay { position: fixed; inset: 0; background: #0a0a1a; z-index: 10500;
       display: none; flex-direction: column; }
@@ -6539,11 +6556,21 @@ async function agentQAAsk() {
   inp.value = '';
 
   let answer = null;
+  let forceAi = false;
   for (const rule of QA_KB) {
     if (rule.p.test(q)) { answer = rule.a; break; }
   }
 
-  if (!answer && q.length <= 60 && /^[\d(]/.test(q)) {
+  if (!answer && isBasicMathTask(q)) {
+    const action = await showBasicTaskHint(q);
+    if (action === 'solver') {
+      openBasicTaskInSolver(q);
+      return;
+    }
+    forceAi = action === 'ai';
+  }
+
+  if (!answer && !forceAi && q.length <= 60 && /^[\d(]/.test(q)) {
     try {
       const result = typeof evalExpr === 'function' ? evalExpr(q) : null;
       if (result !== null && result !== undefined && isFinite(result)) {
@@ -7901,6 +7928,7 @@ function hideActivateModal() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (document.getElementById('licenseGate').classList.contains('open')) { closeLicenseGate(); }
+    else if (document.getElementById('basicTaskOverlay').classList.contains('open')) { hideBasicTaskHint('ai'); }
     else if (document.getElementById('activateOverlay').classList.contains('open')) { hideActivateModal(); }
     else if (document.getElementById('premiumOverlay').classList.contains('open')) { hidePremiumModal(); }
     else if (document.getElementById('model3dOverlay').classList.contains('open')) { close3DModel(); }
@@ -7923,6 +7951,47 @@ function activatePro() {
 
 function showProWelcome() {
   showActivationFlow('pro');
+}
+
+let _basicTaskResolve = null;
+function isBasicMathTask(raw) {
+  const q = String(raw || '').trim();
+  if (!q || q.length > 80) return false;
+  if (!/[0-9]/.test(q)) return false;
+  if (!/[+\-*/^=]/.test(q)) return false;
+  if (!/^[0-9xXyYzZ+\-*/^=().,\s]+$/.test(q)) return false;
+  return true;
+}
+
+function showBasicTaskHint(taskText) {
+  const overlay = document.getElementById('basicTaskOverlay');
+  const task = document.getElementById('basicTaskText');
+  if (!overlay || !task) return Promise.resolve('ai');
+  task.textContent = taskText;
+  overlay.classList.add('open');
+  openOverlay('basicTaskOverlay');
+  return new Promise(resolve => { _basicTaskResolve = resolve; });
+}
+
+function hideBasicTaskHint(choice) {
+  const overlay = document.getElementById('basicTaskOverlay');
+  if (overlay) overlay.classList.remove('open');
+  closeOverlay('basicTaskOverlay');
+  if (_basicTaskResolve) {
+    const resolve = _basicTaskResolve;
+    _basicTaskResolve = null;
+    resolve(choice || 'ai');
+  }
+}
+
+function openBasicTaskInSolver(taskText) {
+  switchTab('rechner');
+  switchSub('gleichungen');
+  const eqInput = document.getElementById('eqInput');
+  if (eqInput) {
+    eqInput.value = taskText;
+    try { eqInput.focus(); } catch {}
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -8100,6 +8169,7 @@ window._openOverlays = new Set();
 const _overlayClosers = {
   'warnOverlay': () => { document.getElementById('warnOverlay').style.display='none'; },
   'fsMenu': () => { closeFsMenu(); },
+  'basicTaskOverlay': () => { hideBasicTaskHint('ai'); },
   'premiumOverlay': () => { hidePremiumModal(); },
   'activateOverlay': () => { hideActivateModal(); },
   'model3dOverlay': () => { close3DModel(); },
@@ -9329,6 +9399,20 @@ function obSkip() {
     <div class="act-error" id="activateError"></div>
     <button class="act-confirm-btn" onclick="activatePro()">✅ Aktivieren</button>
     <button class="act-back-btn" onclick="hideActivateModal()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     BASIC TASK HINT MODAL
+══════════════════════════════════════════ -->
+<div id="basicTaskOverlay" onclick="if(event.target===this)hideBasicTaskHint('ai')">
+  <div id="basicTaskModal">
+    <div class="bt-icon">🧮</div>
+    <div class="bt-title">Hinweis</div>
+    <div class="bt-sub">Diese Aufgabe können wir auch ohne KI direkt im Solver lösen.</div>
+    <div class="bt-task" id="basicTaskText"></div>
+    <button class="bt-open-btn" onclick="hideBasicTaskHint('solver')">Solver öffnen</button>
+    <button class="bt-ai-btn" onclick="hideBasicTaskHint('ai')">Trotzdem mit KI fortfahren</button>
   </div>
 </div>
 
