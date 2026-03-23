@@ -6201,7 +6201,7 @@ const LERN_COURSES = [
   },
   {
     id: 'trig',
-    icon: '〰️',
+    icon: '🌊',
     color: '#e67e22',
     title: 'Trigonometrische Funktionen',
     sub: 'sin · cos · tan · Winkel',
@@ -6494,10 +6494,16 @@ function lernDrawSliderCanvas(stepIdx) {
   });
 
   // Function
-  const vals = Object.assign({}, lernSliderVals);
+  // Ensure all slider values are safe finite numbers before building the expression
+  const vals = {};
+  Object.entries(lernSliderVals).forEach(([k, v]) => {
+    const n = parseFloat(v);
+    vals[k] = isFinite(n) ? n : 0;
+  });
   const fnStr = step.fnExpr(vals);
   const evalLernFn = (x) => {
     try {
+      // Only allow safe math characters in the constructed expression
       const expr = fnStr
         .replace(/\^/g, '**')
         .replace(/(\d)(x)/g, '$1*$2')
@@ -6505,7 +6511,9 @@ function lernDrawSliderCanvas(stepIdx) {
         .replace(/\bcos\b/g, 'Math.cos')
         .replace(/\btan\b/g, 'Math.tan')
         .replace(/\bsqrt\b/g, 'Math.sqrt')
-        .replace(/\bx\b/g, `(${x})`);
+        .replace(/\bx\b/g, `(${+x})`);
+      // Verify expression only contains safe characters before eval
+      if (/[^0-9+\-*/().,\sMathsincotaqr.E_]/.test(expr.replace(/Math\.(sin|cos|tan|sqrt)/g, ''))) return NaN;
       return Function('"use strict"; return (' + expr + ')')();
     } catch(e) { return NaN; }
   };
@@ -6621,7 +6629,8 @@ function agentQAAsk() {
     if (rule.p.test(q)) { answer = rule.a; break; }
   }
 
-  if (!answer) {
+  // Only attempt expression evaluation for short, plausibly numeric inputs
+  if (!answer && q.length <= 80 && /^[0-9+\-*/()^.,\s°sincotaqrpie√π]+$/i.test(q)) {
     try {
       const result = typeof evalExpr === 'function' ? evalExpr(q) : null;
       if (result !== null && result !== undefined && !isNaN(result) && isFinite(result)) {
@@ -6638,10 +6647,10 @@ function agentQAAsk() {
   const hist = document.getElementById('agentQAHistory');
   if (!hist) return;
   const qDiv = document.createElement('div');
-  qDiv.style.cssText = 'background:var(--acc);color:white;padding:6px 10px;border-radius:10px 10px 4px 10px;font-size:13px;align-self:flex-end;max-width:85%';
+  qDiv.className = 'agent-qa-msg';
   qDiv.textContent = q;
   const aDiv = document.createElement('div');
-  aDiv.style.cssText = 'background:var(--btn);padding:8px 10px;border-radius:4px 10px 10px 10px;font-size:13px;line-height:1.5;max-width:90%;white-space:pre-wrap';
+  aDiv.className = 'agent-qa-answer';
   aDiv.textContent = answer;
   hist.appendChild(qDiv);
   hist.appendChild(aDiv);

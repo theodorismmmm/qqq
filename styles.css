@@ -1106,3 +1106,7 @@
 .lern-xp-badge { display:inline-flex;align-items:center;gap:4px;background:#f39c12;color:white;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700; }
 .lern-complete-screen { text-align:center;padding:30px 14px; }
 .lern-complete-icon { font-size:64px;margin-bottom:16px; }
+
+/* ─── Agent Q&A Chat ─── */
+.agent-qa-msg { background:var(--acc);color:white;padding:6px 10px;border-radius:10px 10px 4px 10px;font-size:13px;align-self:flex-end;max-width:85%; }
+.agent-qa-answer { background:var(--btn);padding:8px 10px;border-radius:4px 10px 10px 10px;font-size:13px;line-height:1.5;max-width:90%;white-space:pre-wrap; }
