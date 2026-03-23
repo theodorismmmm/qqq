@@ -2321,10 +2321,11 @@ function openFsMenu() {
   });
 
   // Highlight the currently active tab button
-  const tabs = ['rechner','koordinaten','notizen','klasse','bild','agent','handbuch'];
-  const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild','fsModeAgent','fsModeHandbuch'];
+  const tabs = ['rechner','koordinaten','notizen','klasse','bild','agent','lernen','handbuch'];
+  const ids  = ['fsModeRechner','fsModeKoord','fsModeNotizen','fsModeKlasse','fsModeBild','fsModeAgent','fsModeLernen','fsModeHandbuch'];
   ids.forEach((id, i) => {
-    document.getElementById(id).classList.toggle('active', tabs[i] === currentTab);
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', tabs[i] === currentTab);
   });
   document.getElementById('fsMenuOverlay').classList.add('open');
   document.getElementById('fsMenu').style.display = 'block';
