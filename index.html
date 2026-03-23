@@ -6296,7 +6296,7 @@ function agentTotalItems() {
 function agentAddTask() {
   const max = agentGetMax();
   if (aiGetDailyRemaining() <= 0) {
-    showPremiumModal('Deine täglichen KI-Tokens sind aufgebraucht. Free: 2 · Pro: 5 · Ultra: 10 pro Tag.');
+    showPremiumModal('Deine täglichen KI-Tokens sind aufgebraucht. Free: ' + AI_TOKEN_LIMIT_FREE + ' · Pro: ' + AI_TOKEN_LIMIT_PRO + ' · Ultra: ' + AI_TOKEN_LIMIT_ULTRA + ' pro Tag.');
     return;
   }
   if (agentTasks.length >= max) {
@@ -6417,12 +6417,13 @@ async function agentRun() {
     await new Promise(r => setTimeout(r, 0)); // yield to UI
 
     let steps = null, error = null;
-    const cacheKey = 'agent:' + eq.toLowerCase();
-    const ai = await geminiAsk('Löse kurz und korrekt diese Mathe-Aufgabe. Gib maximal 4 Schritte und am Ende das Ergebnis.\nAufgabe: ' + eq, cacheKey);
+    const safeEq = sanitizeAiInput(eq);
+    const cacheKey = 'agent:' + safeEq.toLowerCase();
+    const ai = await geminiAsk(GEMINI_AGENT_PROMPT_PREFIX + safeEq, cacheKey);
     if (ai && ai.error === 'limit') {
       error = 'KI-Token-Limit erreicht (heute).';
     } else if (ai && ai.text) {
-      const answer = ai.text.length > 1200 ? ai.text.slice(0, 1200) + '…' : ai.text;
+      const answer = ai.text.length > AGENT_ANSWER_MAX_LENGTH ? ai.text.slice(0, AGENT_ANSWER_MAX_LENGTH) + '…' : ai.text;
       steps = [
         { desc: 'Aufgabe', math: eq },
         { desc: ai.cached ? '✅ Ergebnis (Cache)' : '✅ Ergebnis (Gemini)', math: answer, result: true }
@@ -6552,12 +6553,13 @@ async function agentQAAsk() {
   }
 
   if (!answer) {
-    const qaKey = 'qa:' + q.toLowerCase().trim();
-    const ai = await geminiAsk('Beantworte die Mathefrage kurz und korrekt in maximal 3 Sätzen:\n' + q, qaKey);
+    const safeQ = sanitizeAiInput(q);
+    const qaKey = 'qa:' + safeQ.toLowerCase().trim();
+    const ai = await geminiAsk(GEMINI_QA_PROMPT_PREFIX + safeQ, qaKey);
     if (ai && ai.error === 'limit') {
       answer = 'KI-Token-Limit erreicht (heute).';
     } else if (ai && ai.text) {
-      answer = ai.text.length > 700 ? ai.text.slice(0, 700) + '…' : ai.text;
+      answer = ai.text.length > QA_ANSWER_MAX_LENGTH ? ai.text.slice(0, QA_ANSWER_MAX_LENGTH) + '…' : ai.text;
     }
   }
 
@@ -7716,13 +7718,20 @@ const PRO_KEY  = 'mathspaces_pro';
 const AGENT_MAX_FREE  = 5;
 const AGENT_MAX_PRO   = 100;
 const AGENT_MAX_ULTRA_DAILY = 1000000;
-const GEMINI_API_KEY = 'AIzaSyCMFv_AU6FsSiT7WBFV7yYIQ375mlQZLl0';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_MAX_OUTPUT_TOKENS = 220; // keep responses concise to minimize token usage
 const AI_TOKEN_LIMIT_FREE = 2;
 const AI_TOKEN_LIMIT_PRO = 5;
 const AI_TOKEN_LIMIT_ULTRA = 10;
 const AI_TOKEN_DAILY_KEY = 'ms_ai_tokens_daily';
 const AI_CACHE_KEY = 'ms_ai_cache_v1';
+const GEMINI_API_KEY_STORE = 'ms_gemini_api_key';
+const AI_CACHE_MAX_SIZE = 180;
+const AI_INPUT_MAX_LENGTH = 240;
+const AGENT_ANSWER_MAX_LENGTH = 1200;
+const QA_ANSWER_MAX_LENGTH = 700;
+const GEMINI_AGENT_PROMPT_PREFIX = 'Löse kurz und korrekt diese Mathe-Aufgabe. Gib maximal 4 Schritte und am Ende das Ergebnis.\nAufgabe: ';
+const GEMINI_QA_PROMPT_PREFIX = 'Beantworte die Mathefrage kurz und korrekt in maximal 3 Sätzen:\n';
 
 function isPremium() {
   try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
@@ -7748,16 +7757,24 @@ function aiGetDailyLimit() {
 function _getAiDailyUsed() {
   try {
     const raw = JSON.parse(localStorage.getItem(AI_TOKEN_DAILY_KEY) || 'null');
-    const today = new Date().toISOString().slice(0, 10);
+    const today = _getLocalDayKey();
     if (raw && raw.date === today) return Math.max(0, Number(raw.used) || 0);
     return 0;
   } catch { return 0; }
 }
 
+function _getLocalDayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function _setAiDailyUsed(used) {
   try {
-    const today = new Date().toISOString().slice(0, 10);
-    localStorage.setItem(AI_TOKEN_DAILY_KEY, JSON.stringify({ date: today, used: Math.max(0, used | 0) }));
+    const today = _getLocalDayKey();
+    localStorage.setItem(AI_TOKEN_DAILY_KEY, JSON.stringify({ date: today, used: Math.max(0, Math.floor(Number(used) || 0)) }));
   } catch {}
 }
 
@@ -7770,6 +7787,10 @@ function aiConsumeToken() {
   if (remaining <= 0) return false;
   _setAiDailyUsed(_getAiDailyUsed() + 1);
   return true;
+}
+
+function aiRefundToken() {
+  _setAiDailyUsed(Math.max(0, _getAiDailyUsed() - 1));
 }
 
 function _getAiCache() {
@@ -7791,36 +7812,60 @@ function _aiCacheSet(key, value) {
   const cache = _getAiCache();
   cache[key] = value;
   const keys = Object.keys(cache);
-  if (keys.length > 180) {
-    keys.slice(0, keys.length - 180).forEach(k => delete cache[k]);
+  if (keys.length > AI_CACHE_MAX_SIZE) {
+    const keep = keys.slice(-AI_CACHE_MAX_SIZE);
+    const trimmed = {};
+    keep.forEach(k => { trimmed[k] = cache[k]; });
+    _setAiCache(trimmed);
+    return;
   }
   _setAiCache(cache);
 }
 
+function getGeminiApiKey() {
+  try {
+    const fromStore = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
+    if (fromStore) return fromStore;
+  } catch {}
+  return '';
+}
+
+function sanitizeAiInput(raw) {
+  return String(raw || '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, AI_INPUT_MAX_LENGTH);
+}
+
 async function geminiAsk(prompt, cacheKey) {
-  if (!prompt || !GEMINI_API_KEY) return null;
+  const apiKey = getGeminiApiKey();
+  if (!prompt || !apiKey) return null;
   const cached = _aiCacheGet(cacheKey);
   if (cached) return { text: cached, cached: true };
-  if (aiGetDailyRemaining() <= 0) return { error: 'limit' };
+  if (!aiConsumeToken()) return { error: 'limit' };
 
   try {
-    const res = await fetch(GEMINI_API_URL + '?key=' + encodeURIComponent(GEMINI_API_KEY), {
+    const res = await fetch(GEMINI_API_URL + '?key=' + encodeURIComponent(apiKey), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, topP: 0.8, maxOutputTokens: 220 }
+        generationConfig: { temperature: 0.2, topP: 0.8, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS }
       })
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn('Gemini request failed:', res.status);
+      aiRefundToken();
+      return null;
+    }
     const data = await res.json();
-    const text = (((data || {}).candidates || [])[0] || {}).content;
-    const out = (text && text.parts && text.parts[0] && text.parts[0].text) ? String(text.parts[0].text).trim() : '';
-    if (!out) return null;
-    if (!aiConsumeToken()) return { error: 'limit' };
+    const out = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    if (!out) { aiRefundToken(); return null; }
     _aiCacheSet(cacheKey, out);
     return { text: out, cached: false };
   } catch {
+    aiRefundToken();
     return null;
   }
 }
