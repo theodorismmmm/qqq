@@ -6501,19 +6501,23 @@ function lernDrawSliderCanvas(stepIdx) {
     vals[k] = isFinite(n) ? n : 0;
   });
   const fnStr = step.fnExpr(vals);
+  // Strict allowlist regex: after replacing Math.sin/cos/tan/sqrt and the numeric x-substitute,
+  // only digits, operators, parentheses, decimal points, spaces, and 'e'/'E' (scientific notation) remain.
+  const _lernSafeMathRe = /^[0-9+\-*/().\seE]*$/;
   const evalLernFn = (x) => {
     try {
-      // Only allow safe math characters in the constructed expression
-      const expr = fnStr
+      const safeX = isFinite(+x) ? +x : 0;
+      let expr = fnStr
         .replace(/\^/g, '**')
         .replace(/(\d)(x)/g, '$1*$2')
         .replace(/\bsin\b/g, 'Math.sin')
         .replace(/\bcos\b/g, 'Math.cos')
         .replace(/\btan\b/g, 'Math.tan')
         .replace(/\bsqrt\b/g, 'Math.sqrt')
-        .replace(/\bx\b/g, `(${+x})`);
-      // Verify expression only contains safe characters before eval
-      if (/[^0-9+\-*/().,\sMathsincotaqr.E_]/.test(expr.replace(/Math\.(sin|cos|tan|sqrt)/g, ''))) return NaN;
+        .replace(/\bx\b/g, `(${safeX})`);
+      // Strip Math.sin/cos/tan/sqrt placeholders before safety check
+      const stripped = expr.replace(/Math\.(sin|cos|tan|sqrt)/g, '');
+      if (!_lernSafeMathRe.test(stripped)) return NaN;
       return Function('"use strict"; return (' + expr + ')')();
     } catch(e) { return NaN; }
   };
@@ -6629,13 +6633,14 @@ function agentQAAsk() {
     if (rule.p.test(q)) { answer = rule.a; break; }
   }
 
-  // Only attempt expression evaluation for short, plausibly numeric inputs
-  if (!answer && q.length <= 80 && /^[0-9+\-*/()^.,\s°sincotaqrpie√π]+$/i.test(q)) {
+  // Delegate numeric expression evaluation entirely to the existing evalExpr() which
+  // has its own safe parser. Only call it for short inputs that look like math expressions
+  // (starting with a digit or open paren) to avoid spurious evaluations.
+  if (!answer && q.length <= 60 && /^[\d(]/.test(q.trim())) {
     try {
       const result = typeof evalExpr === 'function' ? evalExpr(q) : null;
       if (result !== null && result !== undefined && !isNaN(result) && isFinite(result)) {
-        const rounded = typeof round === 'function' ? round(result) : Math.round(result * 1e10) / 1e10;
-        answer = `${q} = ${rounded}`;
+        answer = `${q} = ${typeof round === 'function' ? round(result) : parseFloat(result.toFixed(10))}`;
       }
     } catch(e) {}
   }

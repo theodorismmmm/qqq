@@ -117,7 +117,6 @@
     .hb-svg { width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 6px; }
     .agent-hdr-svg { width: 18px; height: 18px; display: inline-block; vertical-align: middle; flex-shrink: 0; }
     .empty-state-svg { width: 48px; height: 48px; display: block; margin: 0 auto; opacity: .45; }
-    #tabRechner > .stabs .stab .si-svg { width: 22px; height: 22px; display: block; }
 
     /* ─── Sub-Tabs (horizontal – used by Formeln+ etc.) ─── */
     .stabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--bdr); padding: 6px; gap: 5px; flex-shrink: 0; }
