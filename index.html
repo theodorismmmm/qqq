@@ -885,6 +885,36 @@
     .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
+    /* ─── Gemini Key Modal ─── */
+    #geminiKeyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12200;
+      display: none; align-items: center; justify-content: center; padding: 20px; }
+    #geminiKeyOverlay.open { display: flex; }
+    #geminiKeyModal { background: var(--bg); border-radius: 0; padding: 26px 20px 20px;
+      width: 100%; max-width: 430px; animation: suUp .3s ease; text-align: center;
+      border: 1px solid var(--bdr); }
+    #geminiKeyModal.gk-shake { animation: gkShake .28s ease; }
+    @keyframes gkShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+    .gk-icon { font-size: 44px; margin-bottom: 10px; }
+    .gk-title { font-size: 20px; font-weight: 800; color: var(--txt); margin-bottom: 6px; }
+    .gk-sub { font-size: 13px; color: var(--dim); line-height: 1.55; margin-bottom: 14px; }
+    .gk-input { width: 100%; padding: 13px 14px; border: 2px solid var(--bdr); border-radius: 0;
+      font-size: 16px; background: var(--bg2); color: var(--txt); outline: none;
+      font-family: 'Courier New', monospace; margin-bottom: 8px; }
+    .gk-input:focus { border-color: var(--acc); box-shadow: 0 0 0 4px rgba(85,85,255,.16); }
+    .gk-input-ok { border-color: #1a7a1a !important; box-shadow: 0 0 0 3px rgba(26,122,26,.12) !important; }
+    .gk-hint { font-size: 12px; color: var(--dim); text-align: left; margin-bottom: 6px; min-height: 16px; }
+    .gk-err { font-size: 13px; color: #cc0000; min-height: 18px; margin-bottom: 10px; }
+    .gk-save-btn { width: 100%; padding: 13px; background: var(--acc); border: none; border-radius: 0;
+      color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 8px; }
+    .gk-save-btn:active { opacity: .85; }
+    .gk-cancel-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
+      color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
     /* ─── Basic Task Hint Modal ─── */
     #basicTaskOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12100;
       display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -7756,13 +7786,13 @@ const AI_TOKEN_LIMIT_ULTRA = 10;
 const AI_TOKEN_DAILY_KEY = 'ms_ai_tokens_daily';
 const AI_CACHE_KEY = 'ms_ai_cache_v2';
 const GEMINI_API_KEY_STORE = 'ms_gemini_api_key';
-const GEMINI_API_KEY_SHA256 = 'd30b303c6f2c75324df6266cbe03721ebcfee5c16fdc47af78ab5bf6fc2ad8e9';
 const AI_CACHE_MAX_SIZE = 180;
 const AI_INPUT_MAX_LENGTH = 240;
 const AGENT_ANSWER_MAX_LENGTH = 1200;
 const QA_ANSWER_MAX_LENGTH = 700;
 const GEMINI_AGENT_PROMPT_PREFIX = 'Löse kurz und korrekt diese Mathe-Aufgabe. Gib maximal 4 Schritte und am Ende das Ergebnis.\nAufgabe: ';
 const GEMINI_QA_PROMPT_PREFIX = 'Beantworte die Mathefrage kurz und korrekt in maximal 3 Sätzen:\n';
+let _geminiKeyModalResolve = null;
 
 function isPremium() {
   try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
@@ -7853,39 +7883,110 @@ function _aiCacheSet(key, value) {
   _setAiCache(cache);
 }
 
-async function sha256Hex(value) {
-  if (!window.crypto || !window.crypto.subtle) {
-    throw new Error('Crypto API unavailable for Gemini API key hash validation.');
-  }
-  const bytes = new TextEncoder().encode(value || '');
-  const digest = await window.crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+function isLikelyGeminiApiKey(key) {
+  const v = String(key || '').trim();
+  return /^AIza[0-9A-Za-z_\-]{20,}$/.test(v) && v.length <= 100;
 }
 
-function constantTimeEqualHex(a, b) {
-  if (typeof a !== 'string' || typeof b !== 'string') return false;
-  let mismatch = a.length ^ b.length;
-  const len = Math.max(a.length, b.length);
-  for (let i = 0; i < len; i++) {
-    const ca = i < a.length ? a.charCodeAt(i) : 0;
-    const cb = i < b.length ? b.charCodeAt(i) : 0;
-    mismatch |= (ca ^ cb);
+function _resolveGeminiKeyModal(saved) {
+  if (typeof _geminiKeyModalResolve === 'function') {
+    const resolve = _geminiKeyModalResolve;
+    _geminiKeyModalResolve = null;
+    resolve(!!saved);
   }
-  return mismatch === 0;
 }
 
-async function getGeminiApiKey() {
+function onGeminiKeyInput(raw) {
+  const input = document.getElementById('geminiKeyInput');
+  const err = document.getElementById('geminiKeyError');
+  const hint = document.getElementById('geminiKeyHint');
+  if (!input || !err || !hint) return;
+  err.textContent = '';
+  const val = String(raw || '').trim();
+  if (!val) {
+    input.classList.remove('gk-input-ok');
+    hint.textContent = 'Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.';
+    return;
+  }
+  if (isLikelyGeminiApiKey(val)) {
+    input.classList.add('gk-input-ok');
+    hint.textContent = '✅ Format sieht gut aus.';
+  } else {
+    input.classList.remove('gk-input-ok');
+    hint.textContent = '⚠️ Key-Format prüfen (meist: AIza... und lang).';
+  }
+}
+
+function showGeminiKeyModal() {
+  const overlay = document.getElementById('geminiKeyOverlay');
+  const input = document.getElementById('geminiKeyInput');
+  const err = document.getElementById('geminiKeyError');
+  const hint = document.getElementById('geminiKeyHint');
+  const modal = document.getElementById('geminiKeyModal');
+  if (!overlay || !input || !err || !hint || !modal) return Promise.resolve(false);
+  input.value = '';
+  input.classList.remove('gk-input-ok');
+  err.textContent = '';
+  hint.textContent = 'Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.';
+  modal.classList.remove('gk-shake');
+  overlay.classList.add('open');
+  openOverlay('geminiKeyOverlay');
+  setTimeout(() => input.focus(), 180);
+  return new Promise(resolve => { _geminiKeyModalResolve = resolve; });
+}
+
+function hideGeminiKeyModal(saved) {
+  const overlay = document.getElementById('geminiKeyOverlay');
+  if (overlay) overlay.classList.remove('open');
+  closeOverlay('geminiKeyOverlay');
+  _resolveGeminiKeyModal(saved);
+}
+
+function _shakeGeminiKeyModal() {
+  const modal = document.getElementById('geminiKeyModal');
+  if (!modal) return;
+  modal.classList.remove('gk-shake');
+  // force restart animation
+  void modal.offsetWidth;
+  modal.classList.add('gk-shake');
+}
+
+function saveGeminiApiKeyFromModal() {
+  const input = document.getElementById('geminiKeyInput');
+  const err = document.getElementById('geminiKeyError');
+  if (!input || !err) return;
+  const key = input.value.trim();
+  if (!isLikelyGeminiApiKey(key)) {
+    err.textContent = '❌ Ungültiges Key-Format. Bitte prüfen.';
+    _shakeGeminiKeyModal();
+    input.focus();
+    return;
+  }
+  try {
+    localStorage.setItem(GEMINI_API_KEY_STORE, key);
+    hideGeminiKeyModal(true);
+    showToast('✅ Gemini-Key lokal gespeichert');
+  } catch {
+    err.textContent = '❌ Speichern fehlgeschlagen (LocalStorage nicht verfügbar).';
+    _shakeGeminiKeyModal();
+  }
+}
+
+async function getGeminiApiKey(promptIfMissing) {
   try {
     const fromStore = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
-    if (!fromStore) return '';
-    const hashed = await sha256Hex(fromStore);
-    if (!constantTimeEqualHex(hashed, GEMINI_API_KEY_SHA256)) {
-      console.warn('Stored Gemini API key does not match expected SHA-256 fingerprint.');
+    if (fromStore && isLikelyGeminiApiKey(fromStore)) return fromStore;
+    if (!promptIfMissing) return '';
+    const saved = await showGeminiKeyModal();
+    if (!saved) return '';
+    const after = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
+    if (after && isLikelyGeminiApiKey(after)) return after;
+    if (after) {
+      localStorage.removeItem(GEMINI_API_KEY_STORE);
       return '';
     }
-    return fromStore;
   } catch (err) {
-    console.warn('Failed to load or verify Gemini API key:', err);
+    console.warn('Failed to load/store Gemini API key:', err);
   }
   return '';
 }
@@ -7899,7 +8000,7 @@ function sanitizeAiInput(raw) {
 }
 
 async function geminiAsk(prompt, cacheKey) {
-  const apiKey = await getGeminiApiKey();
+  const apiKey = await getGeminiApiKey(true);
   if (!prompt || !apiKey) return null;
   const cached = _aiCacheGet(cacheKey);
   if (cached) return { text: cached, cached: true };
@@ -7970,6 +8071,7 @@ function hideActivateModal() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (document.getElementById('licenseGate').classList.contains('open')) { closeLicenseGate(); }
+    else if (document.getElementById('geminiKeyOverlay').classList.contains('open')) { hideGeminiKeyModal(); }
     else if (document.getElementById('basicTaskOverlay').classList.contains('open')) { hideBasicTaskHint('ai'); }
     else if (document.getElementById('activateOverlay').classList.contains('open')) { hideActivateModal(); }
     else if (document.getElementById('premiumOverlay').classList.contains('open')) { hidePremiumModal(); }
@@ -8211,6 +8313,7 @@ window._openOverlays = new Set();
 const _overlayClosers = {
   'warnOverlay': () => { document.getElementById('warnOverlay').style.display='none'; },
   'fsMenu': () => { closeFsMenu(); },
+  'geminiKeyOverlay': () => { hideGeminiKeyModal(); },
   'basicTaskOverlay': () => { hideBasicTaskHint('ai'); },
   'premiumOverlay': () => { hidePremiumModal(); },
   'activateOverlay': () => { hideActivateModal(); },
@@ -9441,6 +9544,23 @@ function obSkip() {
     <div class="act-error" id="activateError"></div>
     <button class="act-confirm-btn" onclick="activatePro()">✅ Aktivieren</button>
     <button class="act-back-btn" onclick="hideActivateModal()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     GEMINI KEY MODAL
+══════════════════════════════════════════ -->
+<div id="geminiKeyOverlay" onclick="if(event.target===this)hideGeminiKeyModal()">
+  <div id="geminiKeyModal">
+    <div class="gk-icon">🤖🔑</div>
+    <div class="gk-title">Gemini API-Key</div>
+    <div class="gk-sub">Einmal eingeben, dann lokal auf deinem Gerät speichern (ideal für iPadOS/Safari).</div>
+    <input class="gk-input" id="geminiKeyInput" type="password" placeholder="AIza..." autocorrect="off" autocapitalize="off" spellcheck="false"
+      oninput="onGeminiKeyInput(this.value)" onkeydown="if(event.key==='Enter')saveGeminiApiKeyFromModal()">
+    <div class="gk-hint" id="geminiKeyHint">Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.</div>
+    <div class="gk-err" id="geminiKeyError"></div>
+    <button class="gk-save-btn" onclick="saveGeminiApiKeyFromModal()">💾 Key speichern</button>
+    <button class="gk-cancel-btn" onclick="hideGeminiKeyModal()">Abbrechen</button>
   </div>
 </div>
 
