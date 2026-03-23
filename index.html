@@ -3500,9 +3500,11 @@ const coord = {
   drawMode: 'none',
   canvasMode: 'pan',   // 'pan' | 'select' | 'draw' | 'smart' | 'snap' | 'text' | 'delete' | 'edit'
   drawColor: '#cc0000',
+  bgColor: '#ffffff',
   showGrid: true,
   showLabels: true,
   showAxes: true,
+  showMmGrid: true,        // show millimeter sub-grid
   panStart: null,
   isPanning: false,
   pinchDist: 0,
@@ -3531,9 +3533,11 @@ function _snapshotCoord() {
     drawMode: coord.drawMode,
     canvasMode: coord.canvasMode,
     drawColor: coord.drawColor,
+    bgColor: coord.bgColor,
     showGrid: coord.showGrid,
     showLabels: coord.showLabels,
     showAxes: coord.showAxes,
+    showMmGrid: coord.showMmGrid,
     nextId: coord.nextId,
     lcConnType: coord.lcConnType,
   };
@@ -3548,9 +3552,11 @@ function _applySnapshot(snap) {
   coord.drawMode = snap.drawMode;
   coord.canvasMode = snap.canvasMode || 'pan';
   coord.drawColor = snap.drawColor;
+  coord.bgColor = snap.bgColor || '#ffffff';
   coord.showGrid = snap.showGrid;
   coord.showLabels = snap.showLabels;
   coord.showAxes = snap.showAxes;
+  coord.showMmGrid = snap.showMmGrid !== undefined ? snap.showMmGrid : true;
   coord.nextId = snap.nextId;
   coord.lcConnType = snap.lcConnType || 'straight';
   coord.currentConnector = null;
@@ -3601,6 +3607,8 @@ function switchCoordSystem(idx) {
   document.getElementById('togGrid').classList.toggle('active', coord.showGrid);
   document.getElementById('togLabels').classList.toggle('active', coord.showLabels);
   document.getElementById('togAxes').classList.toggle('active', coord.showAxes);
+  const togMm = document.getElementById('togMmGrid'); if (togMm) togMm.classList.toggle('active', coord.showMmGrid);
+  const bgPicker = document.getElementById('coordBgColor'); if (bgPicker) bgPicker.value = coord.bgColor || '#ffffff';
   drawCanvas();
 }
 
@@ -3611,8 +3619,8 @@ function addCoordSystem() {
   const newSnap = {
     ox: 0, oy: 0, scale: 50,
     functions: [], points: [], strokes: [], connectors: [],
-    drawMode: 'none', drawColor: '#cc0000',
-    showGrid: true, showLabels: true, showAxes: true, nextId: 1,
+    drawMode: 'none', drawColor: '#cc0000', bgColor: '#ffffff',
+    showGrid: true, showLabels: true, showAxes: true, showMmGrid: true, nextId: 1,
   };
   const newIdx = coordSystems.length;
   coordSystems.push(newSnap);
@@ -3751,14 +3759,37 @@ function _drawCanvasNow() {
   ctx.scale(dpr, dpr);
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = coord.bgColor || '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   const gs = parseFloat(document.getElementById('gridStep').value) || 1;
 
   // Grid
   if (coord.showGrid) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    const pixPerStep = gs * coord.scale;
+
+    // Millimeter sub-grid: 10 subdivisions per grid unit (draw first, below main grid)
+    const subGs = gs / 10;
+    const pixPerSubStep = subGs * coord.scale;
+    if (coord.showMmGrid && pixPerSubStep >= 3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 0.5;
+      const sxStart = Math.floor(c2m(0, 0).mx / subGs) * subGs;
+      const sxEnd = Math.ceil(c2m(W, 0).mx / subGs) * subGs;
+      const syStart = Math.floor(c2m(0, H).my / subGs) * subGs;
+      const syEnd = Math.ceil(c2m(0, 0).my / subGs) * subGs;
+      for (let x = sxStart; x <= sxEnd + subGs * 0.01; x += subGs) { // +0.01 tolerance for float precision
+        const {cx} = m2c(x, 0);
+        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      }
+      for (let y = syStart; y <= syEnd + subGs * 0.01; y += subGs) { // +0.01 tolerance for float precision
+        const {cy} = m2c(0, y);
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+      }
+    }
+
+    // Main grid lines (on top of sub-grid)
+    ctx.strokeStyle = pixPerStep >= 8 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)';
     ctx.lineWidth = 1;
     const xStart = Math.floor(c2m(0, 0).mx / gs) * gs;
     const xEnd = Math.ceil(c2m(W, 0).mx / gs) * gs;
@@ -4915,6 +4946,18 @@ function toggleSetting(s) {
   const btn = document.getElementById('tog' + s.charAt(0).toUpperCase() + s.slice(1));
   coord[map[s]] = !coord[map[s]];
   btn.classList.toggle('active', coord[map[s]]);
+  drawCanvas();
+}
+
+function toggleMmGrid() {
+  coord.showMmGrid = !coord.showMmGrid;
+  const btn = document.getElementById('togMmGrid');
+  if (btn) btn.classList.toggle('active', coord.showMmGrid);
+  drawCanvas();
+}
+
+function setCoordBgColor(color) {
+  coord.bgColor = color;
   drawCanvas();
 }
 
