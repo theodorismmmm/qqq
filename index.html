@@ -1454,6 +1454,7 @@
     <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Formeln +</button>
     <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
     <button id="fsModeAgent" onclick="fsSwitchTab('agent')"><span>🤖</span>Agent</button>
+    <button id="fsModeLernen" onclick="fsSwitchTab('lernen')"><span>📚</span>Lernen <span style="font-size:9px;background:#e74c3c;color:white;border-radius:4px;padding:1px 5px;vertical-align:middle">BETA</span></button>
     <button id="fsModeHandbuch" onclick="fsSwitchTab('handbuch')"><span>📖</span>Handbuch</button>
   </div>
   <div style="padding:8px 12px 0;border-top:1px solid var(--bdr);margin-top:6px">
@@ -2053,6 +2054,7 @@
             <div class="srow"><span class="slbl">Y Maximum</span><input class="sinput" id="yMax" type="number" value="8" onchange="applyRangeSettings()"></div>
             <div class="srow"><span class="slbl">Gitterabstand</span><input class="sinput" id="gridStep" type="number" value="1" min="0.1" step="0.1" onchange="drawCanvas()"></div>
             <div class="psect" style="margin-top:10px">Anzeige</div>
+            <div class="srow"><span class="slbl">Hintergrundfarbe</span><input type="color" id="coordBgColor" value="#ffffff" oninput="setCoordBgColor(this.value)" style="width:44px;height:28px;border:none;background:none;cursor:pointer;padding:0"></div>
             <div class="togrow">
               <button class="togbtn active" id="togGrid" onclick="toggleSetting('grid')">Gitter</button>
               <button class="togbtn active" id="togLabels" onclick="toggleSetting('labels')">Beschriftung</button>
@@ -2535,6 +2537,15 @@
         <button class="agent-add-task" onclick="agentAddTask()">+ Aufgabe</button>
         <button class="agent-run-btn" id="agentRunBtn" onclick="agentRun()">▶ Agent starten</button>
       </div>
+      <!-- AI Q&A Chat -->
+      <div id="agentQA" style="border-bottom:1px solid var(--bdr);padding:10px 12px">
+        <div style="font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">KI Fragen &amp; Antworten</div>
+        <div id="agentQAHistory" style="max-height:180px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:6px"></div>
+        <div style="display:flex;gap:6px">
+          <input id="agentQAInput" class="finput" placeholder="Stelle eine Mathe-Frage… (z.B. Was ist sin(30°)?)" style="flex:1" autocorrect="off" autocapitalize="off" onkeydown="if(event.key==='Enter')agentQAAsk()">
+          <button class="addbtn" onclick="agentQAAsk()">→</button>
+        </div>
+      </div>
       <!-- Status / progress -->
       <div class="agent-status-bar" id="agentStatus">
         <span id="agentStatusText">Bereit</span>
@@ -2580,7 +2591,7 @@
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔬 Wissenschaftlicher Modus (SCI)</div>
+            <div class="hb-fn-name">🔬 Wissenschaftlicher\ Modus\ \(SCI\)</div>
             <div class="hb-fn-desc">Aktiviere den wissenschaftlichen Modus mit dem <strong>SCI</strong>-Knopf oben rechts im Rechner. Dann erscheinen zusätzliche Funktionen wie <span class="hw" data-term="Sinus">sin</span>, <span class="hw" data-term="Kosinus">cos</span>, <span class="hw" data-term="Tangens">tan</span>, <span class="hw" data-term="Logarithmus">log</span>, <span class="hw" data-term="Wurzel">√</span> und <span class="hw" data-term="Potenz">x²</span>. Mit <strong>DEG/RAD</strong> wechselst du zwischen <span class="hw" data-term="Grad">Grad</span> und <span class="hw" data-term="Bogenmass">Bogenmass</span>.</div>
             <div class="hb-fn-example">Beispiel: sin(30°) = 0.5</div>
           </div>
@@ -2610,19 +2621,19 @@
           <div class="hb-section-sub">Das Koordinatensystem zeigt ein <span class="hw" data-term="KartesischesKS">kartesisches Koordinatensystem</span>. Du kannst Funktionen zeichnen, Punkte setzen und das System verschieben/zoomen.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📈 Funktionen zeichnen</div>
+            <div class="hb-fn-name">📈 Funktionen\ zeichnen</div>
             <div class="hb-fn-desc">Gib im linken Bereich eine Funktion ein (z.B. <code>x^2</code> oder <code>sin(x)</code>) und tippe auf <strong>+</strong>. Die Funktion wird sofort im Koordinatensystem gezeichnet. Du kannst mehrere Funktionen gleichzeitig anzeigen und jede einzeln löschen oder ausblenden.</div>
             <div class="hb-fn-example">Beispiel: x^2-2x+1 → Parabel</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📍 Punkte setzen</div>
+            <div class="hb-fn-name">📍 Punkte\ setzen</div>
             <div class="hb-fn-desc">Im Tab <strong>Punkte</strong> kannst du benannte Punkte mit x- und y-Koordinaten setzen. Diese werden im Koordinatensystem mit ihrem Namen beschriftet. Du kannst Punkte auch direkt auf dem Bildschirm antippen, wenn der <span class="hw" data-term="Tippen">Tipp-Modus</span> aktiv ist.</div>
             <div class="hb-fn-example">Beispiel: Punkt A bei (3, 4)</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔍 Zoom und Navigation</div>
+            <div class="hb-fn-name">🔍 Zoom\ und\ Navigation</div>
             <div class="hb-fn-desc">Mit zwei Fingern zoomen (Pinch-to-Zoom) oder mit den Zoom-Tasten (+/−) vergrößern/verkleinern. Mit einem Finger (oder Maus) verschieben, wenn der Panning-Modus aktiv ist. Mit dem 🏠-Knopf zu Standardansicht zurückkehren.</div>
           </div>
 
@@ -2643,7 +2654,7 @@
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔧 Vorlagen-Rechner</div>
+            <div class="hb-fn-name">🔧 Vorlagen\-Rechner</div>
             <div class="hb-fn-desc">Vorlagen für häufige Berechnungen: <span class="hw" data-term="Pythagoras">Pythagoras</span> (c = √(a²+b²)), <span class="hw" data-term="Prozentrechnung">Prozentrechnung</span>, <span class="hw" data-term="Zinsrechnung">Zinsrechnung</span>, <span class="hw" data-term="BMI">BMI</span>, <span class="hw" data-term="OhmschesGesetz">Ohmsches Gesetz</span>, Kreisberechnung und mehr.</div>
           </div>
 
@@ -2664,7 +2675,7 @@
           <div class="hb-section-sub">Der Klassentimer hilft beim Zeitmanagement im Unterricht. Er kann als <span class="hw" data-term="Countdown">Countdown</span> für Aufgaben, Pausen oder ganze Unterrichtsstunden verwendet werden.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">▶ Timer starten</div>
+            <div class="hb-fn-name">▶ Timer\ starten</div>
             <div class="hb-fn-desc">Wähle eine voreingestellte Zeit (5, 10, 15, 20, 25, 45 oder 90 Minuten) oder gib eine eigene Zeit in Minuten und Sekunden ein. Tippe auf <strong>▶ Start</strong>, um den Countdown zu beginnen. Mit <strong>⏸ Pause</strong> anhaltbar, mit <strong>⟲ Reset</strong> zurücksetzen.</div>
           </div>
 
@@ -2674,7 +2685,7 @@
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📌 Schwebender Timer</div>
+            <div class="hb-fn-name">📌 Schwebender\ Timer</div>
             <div class="hb-fn-desc">Öffne den Timer als schwebende, verschiebbare Karte über den Schnellmenü-Knopf oder das Schnellmenü. Das Fenster kann frei verschoben (Titelleiste ziehen) und in der Größe verändert (Ecke/Rand ziehen) werden.</div>
           </div>
         </div>
@@ -2688,6 +2699,23 @@
 
       </div>
     </div><!-- end tabHandbuch -->
+
+<!-- ══════════════════════════════════════════════
+     LERNEN PANEL (BETA)
+══════════════════════════════════════════════ -->
+<div id="tabLernen" class="panel">
+  <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;gap:10px">
+    <div style="font-size:18px;font-weight:700;flex:1">📚 Lernen</div>
+    <span style="font-size:10px;background:#e74c3c;color:white;border-radius:6px;padding:2px 8px;font-weight:700;letter-spacing:.5px">BETA</span>
+    <span id="lernStreak" style="font-size:13px;color:#f39c12;font-weight:600" title="Streak"></span>
+  </div>
+  <div id="lernContent" style="flex:1;overflow-y:auto;padding:14px">
+    <!-- Course list view -->
+    <div id="lernCourseList"></div>
+    <!-- Lesson view -->
+    <div id="lernLessonView" style="display:none"></div>
+  </div>
+</div><!-- end tabLernen -->
 
     <div id="tabSettings" class="panel">
       <div class="stabs">
@@ -2889,6 +2917,9 @@
     </button>
     <button class="nb" id="nbAgent" onclick="switchTab('agent')">
       <span class="ni">🤖</span>Agent
+    </button>
+    <button class="nb" id="nbLernen" onclick="switchTab('lernen')">
+      <span class="ni">📚</span>Lernen
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
       <span class="ni">📖</span>Handbuch
@@ -3469,9 +3500,11 @@ const coord = {
   drawMode: 'none',
   canvasMode: 'pan',   // 'pan' | 'select' | 'draw' | 'smart' | 'snap' | 'text' | 'delete' | 'edit'
   drawColor: '#cc0000',
+  bgColor: '#ffffff',
   showGrid: true,
   showLabels: true,
   showAxes: true,
+  showMmGrid: true,        // show millimeter sub-grid
   panStart: null,
   isPanning: false,
   pinchDist: 0,
@@ -3500,9 +3533,11 @@ function _snapshotCoord() {
     drawMode: coord.drawMode,
     canvasMode: coord.canvasMode,
     drawColor: coord.drawColor,
+    bgColor: coord.bgColor,
     showGrid: coord.showGrid,
     showLabels: coord.showLabels,
     showAxes: coord.showAxes,
+    showMmGrid: coord.showMmGrid,
     nextId: coord.nextId,
     lcConnType: coord.lcConnType,
   };
@@ -3517,9 +3552,11 @@ function _applySnapshot(snap) {
   coord.drawMode = snap.drawMode;
   coord.canvasMode = snap.canvasMode || 'pan';
   coord.drawColor = snap.drawColor;
+  coord.bgColor = snap.bgColor || '#ffffff';
   coord.showGrid = snap.showGrid;
   coord.showLabels = snap.showLabels;
   coord.showAxes = snap.showAxes;
+  coord.showMmGrid = snap.showMmGrid !== undefined ? snap.showMmGrid : true;
   coord.nextId = snap.nextId;
   coord.lcConnType = snap.lcConnType || 'straight';
   coord.currentConnector = null;
@@ -3570,6 +3607,8 @@ function switchCoordSystem(idx) {
   document.getElementById('togGrid').classList.toggle('active', coord.showGrid);
   document.getElementById('togLabels').classList.toggle('active', coord.showLabels);
   document.getElementById('togAxes').classList.toggle('active', coord.showAxes);
+  const togMm = document.getElementById('togMmGrid'); if (togMm) togMm.classList.toggle('active', coord.showMmGrid);
+  const bgPicker = document.getElementById('coordBgColor'); if (bgPicker) bgPicker.value = coord.bgColor || '#ffffff';
   drawCanvas();
 }
 
@@ -3580,8 +3619,8 @@ function addCoordSystem() {
   const newSnap = {
     ox: 0, oy: 0, scale: 50,
     functions: [], points: [], strokes: [], connectors: [],
-    drawMode: 'none', drawColor: '#cc0000',
-    showGrid: true, showLabels: true, showAxes: true, nextId: 1,
+    drawMode: 'none', drawColor: '#cc0000', bgColor: '#ffffff',
+    showGrid: true, showLabels: true, showAxes: true, showMmGrid: true, nextId: 1,
   };
   const newIdx = coordSystems.length;
   coordSystems.push(newSnap);
@@ -3720,14 +3759,37 @@ function _drawCanvasNow() {
   ctx.scale(dpr, dpr);
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = coord.bgColor || '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   const gs = parseFloat(document.getElementById('gridStep').value) || 1;
 
   // Grid
   if (coord.showGrid) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    const pixPerStep = gs * coord.scale;
+
+    // Millimeter sub-grid: 10 subdivisions per grid unit (draw first, below main grid)
+    const subGs = gs / 10;
+    const pixPerSubStep = subGs * coord.scale;
+    if (coord.showMmGrid && pixPerSubStep >= 3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 0.5;
+      const sxStart = Math.floor(c2m(0, 0).mx / subGs) * subGs;
+      const sxEnd = Math.ceil(c2m(W, 0).mx / subGs) * subGs;
+      const syStart = Math.floor(c2m(0, H).my / subGs) * subGs;
+      const syEnd = Math.ceil(c2m(0, 0).my / subGs) * subGs;
+      for (let x = sxStart; x <= sxEnd + subGs * 0.01; x += subGs) { // +0.01 tolerance for float precision
+        const {cx} = m2c(x, 0);
+        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      }
+      for (let y = syStart; y <= syEnd + subGs * 0.01; y += subGs) { // +0.01 tolerance for float precision
+        const {cy} = m2c(0, y);
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+      }
+    }
+
+    // Main grid lines (on top of sub-grid)
+    ctx.strokeStyle = pixPerStep >= 8 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)';
     ctx.lineWidth = 1;
     const xStart = Math.floor(c2m(0, 0).mx / gs) * gs;
     const xEnd = Math.ceil(c2m(W, 0).mx / gs) * gs;
@@ -4884,6 +4946,18 @@ function toggleSetting(s) {
   const btn = document.getElementById('tog' + s.charAt(0).toUpperCase() + s.slice(1));
   coord[map[s]] = !coord[map[s]];
   btn.classList.toggle('active', coord[map[s]]);
+  drawCanvas();
+}
+
+function toggleMmGrid() {
+  coord.showMmGrid = !coord.showMmGrid;
+  const btn = document.getElementById('togMmGrid');
+  if (btn) btn.classList.toggle('active', coord.showMmGrid);
+  drawCanvas();
+}
+
+function setCoordBgColor(color) {
+  coord.bgColor = color;
   drawCanvas();
 }
 
