@@ -3097,6 +3097,7 @@ function switchTab(tab) {
   document.getElementById('tabBild').classList.toggle('active', tab === 'bild');
   document.getElementById('tabAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('tabHandbuch').classList.toggle('active', tab === 'handbuch');
+  document.getElementById('tabLernen').classList.toggle('active', tab === 'lernen');
   document.getElementById('tabSettings').classList.toggle('active', tab === 'settings');
   document.getElementById('nbRechner').classList.toggle('active', tab === 'rechner');
   document.getElementById('nbKoord').classList.toggle('active', tab === 'koordinaten');
@@ -3104,11 +3105,13 @@ function switchTab(tab) {
   document.getElementById('nbKlasse').classList.toggle('active', tab === 'klasse');
   document.getElementById('nbBild').classList.toggle('active', tab === 'bild');
   document.getElementById('nbAgent').classList.toggle('active', tab === 'agent');
+  document.getElementById('nbLernen').classList.toggle('active', tab === 'lernen');
   document.getElementById('nbHandbuch').classList.toggle('active', tab === 'handbuch');
   document.getElementById('nbSettings').classList.toggle('active', tab === 'settings');
   if (tab === 'koordinaten') { resizeCanvas(); applyRangeSettings(); }
   if (tab === 'klasse') { initKlasse(); }
   if (tab === 'handbuch') { initHandbuch(); }
+  if (tab === 'lernen') { initLernen(); }
 }
 
 function switchSub(id) {
@@ -7201,6 +7204,280 @@ function hbFilter() {
 function hbScrollTo(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ══════════════════════════════════════════════
+   LERNEN (LEARNING APP)
+══════════════════════════════════════════════ */
+const LERN_FUNCTION_CATALOG = [
+  { title: 'Grundrechner', sub: 'Addition · Subtraktion · Multiplikation · Division', intro: 'Du lernst die Grundrechenarten sicher im Rechner anzuwenden.' },
+  { title: 'Wissenschaftlicher Modus', sub: 'sin · cos · tan · log · √', intro: 'Du lernst erweiterte Mathefunktionen wie Trigonometrie, Potenzen und Wurzeln.' },
+  { title: 'Gleichungslöser', sub: 'linear · quadratisch', intro: 'Du lernst lineare und quadratische Gleichungen einzugeben und Lösungen zu lesen.' },
+  { title: 'Bruchrechner', sub: 'Brüche berechnen und kürzen', intro: 'Du lernst mit Brüchen zu rechnen und Ergebnisse zu kürzen.' },
+  { title: 'Einheitenumrechner', sub: 'Länge · Fläche · Zeit · Temperatur', intro: 'Du lernst Einheiten in verschiedenen Kategorien korrekt umzurechnen.' },
+  { title: 'Koordinatensystem', sub: 'Graphen · Punkte · Zoom', intro: 'Du lernst Funktionen zu zeichnen, Punkte zu setzen und die Ansicht zu steuern.' },
+  { title: 'Formeln +', sub: 'Formeln · Vorlagen · Geometrie · Physik', intro: 'Du lernst Formeln, Vorlagen und Rechner für Geometrie und Physik zu nutzen.' },
+  { title: 'Klassentimer', sub: 'Start · Pause · Reset', intro: 'Du lernst den Timer für Unterricht und Aufgaben sinnvoll einzusetzen.' },
+  { title: 'Handbuch', sub: 'Suche · Inhaltsverzeichnis · Glossar', intro: 'Du lernst Funktionen und Fachbegriffe schnell im Handbuch nachzuschlagen.' },
+  { title: 'Notizen', sub: 'Schnellnotizen speichern', intro: 'Du lernst Notizen für Rechenwege und Ergebnisse in der App festzuhalten.' },
+  { title: 'Bild-Tool', sub: 'Foto · OCR · Mathe erkennen', intro: 'Du lernst das Bild-Tool zum Erfassen und Erkennen von Aufgaben zu verwenden.' },
+  { title: 'Agent', sub: 'Fragen stellen · Erklärungen erhalten', intro: 'Du lernst mit dem Agenten Mathefragen interaktiv zu klären.' }
+];
+
+let lernInited = false;
+let lernCourses = null;
+let lernProgress = {};
+let lernCurrentCourse = null;
+let lernCurrentLesson = null;
+let lernCurrentStep = 0;
+let lernAnswered = false;
+
+function lernSlug(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function buildLernCourses() {
+  if (lernCourses) return lernCourses;
+  const functionCourses = LERN_FUNCTION_CATALOG.map((f) => ({
+    id: 'fn-' + lernSlug(f.title),
+    title: 'Funktion: ' + f.title,
+    sub: f.sub,
+    lessons: [
+      {
+        id: 'fn-' + lernSlug(f.title) + '-1',
+        title: f.title + ' verstehen',
+        intro: f.intro,
+        steps: [
+          {
+            type: 'choice',
+            title: 'Check',
+            question: 'Worum geht es in dieser Funktion am ehesten?',
+            choices: [
+              f.sub,
+              'Nur Zufallsergebnisse ohne Mathebezug',
+              'Nur Farbauswahl ohne Berechnung',
+              'Nur Texte ohne mathematische Aufgabe'
+            ],
+            correct: 0,
+            explanation: 'Richtig: ' + f.sub
+          }
+        ]
+      }
+    ]
+  }));
+
+  const glossaryCourses = Object.entries(GLOSSAR)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([term, def]) => ({
+      id: 'term-' + lernSlug(term),
+      title: 'Begriff: ' + term,
+      sub: 'Glossar-Begriff einzeln lernen',
+      lessons: [
+        {
+          id: 'term-' + lernSlug(term) + '-1',
+          title: term + ' erklärt',
+          intro: def,
+          steps: [
+            {
+              type: 'choice',
+              title: 'Merksatz',
+              question: `Welche Aussage beschreibt "${term}" richtig?`,
+              choices: [
+                def,
+                'Der Begriff hat keine mathematische Bedeutung',
+                'Der Begriff gilt nur außerhalb von Mathematik',
+                'Der Begriff beschreibt nur Farben'
+              ],
+              correct: 0,
+              explanation: 'Richtig: ' + def
+            }
+          ]
+        }
+      ]
+    }));
+
+  lernCourses = [...functionCourses, ...glossaryCourses];
+  return lernCourses;
+}
+
+function initLernen() {
+  if (lernInited) { renderLernCourseList(); return; }
+  lernInited = true;
+  const raw = localStorage.getItem('ms_lern_progress');
+  if (raw) try { lernProgress = JSON.parse(raw); } catch (e) {}
+  renderLernCourseList();
+}
+
+function saveLernProgress() {
+  localStorage.setItem('ms_lern_progress', JSON.stringify(lernProgress));
+}
+
+function lernGetXP() {
+  return Object.values(lernProgress).reduce((sum, p) => sum + (p.xp || 0), 0);
+}
+
+function renderLernCourseList() {
+  const list = document.getElementById('lernCourseList');
+  const lessonView = document.getElementById('lernLessonView');
+  if (!list || !lessonView) return;
+  const courses = buildLernCourses();
+  list.style.display = '';
+  lessonView.style.display = 'none';
+  const streak = document.getElementById('lernStreak');
+  const xp = lernGetXP();
+  if (streak) streak.textContent = xp ? `⭐ ${xp} XP` : `${courses.length} Kurse`;
+
+  list.innerHTML = courses.map((course) => {
+    const prog = lernProgress[course.id] || { done: [], xp: 0 };
+    const doneLessons = (prog.done || []).length;
+    const totalLessons = course.lessons.length;
+    return `
+    <div class="lern-course-card ${doneLessons === totalLessons ? 'done' : ''}" onclick="lernOpenCourse('${course.id}')">
+      <div style="font-size:14px;font-weight:700">${course.title}</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:3px">${course.sub}</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:8px">${doneLessons}/${totalLessons} Lektionen · ${prog.xp || 0} XP</div>
+    </div>
+  `;
+  }).join('');
+}
+
+function lernOpenCourse(courseId) {
+  const list = document.getElementById('lernCourseList');
+  const lessonView = document.getElementById('lernLessonView');
+  if (!list || !lessonView) return;
+  lernCurrentCourse = buildLernCourses().find(c => c.id === courseId);
+  if (!lernCurrentCourse) return;
+  const prog = lernProgress[courseId] || { done: [], xp: 0 };
+  list.style.display = 'none';
+  lessonView.style.display = '';
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernBackToCourses()">← Zurück</button>
+      <div class="lern-lesson-title">${lernCurrentCourse.title}</div>
+    </div>
+    <div id="lernLessonList">
+      ${lernCurrentCourse.lessons.map((lesson, i) => {
+        const done = (prog.done || []).includes(lesson.id);
+        return `<div class="lern-lesson-step" onclick="lernStartLesson('${lesson.id}')" style="cursor:pointer;${done ? 'border-left:4px solid #27ae60' : ''}">
+          <div style="font-weight:600">${done ? '✓ ' : ''}${i + 1}. ${lesson.title}</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:4px">${lesson.steps.length} Quiz-Schritt${lesson.steps.length > 1 ? 'e' : ''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function lernBackToCourses() {
+  lernCurrentCourse = null;
+  lernCurrentLesson = null;
+  renderLernCourseList();
+}
+
+function lernStartLesson(lessonId) {
+  if (!lernCurrentCourse) return;
+  lernCurrentLesson = lernCurrentCourse.lessons.find(l => l.id === lessonId) || null;
+  if (!lernCurrentLesson) return;
+  lernCurrentStep = -1;
+  lernAnswered = false;
+  renderLernIntro();
+}
+
+function renderLernIntro() {
+  const lessonView = document.getElementById('lernLessonView');
+  if (!lessonView || !lernCurrentLesson) return;
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+      <div class="lern-lesson-title">${lernCurrentLesson.title}</div>
+    </div>
+    <div class="lern-step-intro">${lernCurrentLesson.intro}</div>
+    <button class="lern-next-btn" onclick="lernNextStep()">Quiz starten →</button>
+  `;
+}
+
+function lernNextStep() {
+  if (!lernCurrentLesson) return;
+  lernCurrentStep += 1;
+  lernAnswered = false;
+  if (lernCurrentStep >= lernCurrentLesson.steps.length) {
+    lernCompleteLesson();
+    return;
+  }
+  renderLernStep(lernCurrentStep);
+}
+
+function renderLernStep(stepIdx) {
+  const lessonView = document.getElementById('lernLessonView');
+  const step = lernCurrentLesson && lernCurrentLesson.steps[stepIdx];
+  if (!lessonView || !step) return;
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+      <div class="lern-lesson-title">${lernCurrentLesson.title}</div>
+      <div style="font-size:12px;color:var(--dim)">${stepIdx + 1}/${lernCurrentLesson.steps.length}</div>
+    </div>
+    <div class="lern-lesson-step">
+      <div class="lern-step-title">${step.title}</div>
+      <div style="font-size:15px;font-weight:600;margin:10px 0 14px">${step.question}</div>
+      ${step.choices.map((choice, ci) => `<button class="lern-choice-btn" id="lernChoice${ci}" onclick="lernChoose(${ci}, ${step.correct}, ${stepIdx})">${choice}</button>`).join('')}
+      <div class="lern-feedback" id="lernFeedback${stepIdx}"></div>
+      <button class="lern-next-btn" id="lernNextBtn${stepIdx}" style="display:none" onclick="lernNextStep()">Weiter →</button>
+    </div>
+  `;
+}
+
+function lernChoose(chosenIdx, correctIdx, stepIdx) {
+  if (lernAnswered) return;
+  lernAnswered = true;
+  const step = lernCurrentLesson.steps[stepIdx];
+  step.choices.forEach((_, i) => {
+    const btn = document.getElementById('lernChoice' + i);
+    if (!btn) return;
+    if (i === correctIdx) btn.classList.add('correct');
+    if (i === chosenIdx && i !== correctIdx) btn.classList.add('wrong');
+    btn.disabled = true;
+  });
+  const fb = document.getElementById('lernFeedback' + stepIdx);
+  const nextBtn = document.getElementById('lernNextBtn' + stepIdx);
+  if (fb) {
+    if (chosenIdx === correctIdx) {
+      fb.className = 'lern-feedback ok';
+      fb.textContent = '✅ Richtig! ' + step.explanation;
+    } else {
+      fb.className = 'lern-feedback err';
+      fb.textContent = '❌ Nicht ganz. ' + step.explanation;
+    }
+  }
+  if (nextBtn) nextBtn.style.display = '';
+}
+
+function lernCompleteLesson() {
+  if (!lernCurrentCourse || !lernCurrentLesson) return;
+  const prog = lernProgress[lernCurrentCourse.id] || { done: [], xp: 0 };
+  if (!prog.done.includes(lernCurrentLesson.id)) {
+    prog.done.push(lernCurrentLesson.id);
+    prog.xp += lernCurrentLesson.steps.length * 10;
+    lernProgress[lernCurrentCourse.id] = prog;
+    saveLernProgress();
+  }
+  const lessonView = document.getElementById('lernLessonView');
+  if (!lessonView) return;
+  lessonView.innerHTML = `
+    <div class="lern-done">
+      <div style="font-size:42px;margin-bottom:10px">🎉</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">Lektion geschafft!</div>
+      <div style="font-size:14px;color:var(--dim)">+${lernCurrentLesson.steps.length * 10} XP erhalten</div>
+    </div>
+    <button class="lern-next-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">Weitere Lektionen</button>
+    <button class="lern-back-btn" onclick="lernBackToCourses()" style="margin-top:10px">Zur Kursübersicht</button>
+  `;
 }
 
 // Init drag/glossary tooltips after DOM ready

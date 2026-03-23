@@ -6095,7 +6095,7 @@ window.addEventListener('storage', (e) => {
    LERNEN (LEARNING APP) – BETA
 ══════════════════════════════════════════════ */
 
-const LERN_COURSES = [
+const LERN_BASE_COURSES = [
   {
     id: 'linear',
     icon: '📈',
@@ -6276,6 +6276,106 @@ const LERN_COURSES = [
       }
     ]
   }
+];
+
+const LERN_FUNCTION_CATALOG = [
+  { icon: '🧮', color: '#16a085', title: 'Grundrechner', sub: 'Addition · Subtraktion · Multiplikation · Division', desc: 'Du rechnest Grundaufgaben und einfache Ausdrücke sicher mit dem Standardrechner.' },
+  { icon: '🔬', color: '#2980b9', title: 'Wissenschaftlicher Modus', sub: 'sin · cos · tan · log · √', desc: 'Du nutzt erweiterte Rechenfunktionen wie Trigonometrie, Potenzen, Wurzeln und Logarithmen.' },
+  { icon: '🧩', color: '#8e44ad', title: 'Gleichungslöser', sub: 'linear · quadratisch', desc: 'Du gibst lineare und quadratische Gleichungen ein und interpretierst die Lösungen.' },
+  { icon: '🍰', color: '#d35400', title: 'Bruchrechner', sub: 'Brüche berechnen und kürzen', desc: 'Du rechnest mit Brüchen und kürzt Ergebnisse auf die einfachste Form.' },
+  { icon: '🔁', color: '#2c3e50', title: 'Einheitenumrechner', sub: 'Länge · Fläche · Zeit · Temperatur', desc: 'Du wandelst Einheiten korrekt zwischen verschiedenen Kategorien um.' },
+  { icon: '📈', color: '#3498db', title: 'Funktionen zeichnen', sub: 'Graphen visualisieren', desc: 'Du zeichnest mathematische Funktionen im Koordinatensystem und liest Verläufe ab.' },
+  { icon: '📍', color: '#e67e22', title: 'Punkte setzen', sub: 'Koordinaten markieren', desc: 'Du setzt benannte Punkte über Eingabe oder Tipp-Modus direkt ins Koordinatensystem.' },
+  { icon: '🔍', color: '#7f8c8d', title: 'Zoomen & Verschieben', sub: 'Ansicht steuern', desc: 'Du passt den sichtbaren Bereich im Koordinatensystem durch Zoomen und Verschieben an.' },
+  { icon: '🎓', color: '#9b59b6', title: 'Formelsammlung', sub: 'wichtige Mathe-Formeln', desc: 'Du findest zentrale Formeln schnell und nutzt sie gezielt bei Aufgaben.' },
+  { icon: '🧠', color: '#27ae60', title: 'Vorlagen', sub: 'Pythagoras · Prozent · Zins · BMI', desc: 'Du verwendest fertige Rechenvorlagen für häufige mathematische Problemtypen.' },
+  { icon: '📐', color: '#1abc9c', title: 'Geometrie-Rechner', sub: 'Dreieck · Kreis · Volumen', desc: 'Du berechnest Flächen, Umfänge und Volumen bei typischen Geometrie-Aufgaben.' },
+  { icon: '⚡', color: '#f39c12', title: 'Physik-Rechner', sub: 'Kraft · Energie · Leistung · Ohm', desc: 'Du rechnest grundlegende Physikformeln für Schule und Unterricht.' },
+  { icon: '⏱️', color: '#c0392b', title: 'Klassentimer', sub: 'Start · Pause · Reset', desc: 'Du nutzt den Countdown für Arbeitsphasen, Pausen und Zeitmanagement.' },
+  { icon: '🪟', color: '#34495e', title: 'Schwebender Timer', sub: 'Popup über der App', desc: 'Du öffnest den Timer als frei bewegliches Overlay-Fenster über anderen Bereichen.' },
+  { icon: '📖', color: '#95a5a6', title: 'Handbuch nutzen', sub: 'Suche · Inhaltsverzeichnis · Glossar', desc: 'Du findest schnell Erklärungen zu Funktionen und springst gezielt zu Themen.' },
+  { icon: '📝', color: '#16a085', title: 'Notizen', sub: 'Schnellnotizen speichern', desc: 'Du hältst Rechenwege und Ideen direkt in der App als Notizen fest.' },
+  { icon: '📷', color: '#2ecc71', title: 'Bild-Tool', sub: 'Foto · OCR · Mathe erkennen', desc: 'Du nutzt das Bild-Tool zum Erfassen von Aufgaben und Texterkennung.' },
+  { icon: '🤖', color: '#e74c3c', title: 'Agent', sub: 'Fragen stellen · Lösungen erklären', desc: 'Du lernst mit dem KI-Agenten, indem du Fragen stellst und Rückmeldungen erhältst.' }
+];
+
+function lernSlug(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function buildLernFunctionCourses() {
+  return LERN_FUNCTION_CATALOG.map((fn) => {
+    const slug = lernSlug(fn.title);
+    return {
+      id: `fn-${slug}`,
+      icon: fn.icon,
+      color: fn.color,
+      title: `Funktion: ${fn.title}`,
+      sub: fn.sub,
+      lessons: [
+        {
+          id: `fn-${slug}-1`,
+          title: `${fn.title} verstehen`,
+          intro: `${fn.desc}`,
+          steps: [
+            {
+              type: 'choice',
+              title: 'Mini-Check',
+              question: `Was lernst du in diesem Kurs zu "${fn.title}"?`,
+              choices: [fn.desc, 'Nur historische Hintergründe ohne Anwendung', 'Nur Programmierung ohne Mathematik', 'Gar nichts zur App-Funktion'],
+              correct: 0,
+              explanation: `Genau: ${fn.desc}`
+            }
+          ]
+        }
+      ]
+    };
+  });
+}
+
+function buildLernGlossaryCourses() {
+  return Object.entries(GLOSSAR)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([term, def]) => {
+      const slug = lernSlug(term);
+      return {
+        id: `term-${slug}`,
+        icon: '📘',
+        color: '#2980b9',
+        title: `Begriff: ${term}`,
+        sub: 'Glossar-Begriff einzeln lernen',
+        lessons: [
+          {
+            id: `term-${slug}-1`,
+            title: `${term} erklärt`,
+            intro: def,
+            steps: [
+              {
+                type: 'choice',
+                title: 'Merksatz',
+                question: `Welche Aussage beschreibt "${term}" richtig?`,
+                choices: [def, 'Der Begriff hat keine mathematische Bedeutung', 'Der Begriff ist nur ein Symbol ohne Inhalt', 'Der Begriff gilt nur außerhalb der Mathematik'],
+                correct: 0,
+                explanation: `Richtig: ${def}`
+              }
+            ]
+          }
+        ]
+      };
+    });
+}
+
+const LERN_COURSES = [
+  ...LERN_BASE_COURSES,
+  ...buildLernFunctionCourses(),
+  ...buildLernGlossaryCourses()
 ];
 
 // XP / progress store
