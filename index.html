@@ -1454,6 +1454,7 @@
     <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Formeln +</button>
     <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
     <button id="fsModeAgent" onclick="fsSwitchTab('agent')"><span>🤖</span>Agent</button>
+    <button id="fsModeLernen" onclick="fsSwitchTab('lernen')"><span>📚</span>Lernen <span style="font-size:9px;background:#e74c3c;color:white;border-radius:4px;padding:1px 5px;vertical-align:middle">BETA</span></button>
     <button id="fsModeHandbuch" onclick="fsSwitchTab('handbuch')"><span>📖</span>Handbuch</button>
   </div>
   <div style="padding:8px 12px 0;border-top:1px solid var(--bdr);margin-top:6px">
@@ -2053,6 +2054,7 @@
             <div class="srow"><span class="slbl">Y Maximum</span><input class="sinput" id="yMax" type="number" value="8" onchange="applyRangeSettings()"></div>
             <div class="srow"><span class="slbl">Gitterabstand</span><input class="sinput" id="gridStep" type="number" value="1" min="0.1" step="0.1" onchange="drawCanvas()"></div>
             <div class="psect" style="margin-top:10px">Anzeige</div>
+            <div class="srow"><span class="slbl">Hintergrundfarbe</span><input type="color" id="coordBgColor" value="#ffffff" oninput="setCoordBgColor(this.value)" style="width:44px;height:28px;border:none;background:none;cursor:pointer;padding:0"></div>
             <div class="togrow">
               <button class="togbtn active" id="togGrid" onclick="toggleSetting('grid')">Gitter</button>
               <button class="togbtn active" id="togLabels" onclick="toggleSetting('labels')">Beschriftung</button>
@@ -2535,6 +2537,15 @@
         <button class="agent-add-task" onclick="agentAddTask()">+ Aufgabe</button>
         <button class="agent-run-btn" id="agentRunBtn" onclick="agentRun()">▶ Agent starten</button>
       </div>
+      <!-- AI Q&A Chat -->
+      <div id="agentQA" style="border-bottom:1px solid var(--bdr);padding:10px 12px">
+        <div style="font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">KI Fragen &amp; Antworten</div>
+        <div id="agentQAHistory" style="max-height:180px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:6px"></div>
+        <div style="display:flex;gap:6px">
+          <input id="agentQAInput" class="finput" placeholder="Stelle eine Mathe-Frage… (z.B. Was ist sin(30°)?)" style="flex:1" autocorrect="off" autocapitalize="off" onkeydown="if(event.key==='Enter')agentQAAsk()">
+          <button class="addbtn" onclick="agentQAAsk()">→</button>
+        </div>
+      </div>
       <!-- Status / progress -->
       <div class="agent-status-bar" id="agentStatus">
         <span id="agentStatusText">Bereit</span>
@@ -2688,6 +2699,23 @@
 
       </div>
     </div><!-- end tabHandbuch -->
+
+<!-- ══════════════════════════════════════════════
+     LERNEN PANEL (BETA)
+══════════════════════════════════════════════ -->
+<div id="tabLernen" class="panel">
+  <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;gap:10px">
+    <div style="font-size:18px;font-weight:700;flex:1">📚 Lernen</div>
+    <span style="font-size:10px;background:#e74c3c;color:white;border-radius:6px;padding:2px 8px;font-weight:700;letter-spacing:.5px">BETA</span>
+    <span id="lernStreak" style="font-size:13px;color:#f39c12;font-weight:600" title="Streak"></span>
+  </div>
+  <div id="lernContent" style="flex:1;overflow-y:auto;padding:14px">
+    <!-- Course list view -->
+    <div id="lernCourseList"></div>
+    <!-- Lesson view -->
+    <div id="lernLessonView" style="display:none"></div>
+  </div>
+</div><!-- end tabLernen -->
 
     <div id="tabSettings" class="panel">
       <div class="stabs">
@@ -2889,6 +2917,9 @@
     </button>
     <button class="nb" id="nbAgent" onclick="switchTab('agent')">
       <span class="ni">🤖</span>Agent
+    </button>
+    <button class="nb" id="nbLernen" onclick="switchTab('lernen')">
+      <span class="ni">🎓</span>Lernen
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
       <span class="ni">📖</span>Handbuch

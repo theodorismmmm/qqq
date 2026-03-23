@@ -154,6 +154,7 @@ function switchTab(tab) {
   document.getElementById('tabBild').classList.toggle('active', tab === 'bild');
   document.getElementById('tabAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('tabHandbuch').classList.toggle('active', tab === 'handbuch');
+  document.getElementById('tabLernen').classList.toggle('active', tab === 'lernen');
   document.getElementById('tabSettings').classList.toggle('active', tab === 'settings');
   document.getElementById('nbRechner').classList.toggle('active', tab === 'rechner');
   document.getElementById('nbKoord').classList.toggle('active', tab === 'koordinaten');
@@ -162,10 +163,12 @@ function switchTab(tab) {
   document.getElementById('nbBild').classList.toggle('active', tab === 'bild');
   document.getElementById('nbAgent').classList.toggle('active', tab === 'agent');
   document.getElementById('nbHandbuch').classList.toggle('active', tab === 'handbuch');
+  document.getElementById('nbLernen').classList.toggle('active', tab === 'lernen');
   document.getElementById('nbSettings').classList.toggle('active', tab === 'settings');
   if (tab === 'koordinaten') { resizeCanvas(); applyRangeSettings(); }
   if (tab === 'klasse') { initKlasse(); }
   if (tab === 'handbuch') { initHandbuch(); }
+  if (tab === 'lernen') { initLernen(); }
 }
 
 function switchSub(id) {
@@ -557,6 +560,7 @@ const coord = {
   drawMode: 'none',
   canvasMode: 'pan',   // 'pan' | 'select' | 'draw' | 'smart' | 'snap' | 'text' | 'delete' | 'edit'
   drawColor: '#cc0000',
+  bgColor: '#ffffff',
   showGrid: true,
   showLabels: true,
   showAxes: true,
@@ -590,6 +594,7 @@ function _snapshotCoord() {
     drawMode: coord.drawMode,
     canvasMode: coord.canvasMode,
     drawColor: coord.drawColor,
+    bgColor: coord.bgColor,
     showGrid: coord.showGrid,
     showLabels: coord.showLabels,
     showAxes: coord.showAxes,
@@ -608,6 +613,7 @@ function _applySnapshot(snap) {
   coord.drawMode = snap.drawMode;
   coord.canvasMode = snap.canvasMode || 'pan';
   coord.drawColor = snap.drawColor;
+  coord.bgColor = snap.bgColor || '#ffffff';
   coord.showGrid = snap.showGrid;
   coord.showLabels = snap.showLabels;
   coord.showAxes = snap.showAxes;
@@ -664,6 +670,7 @@ function switchCoordSystem(idx) {
   document.getElementById('togLabels').classList.toggle('active', coord.showLabels);
   document.getElementById('togAxes').classList.toggle('active', coord.showAxes);
   const togMm = document.getElementById('togMmGrid'); if (togMm) togMm.classList.toggle('active', coord.showMmGrid);
+  const bgPicker = document.getElementById('coordBgColor'); if (bgPicker) bgPicker.value = coord.bgColor || '#ffffff';
   drawCanvas();
 }
 
@@ -674,7 +681,7 @@ function addCoordSystem() {
   const newSnap = {
     ox: 0, oy: 0, scale: 50,
     functions: [], points: [], strokes: [], connectors: [],
-    drawMode: 'none', drawColor: '#cc0000',
+    drawMode: 'none', drawColor: '#cc0000', bgColor: '#ffffff',
     showGrid: true, showLabels: true, showAxes: true, nextId: 1,
   };
   const newIdx = coordSystems.length;
@@ -814,7 +821,7 @@ function _drawCanvasNow() {
   ctx.scale(dpr, dpr);
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = coord.bgColor || '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   const gs = parseFloat(document.getElementById('gridStep').value) || 1;
@@ -2187,6 +2194,11 @@ function toggleMmGrid() {
   coord.showMmGrid = !coord.showMmGrid;
   const btn = document.getElementById('togMmGrid');
   if (btn) btn.classList.toggle('active', coord.showMmGrid);
+  drawCanvas();
+}
+
+function setCoordBgColor(color) {
+  coord.bgColor = color;
   drawCanvas();
 }
 
@@ -5868,7 +5880,7 @@ const FEAT_NAV = {
   agent:   'nbAgent'
 };
 // Always-visible nav items (never hidden)
-const NAV_ALWAYS = ['nbHandbuch', 'nbSettings'];
+const NAV_ALWAYS = ['nbHandbuch', 'nbSettings', 'nbLernen'];
 // Tabs that require a valid license to access
 const LICENSE_PROTECTED_TABS = ['koordinaten', 'notizen', 'klasse', 'bild', 'agent'];
 
@@ -5881,6 +5893,7 @@ const FS_NAV_MAP = {
   nbBild:     'fsModeBild',
   nbAgent:    'fsModeAgent',
   nbHandbuch: 'fsModeHandbuch',
+  nbLernen:   'fsModeLernen',
 };
 
 // Grade → recommended default features
@@ -6076,3 +6089,561 @@ window.addEventListener('storage', (e) => {
     if (typeof agentRenderTasks === 'function') agentRenderTasks();
   }
 });
+
+/* ══════════════════════════════════════════════
+   LERNEN (LEARNING APP) – BETA
+══════════════════════════════════════════════ */
+
+const LERN_COURSES = [
+  {
+    id: 'linear',
+    icon: '📈',
+    color: '#3498db',
+    title: 'Lineare Funktionen',
+    sub: 'y = mx + b · Steigung · Schnittpunkte',
+    lessons: [
+      {
+        id: 'linear-1',
+        title: 'Was ist eine lineare Funktion?',
+        intro: 'Eine lineare Funktion hat die Form <b>y = m·x + b</b>. „m" ist die <b>Steigung</b> (wie steil die Gerade ist) und „b" ist der <b>y-Achsenabschnitt</b> (wo die Gerade die y-Achse schneidet). Ändere den Regler und beobachte, wie sich die Gerade verändert.',
+        steps: [
+          {
+            type: 'slider',
+            title: 'Entdecke die Steigung m',
+            desc: 'Verschiebe den Regler für m und beobachte die Gerade. Eine positive Steigung geht von links nach rechts nach oben, eine negative von oben nach unten.',
+            sliders: [{ id: 'lin_m', label: 'm (Steigung)', min: -3, max: 3, step: 0.5, val: 1 }, { id: 'lin_b', label: 'b (y-Achsenabschnitt)', min: -4, max: 4, step: 0.5, val: 0 }],
+            fnExpr: (v) => `${v.lin_m}*x + ${v.lin_b}`
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Steigung verstehen',
+            question: 'Eine Funktion hat die Gleichung y = 2x + 3. Welche Steigung hat sie?',
+            choices: ['1', '3', '2', '−3'],
+            correct: 2,
+            explanation: 'Die Steigung m ist der Koeffizient vor x. Bei y = 2x + 3 ist m = 2.'
+          },
+          {
+            type: 'choice',
+            title: 'Frage: y-Achsenabschnitt',
+            question: 'Bei der Funktion y = −x + 5: Wo schneidet die Gerade die y-Achse?',
+            choices: ['bei −1', 'bei 5', 'bei 0', 'bei −5'],
+            correct: 1,
+            explanation: 'Der y-Achsenabschnitt b gibt an, wo x = 0 gilt. Bei x=0 ist y = −0 + 5 = 5.'
+          }
+        ]
+      },
+      {
+        id: 'linear-2',
+        title: 'Steigung berechnen',
+        intro: 'Die Steigung m kannst du aus zwei Punkten berechnen: <b>m = (y₂ − y₁) / (x₂ − x₁)</b>. Dieser Ausdruck wird auch „Differenzenquotient" genannt.',
+        steps: [
+          {
+            type: 'slider',
+            title: 'Zwei Punkte – eine Gerade',
+            desc: 'Verstelle m und b, um verschiedene Geraden und ihre Steigungen zu erkunden.',
+            sliders: [{ id: 'lin2_m', label: 'm (Steigung)', min: -4, max: 4, step: 0.5, val: 1 }, { id: 'lin2_b', label: 'b', min: -4, max: 4, step: 0.5, val: 0 }],
+            fnExpr: (v) => `${v.lin2_m}*x + ${v.lin2_b}`
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Steigung aus Punkten',
+            question: 'Durch die Punkte P(1|3) und Q(3|7) verläuft eine Gerade. Wie groß ist die Steigung?',
+            choices: ['1', '4', '2', '0.5'],
+            correct: 2,
+            explanation: 'm = (7−3)/(3−1) = 4/2 = 2'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'quadratic',
+    icon: '📉',
+    color: '#9b59b6',
+    title: 'Quadratische Funktionen',
+    sub: 'y = ax² + bx + c · Parabel · Scheitelpunkt',
+    lessons: [
+      {
+        id: 'quad-1',
+        title: 'Die Parabel entdecken',
+        intro: 'Eine quadratische Funktion hat die Form <b>y = a·x² + b·x + c</b>. Der Graph ist eine <b>Parabel</b>. Der Koeffizient „a" bestimmt die Öffnung und Streckung, „c" verschiebt die Parabel nach oben oder unten.',
+        steps: [
+          {
+            type: 'slider',
+            title: 'Ändere die Parabel',
+            desc: 'Verstelle a, b und c und beobachte, wie sich die Parabel verändert.',
+            sliders: [
+              { id: 'qa', label: 'a (Streckung)', min: -2, max: 2, step: 0.25, val: 1 },
+              { id: 'qb', label: 'b (Verschiebung)', min: -4, max: 4, step: 0.5, val: 0 },
+              { id: 'qc', label: 'c (y-Achsenabschnitt)', min: -4, max: 4, step: 0.5, val: 0 }
+            ],
+            fnExpr: (v) => `${v.qa}*x^2 + ${v.qb}*x + ${v.qc}`
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Öffnung der Parabel',
+            question: 'Bei y = −2x² + x − 1: Öffnet die Parabel nach oben oder unten?',
+            choices: ['Nach oben (a > 0)', 'Nach unten (a < 0)', 'Gar nicht', 'Seitwärts'],
+            correct: 1,
+            explanation: 'Der Koeffizient a = −2 ist negativ. Daher öffnet die Parabel nach unten.'
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Scheitelpunkt',
+            question: 'Die Funktion y = x² − 4x + 4 lässt sich als y = (x−2)² schreiben. Wo liegt der Scheitelpunkt?',
+            choices: ['(0, 4)', '(2, 0)', '(−2, 0)', '(4, 0)'],
+            correct: 1,
+            explanation: 'In der Scheitelpunktform y = (x−2)² ist der Scheitelpunkt S(2|0).'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'trig',
+    icon: '〰️',
+    color: '#e67e22',
+    title: 'Trigonometrische Funktionen',
+    sub: 'sin · cos · tan · Winkel',
+    lessons: [
+      {
+        id: 'trig-1',
+        title: 'Sinus und Kosinus',
+        intro: 'Die Funktionen <b>sin(x)</b> und <b>cos(x)</b> beschreiben Schwingungen. Beide wiederholen sich alle 2π ≈ 6,28 Einheiten (Periode). Der Wertebereich liegt zwischen −1 und 1.',
+        steps: [
+          {
+            type: 'slider',
+            title: 'Entdecke sin und cos',
+            desc: 'Verändere die Amplitude und Frequenz der Sinusfunktion.',
+            sliders: [
+              { id: 'ta', label: 'Amplitude A', min: 0.5, max: 3, step: 0.5, val: 1 },
+              { id: 'tf', label: 'Frequenz f', min: 0.5, max: 3, step: 0.5, val: 1 }
+            ],
+            fnExpr: (v) => `${v.ta}*sin(${v.tf}*x)`
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Wertebereich',
+            question: 'Was ist der Wertebereich von f(x) = sin(x)?',
+            choices: ['[0, 1]', '[−1, 1]', '[−∞, ∞]', '[0, 2π]'],
+            correct: 1,
+            explanation: 'Der Sinus nimmt alle Werte zwischen −1 und 1 an: −1 ≤ sin(x) ≤ 1.'
+          },
+          {
+            type: 'choice',
+            title: 'Frage: sin(0)',
+            question: 'Was ergibt sin(0)?',
+            choices: ['1', '0.5', '0', '−1'],
+            correct: 2,
+            explanation: 'sin(0) = 0. Der Sinus startet im Ursprung.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'expo',
+    icon: '📊',
+    color: '#27ae60',
+    title: 'Exponentialfunktionen',
+    sub: 'y = aˣ · Wachstum · Zerfall',
+    lessons: [
+      {
+        id: 'expo-1',
+        title: 'Exponentielles Wachstum',
+        intro: 'Eine Exponentialfunktion hat die Form <b>y = a · bˣ</b>. Wenn b > 1 ist, wächst die Funktion (Wachstum). Wenn 0 < b < 1, nimmt sie ab (Zerfall). Beispiel: Bakterienwachstum oder radioaktiver Zerfall.',
+        steps: [
+          {
+            type: 'slider',
+            title: 'Wachstum und Zerfall',
+            desc: 'Verändere die Basis b. Bei b > 1 wächst die Funktion, bei b < 1 fällt sie.',
+            sliders: [
+              { id: 'ea', label: 'a (Startwert)', min: 0.5, max: 3, step: 0.5, val: 1 },
+              { id: 'eb', label: 'b (Basis)', min: 0.5, max: 3, step: 0.25, val: 2 }
+            ],
+            fnExpr: (v) => `${v.ea}*${v.eb}^x`
+          },
+          {
+            type: 'choice',
+            title: 'Frage: Wachstum oder Zerfall?',
+            question: 'Welche Basis b führt zu exponentiellem Zerfall?',
+            choices: ['b = 2', 'b = 1', 'b = 0.5', 'b = 10'],
+            correct: 2,
+            explanation: 'Bei 0 < b < 1 (hier b = 0.5) nimmt die Funktion mit wachsendem x ab → Zerfall.'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+// XP / progress store
+let lernProgress = {};
+let lernInited = false;
+let lernCurrentCourse = null;
+let lernCurrentLesson = null;
+let lernCurrentStep = 0;
+let lernSliderVals = {};
+let lernAnswered = false;
+
+function initLernen() {
+  if (lernInited) { renderLernCourseList(); return; }
+  lernInited = true;
+  const raw = localStorage.getItem('ms_lern_progress');
+  if (raw) try { lernProgress = JSON.parse(raw); } catch(e) {}
+  renderLernCourseList();
+}
+
+function saveLernProgress() {
+  localStorage.setItem('ms_lern_progress', JSON.stringify(lernProgress));
+}
+
+function lernGetXP() {
+  return Object.values(lernProgress).reduce((s, v) => s + (v.xp || 0), 0);
+}
+
+function renderLernCourseList() {
+  const list = document.getElementById('lernCourseList');
+  const lesson = document.getElementById('lernLessonView');
+  if (!list) return;
+  list.style.display = '';
+  lesson.style.display = 'none';
+  const totalXP = lernGetXP();
+  const streak = document.getElementById('lernStreak');
+  if (streak) streak.textContent = totalXP > 0 ? `⭐ ${totalXP} XP` : '';
+
+  list.innerHTML = LERN_COURSES.map(course => {
+    const prog = lernProgress[course.id] || { done: [], xp: 0 };
+    const doneLessons = (prog.done || []).length;
+    const totalLessons = course.lessons.length;
+    const pct = totalLessons ? Math.round(doneLessons / totalLessons * 100) : 0;
+    const allDone = doneLessons === totalLessons;
+    return `<div class="lern-course-card ${allDone ? 'done' : ''}" onclick="lernOpenCourse('${course.id}')">
+      <div class="lern-course-hdr">
+        <div class="lern-course-icon" style="background:${course.color}22;color:${course.color}">${course.icon}</div>
+        <div>
+          <div class="lern-course-title">${course.title} ${allDone ? '<span style="color:#27ae60">✓</span>' : ''}</div>
+          <div class="lern-course-sub">${course.sub}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:12px;color:var(--dim)">${doneLessons}/${totalLessons} Lektionen</div>
+          ${prog.xp ? `<div class="lern-xp-badge">⭐ ${prog.xp} XP</div>` : ''}
+        </div>
+      </div>
+      <div class="lern-progress-bar"><div class="lern-progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function lernOpenCourse(courseId) {
+  lernCurrentCourse = LERN_COURSES.find(c => c.id === courseId);
+  if (!lernCurrentCourse) return;
+  const prog = lernProgress[courseId] || { done: [], xp: 0 };
+  const list = document.getElementById('lernCourseList');
+  const lessonView = document.getElementById('lernLessonView');
+  list.style.display = 'none';
+  lessonView.style.display = '';
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernBackToCourses()">← Zurück</button>
+      <div class="lern-lesson-title">${lernCurrentCourse.icon} ${lernCurrentCourse.title}</div>
+    </div>
+    <div id="lernLessonList">
+      ${lernCurrentCourse.lessons.map((les, i) => {
+        const done = (prog.done || []).includes(les.id);
+        return `<div class="lern-lesson-step" onclick="lernStartLesson('${les.id}')" style="cursor:pointer;${done ? 'border-left:4px solid #27ae60' : ''}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:${done ? '#27ae6022' : 'var(--bdr)'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:${done ? '#27ae60' : 'var(--dim)'}">${done ? '✓' : (i+1)}</div>
+            <div>
+              <div style="font-weight:600">${les.title}</div>
+              <div style="font-size:12px;color:var(--dim)">${les.steps.length} Schritte · ${les.steps.length * 10} XP</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function lernStartLesson(lessonId) {
+  lernCurrentLesson = null;
+  for (const course of LERN_COURSES) {
+    const les = course.lessons.find(l => l.id === lessonId);
+    if (les) { lernCurrentLesson = les; break; }
+  }
+  if (!lernCurrentLesson) return;
+  lernCurrentStep = -1;
+  lernAnswered = false;
+  lernSliderVals = {};
+  lernCurrentLesson.steps.forEach(s => {
+    if (s.type === 'slider' && s.sliders) {
+      s.sliders.forEach(sl => { lernSliderVals[sl.id] = sl.val; });
+    }
+  });
+  renderLernIntro();
+}
+
+function renderLernIntro() {
+  const les = lernCurrentLesson;
+  const lessonView = document.getElementById('lernLessonView');
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+      <div class="lern-lesson-title">${les.title}</div>
+    </div>
+    <div class="lern-step-intro">${les.intro}</div>
+    <button class="lern-next-btn" onclick="lernNextStep()">Los geht's! →</button>`;
+}
+
+function lernNextStep() {
+  lernCurrentStep++;
+  lernAnswered = false;
+  if (lernCurrentStep >= lernCurrentLesson.steps.length) {
+    lernCompleteLesson();
+    return;
+  }
+  renderLernStep(lernCurrentStep);
+}
+
+function renderLernStep(idx) {
+  const step = lernCurrentLesson.steps[idx];
+  const lessonView = document.getElementById('lernLessonView');
+  const stepNum = idx + 1;
+  const total = lernCurrentLesson.steps.length;
+
+  let html = `<div class="lern-lesson-hdr">
+    <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+    <div class="lern-lesson-title">${lernCurrentLesson.title}</div>
+    <div style="font-size:12px;color:var(--dim)">${stepNum}/${total}</div>
+  </div>
+  <div class="lern-lesson-step">
+    <div class="lern-step-title">${step.title}</div>
+    <div class="lern-step-desc">${step.desc || ''}</div>`;
+
+  if (step.type === 'slider') {
+    html += `<canvas class="lern-canvas" id="lernCanvas${idx}"></canvas>`;
+    step.sliders.forEach(sl => {
+      const val = lernSliderVals[sl.id] !== undefined ? lernSliderVals[sl.id] : sl.val;
+      html += `<div class="lern-slider-wrap">
+        <div class="lern-slider-label">${sl.label}: <b id="lernSlVal_${sl.id}">${val}</b></div>
+        <input type="range" class="lern-slider" id="lernSl_${sl.id}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${val}"
+          oninput="lernSliderChange('${sl.id}', this.value, ${idx})">
+      </div>`;
+    });
+    html += `<button class="lern-next-btn" onclick="lernNextStep()">Weiter →</button>`;
+  } else if (step.type === 'choice') {
+    html += `<div style="font-size:15px;font-weight:600;margin-bottom:14px">${step.question}</div>`;
+    step.choices.forEach((c, ci) => {
+      html += `<button class="lern-choice-btn" id="lernChoice${ci}" onclick="lernChoose(${ci}, ${step.correct}, ${idx})">${c}</button>`;
+    });
+    html += `<div class="lern-feedback" id="lernFeedback${idx}"></div>`;
+    html += `<button class="lern-next-btn" id="lernNextBtn${idx}" style="display:none" onclick="lernNextStep()">Weiter →</button>`;
+  }
+
+  html += `</div>`;
+  lessonView.innerHTML = html;
+
+  if (step.type === 'slider') {
+    setTimeout(() => lernDrawSliderCanvas(idx), 80);
+  }
+}
+
+function lernSliderChange(slId, val, stepIdx) {
+  lernSliderVals[slId] = parseFloat(val);
+  const lbl = document.getElementById('lernSlVal_' + slId);
+  if (lbl) lbl.textContent = val;
+  lernDrawSliderCanvas(stepIdx);
+}
+
+function lernDrawSliderCanvas(stepIdx) {
+  const step = lernCurrentLesson.steps[stepIdx];
+  if (!step || step.type !== 'slider') return;
+  const cvs = document.getElementById('lernCanvas' + stepIdx);
+  if (!cvs) return;
+  const W = cvs.offsetWidth || 300;
+  const H = cvs.offsetHeight || 180;
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(0, 0, W, H);
+
+  const ox = W / 2, oy = H / 2;
+  const scale = W / 12;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1;
+  for (let gx = -6; gx <= 6; gx++) {
+    ctx.beginPath(); ctx.moveTo(ox + gx * scale, 0); ctx.lineTo(ox + gx * scale, H); ctx.stroke();
+  }
+  for (let gy = -4; gy <= 4; gy++) {
+    ctx.beginPath(); ctx.moveTo(0, oy + gy * scale); ctx.lineTo(W, oy + gy * scale); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, H); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.font = '10px sans-serif';
+  [-4,-2,2,4].forEach(v => {
+    ctx.fillText(v, ox + v * scale - 4, oy + 12);
+    ctx.fillText(-v, ox - 12, oy - v * scale + 4);
+  });
+
+  // Function
+  const vals = Object.assign({}, lernSliderVals);
+  const fnStr = step.fnExpr(vals);
+  const evalLernFn = (x) => {
+    try {
+      const expr = fnStr
+        .replace(/\^/g, '**')
+        .replace(/(\d)(x)/g, '$1*$2')
+        .replace(/\bsin\b/g, 'Math.sin')
+        .replace(/\bcos\b/g, 'Math.cos')
+        .replace(/\btan\b/g, 'Math.tan')
+        .replace(/\bsqrt\b/g, 'Math.sqrt')
+        .replace(/\bx\b/g, `(${x})`);
+      return Function('"use strict"; return (' + expr + ')')();
+    } catch(e) { return NaN; }
+  };
+
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  let started = false;
+  for (let px = 0; px <= W; px += 2) {
+    const mx = (px - ox) / scale;
+    const my = evalLernFn(mx);
+    if (isNaN(my) || !isFinite(my)) { started = false; continue; }
+    const py = oy - my * scale;
+    if (py < -H || py > 2 * H) { started = false; continue; }
+    if (!started) { ctx.moveTo(px, py); started = true; }
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+}
+
+function lernChoose(idx, correct, stepIdx) {
+  if (lernAnswered) return;
+  lernAnswered = true;
+  const step = lernCurrentLesson.steps[stepIdx];
+  const fb = document.getElementById('lernFeedback' + stepIdx);
+  const nextBtn = document.getElementById('lernNextBtn' + stepIdx);
+  const btn = document.getElementById('lernChoice' + idx);
+  if (idx === correct) {
+    btn.classList.add('correct');
+    if (fb) { fb.className = 'lern-feedback ok'; fb.textContent = '✓ Richtig! ' + (step.explanation || ''); }
+  } else {
+    btn.classList.add('wrong');
+    const correctBtn = document.getElementById('lernChoice' + correct);
+    if (correctBtn) correctBtn.classList.add('correct');
+    if (fb) { fb.className = 'lern-feedback err'; fb.textContent = '✗ Leider falsch. ' + (step.explanation || ''); }
+  }
+  if (nextBtn) nextBtn.style.display = '';
+}
+
+function lernCompleteLesson() {
+  const les = lernCurrentLesson;
+  const courseId = lernCurrentCourse.id;
+  if (!lernProgress[courseId]) lernProgress[courseId] = { done: [], xp: 0 };
+  const prog = lernProgress[courseId];
+  const xpEarned = les.steps.length * 10;
+  if (!prog.done.includes(les.id)) {
+    prog.done.push(les.id);
+    prog.xp = (prog.xp || 0) + xpEarned;
+  }
+  saveLernProgress();
+  const lessonView = document.getElementById('lernLessonView');
+  lessonView.innerHTML = `<div class="lern-complete-screen">
+    <div class="lern-complete-icon">🎉</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:8px">Lektion abgeschlossen!</div>
+    <div style="font-size:15px;color:var(--dim);margin-bottom:20px">${les.title}</div>
+    <div class="lern-xp-badge" style="font-size:16px;padding:8px 20px;margin:0 auto 20px;display:inline-flex">⭐ +${xpEarned} XP</div>
+    <div><button class="lern-next-btn" onclick="lernOpenCourse('${courseId}')" style="max-width:280px;margin:0 auto">← Zurück zum Kurs</button></div>
+  </div>`;
+}
+
+function lernBackToCourses() {
+  lernCurrentCourse = null;
+  lernCurrentLesson = null;
+  renderLernCourseList();
+}
+
+/* ══════════════════════════════════════════════
+   AGENT Q&A (RULE-BASED MATH AI)
+══════════════════════════════════════════════ */
+
+const QA_KB = [
+  { p: /sin\s*\(\s*0\s*°?\s*\)/i, a: 'sin(0°) = 0' },
+  { p: /sin\s*\(\s*30\s*°?\s*\)/i, a: 'sin(30°) = 0,5' },
+  { p: /sin\s*\(\s*45\s*°?\s*\)/i, a: 'sin(45°) = √2/2 ≈ 0,7071' },
+  { p: /sin\s*\(\s*60\s*°?\s*\)/i, a: 'sin(60°) = √3/2 ≈ 0,8660' },
+  { p: /sin\s*\(\s*90\s*°?\s*\)/i, a: 'sin(90°) = 1' },
+  { p: /cos\s*\(\s*0\s*°?\s*\)/i, a: 'cos(0°) = 1' },
+  { p: /cos\s*\(\s*30\s*°?\s*\)/i, a: 'cos(30°) = √3/2 ≈ 0,8660' },
+  { p: /cos\s*\(\s*45\s*°?\s*\)/i, a: 'cos(45°) = √2/2 ≈ 0,7071' },
+  { p: /cos\s*\(\s*60\s*°?\s*\)/i, a: 'cos(60°) = 0,5' },
+  { p: /cos\s*\(\s*90\s*°?\s*\)/i, a: 'cos(90°) = 0' },
+  { p: /tan\s*\(\s*0\s*°?\s*\)/i, a: 'tan(0°) = 0' },
+  { p: /tan\s*\(\s*45\s*°?\s*\)/i, a: 'tan(45°) = 1' },
+  { p: /pythagoras|satz.*pythagoras/i, a: 'Satz des Pythagoras: a² + b² = c², wobei c die Hypotenuse (längste Seite) ist. Beispiel: a=3, b=4 → c=√(9+16)=5' },
+  { p: /ableitung.*x\^2|derivative.*x\^2|x.*quadrat.*ableitung/i, a: "Die Ableitung von f(x) = x² ist f'(x) = 2x (Potenzregel: n·xⁿ⁻¹)" },
+  { p: /ableitung.*sin|ableit.*sinus/i, a: "Die Ableitung von sin(x) ist cos(x)" },
+  { p: /ableitung.*cos|ableit.*kosinus/i, a: "Die Ableitung von cos(x) ist −sin(x)" },
+  { p: /ableitung.*e\^x|ableit.*exp/i, a: "Die Ableitung von eˣ ist eˣ (Besonderheit: bleibt gleich!)" },
+  { p: /ableitung.*ln/i, a: "Die Ableitung von ln(x) ist 1/x" },
+  { p: /mitternachts|quadratische formel|abc-formel|pq-formel/i, a: 'Quadratische Formel (abc-Formel): x = (−b ± √(b²−4ac)) / (2a) für ax²+bx+c=0\npq-Formel: x = −p/2 ± √((p/2)²−q) für x²+px+q=0' },
+  { p: /grenzwert.*1\/x|lim.*1\/x/i, a: 'lim(x→∞) 1/x = 0. Je größer x, desto kleiner wird 1/x, gegen Null.' },
+  { p: /was ist pi|pi =|kreiszahl/i, a: 'π (Pi) ≈ 3,14159... ist das Verhältnis von Kreisumfang zu Durchmesser. Kreisumfang = 2πr, Kreisfläche = πr²' },
+  { p: /was ist e |eulersche zahl|e =.*2\.7/i, a: "Die Eulersche Zahl e ≈ 2,71828... ist die Basis des natürlichen Logarithmus. e = lim(n→∞)(1+1/n)ⁿ" },
+  { p: /was ist eine? funktion|definition funktion/i, a: 'Eine Funktion f ordnet jedem x-Wert (Eingabe) genau einen y-Wert (Ausgabe) zu. Schreibweise: y = f(x) oder f: x → y' },
+  { p: /steigung berechnen|was ist steigung|steigung.*gerade/i, a: 'Die Steigung m einer Geraden zwischen zwei Punkten P₁(x₁|y₁) und P₂(x₂|y₂):\nm = (y₂−y₁) / (x₂−x₁)' },
+  { p: /binomische formel|erste.*binomische|zweite.*binomische|dritte.*binomische/i, a: '1. Binomische Formel: (a+b)² = a²+2ab+b²\n2. Binomische Formel: (a−b)² = a²−2ab+b²\n3. Binomische Formel: (a+b)(a−b) = a²−b²' },
+  { p: /umfang kreis|kreisumfang/i, a: 'Kreisumfang U = 2 · π · r = π · d (d = Durchmesser)' },
+  { p: /fläche kreis|kreisfläche/i, a: 'Kreisfläche A = π · r²' },
+  { p: /zinsrechnung|zinsen berechnen/i, a: 'Zinsrechnung: Zinsen Z = K · p · t / 100\nK = Kapital, p = Zinssatz (%), t = Zeit (Jahre)\nEndkapital nach Zinseszins: Kₙ = K₀ · (1 + p/100)ⁿ' },
+  { p: /prozent berechnen|prozentwert|prozentsatz/i, a: 'Prozentwert W = G · p / 100\nProzentsatz p = W / G · 100\nGrundwert G = W / p · 100' },
+  { p: /integral.*x\^2|integr.*x.*quadrat/i, a: '∫x² dx = x³/3 + C (Potenzregel für Integration: xⁿ dx = xⁿ⁺¹/(n+1) + C)' },
+];
+
+function agentQAAsk() {
+  const inp = document.getElementById('agentQAInput');
+  if (!inp) return;
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+
+  let answer = null;
+  for (const rule of QA_KB) {
+    if (rule.p.test(q)) { answer = rule.a; break; }
+  }
+
+  if (!answer) {
+    try {
+      const result = typeof evalExpr === 'function' ? evalExpr(q) : null;
+      if (result !== null && result !== undefined && !isNaN(result) && isFinite(result)) {
+        const rounded = typeof round === 'function' ? round(result) : Math.round(result * 1e10) / 1e10;
+        answer = `${q} = ${rounded}`;
+      }
+    } catch(e) {}
+  }
+
+  if (!answer) {
+    answer = `Ich konnte „${q}" nicht auflösen. Versuche z. B.: „sin(30°)", „Pythagoras", „Ableitung von x²", „Quadratische Formel" oder „Kreisumfang".`;
+  }
+
+  const hist = document.getElementById('agentQAHistory');
+  if (!hist) return;
+  const qDiv = document.createElement('div');
+  qDiv.style.cssText = 'background:var(--acc);color:white;padding:6px 10px;border-radius:10px 10px 4px 10px;font-size:13px;align-self:flex-end;max-width:85%';
+  qDiv.textContent = q;
+  const aDiv = document.createElement('div');
+  aDiv.style.cssText = 'background:var(--btn);padding:8px 10px;border-radius:4px 10px 10px 10px;font-size:13px;line-height:1.5;max-width:90%;white-space:pre-wrap';
+  aDiv.textContent = answer;
+  hist.appendChild(qDiv);
+  hist.appendChild(aDiv);
+  hist.scrollTop = hist.scrollHeight;
+}
