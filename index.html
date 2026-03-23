@@ -1448,14 +1448,14 @@
 <div id="fsMenu" style="display:none">
   <h3>Ansicht wechseln</h3>
   <div class="fsmodes">
-    <button id="fsModeRechner" onclick="fsSwitchTab('rechner')"><span>🧮</span>Rechner</button>
-    <button id="fsModeKoord" onclick="fsSwitchTab('koordinaten')"><span>📐</span>Koordinaten</button>
-    <button id="fsModeNotizen" onclick="fsSwitchTab('notizen')"><span>📝</span>Notizen</button>
-    <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><span>🎓</span>Formeln +</button>
-    <button id="fsModeBild" onclick="fsSwitchTab('bild')"><span>📷</span>Bild</button>
-    <button id="fsModeAgent" onclick="fsSwitchTab('agent')"><span>🤖</span>Agent</button>
-    <button id="fsModeLernen" onclick="fsSwitchTab('lernen')"><span>📚</span>Lernen <span style="font-size:9px;background:#e74c3c;color:white;border-radius:4px;padding:1px 5px;vertical-align:middle">BETA</span></button>
-    <button id="fsModeHandbuch" onclick="fsSwitchTab('handbuch')"><span>📖</span>Handbuch</button>
+    <button id="fsModeRechner" onclick="fsSwitchTab('rechner')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg>Rechner</button>
+    <button id="fsModeKoord" onclick="fsSwitchTab('koordinaten')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="17,9 20,12 17,15"/><line x1="12" y1="21" x2="12" y2="4"/><polyline points="9,7 12,4 15,7"/><path d="M5 17 Q8 13 12 11 Q16 9 19 10" stroke-width="1.8"/></svg>Koordinaten</button>
+    <button id="fsModeNotizen" onclick="fsSwitchTab('notizen')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Notizen</button>
+    <button id="fsModeKlasse" onclick="fsSwitchTab('klasse')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 4 5 4 13 4 8 12 13 20 5 20"/><line x1="17" y1="9" x2="17" y2="15"/><line x1="14" y1="12" x2="20" y2="12"/></svg>Formeln +</button>
+    <button id="fsModeBild" onclick="fsSwitchTab('bild')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>Bild</button>
+    <button id="fsModeAgent" onclick="fsSwitchTab('agent')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="3"/><line x1="12" y1="8" x2="12" y2="5"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="13" r="1.8" fill="none"/><circle cx="16" cy="13" r="1.8" fill="none"/><path d="M9 17.5 Q12 19.5 15 17.5"/><line x1="6" y1="12" x2="3" y2="14.5"/><line x1="18" y1="12" x2="21" y2="14.5"/></svg>Agent</button>
+    <button id="fsModeLernen" onclick="fsSwitchTab('lernen')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 12 15 2 8.5"/><path d="M6 11.5 L6 17.5 Q12 21 18 17.5 L18 11.5"/><line x1="22" y1="8.5" x2="22" y2="14.5"/></svg>Lernen <span style="font-size:9px;background:#e74c3c;color:white;border-radius:4px;padding:1px 5px;vertical-align:middle">BETA</span></button>
+    <button id="fsModeHandbuch" onclick="fsSwitchTab('handbuch')"><svg class="fs-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/></svg>Handbuch</button>
   </div>
   <div style="padding:8px 12px 0;border-top:1px solid var(--bdr);margin-top:6px">
     <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Schnellzugriff</div>
@@ -1474,7 +1474,7 @@
   </div>
   <div class="sdtabs">
     <button class="sdtab active" onclick="switchSideTab('sdMiniCalc')">Mini-Rechner</button>
-    <button class="sdtab" onclick="switchSideTab('sdTimer')">⏱️ Timer</button>
+    <button class="sdtab" onclick="switchSideTab('sdTimer')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><polyline points="12,9 12,13 15,15"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="9" y1="3" x2="15" y2="3"/></svg> Timer</button>
     <button class="sdtab" onclick="switchSideTab('sdSideNotes')">Notizen</button>
     <button class="sdtab" onclick="switchSideTab('sdLineConn')">Verbinder</button>
   </div>
@@ -1695,10 +1695,10 @@
     <!-- ════════ TAB: RECHNER ════════ -->
     <div id="tabRechner" class="panel active">
       <div class="stabs">
-        <button class="stab active" onclick="switchSub('grundrechner')" aria-label="Grundrechner"><span class="si" aria-hidden="true">🧮</span>Rechner</button>
-        <button class="stab" onclick="switchSub('gleichungen')" aria-label="Gleichungen"><span class="si" aria-hidden="true">⚖️</span>Gleichung</button>
-        <button class="stab" onclick="switchSub('brueche')" aria-label="Brüche"><span class="si" aria-hidden="true">½</span>Brüche</button>
-        <button class="stab" onclick="switchSub('einheiten')" aria-label="Einheiten"><span class="si" aria-hidden="true">📏</span>Einheiten</button>
+        <button class="stab active" onclick="switchSub('grundrechner')" aria-label="Grundrechner"><svg class="si-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg>Rechner</button>
+        <button class="stab" onclick="switchSub('gleichungen')" aria-label="Gleichungen"><svg class="si-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><path d="M9 18 L12 21 L15 18" stroke-width="1.8"/></svg>Gleichung</button>
+        <button class="stab" onclick="switchSub('brueche')" aria-label="Brüche"><svg class="si-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg>Brüche</button>
+        <button class="stab" onclick="switchSub('einheiten')" aria-label="Einheiten"><svg class="si-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="11" x2="6" y2="14"/><line x1="10" y1="11" x2="10" y2="13"/><line x1="14" y1="11" x2="14" y2="14"/><line x1="18" y1="11" x2="18" y2="13"/></svg>Einheiten</button>
       </div>
       <div class="spanels-wrap">
       <div id="grundrechner" class="spanel active">
@@ -2532,7 +2532,7 @@
     <!-- ════════ TAB: MATH AGENT ════════ -->
     <div id="tabAgent" class="panel">
       <div class="agent-hdr">
-        <div class="agent-hdr-title">🤖 Math Agent</div>
+        <div class="agent-hdr-title"><svg class="agent-hdr-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="3"/><line x1="12" y1="8" x2="12" y2="5"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="13" r="1.8" fill="none"/><circle cx="16" cy="13" r="1.8" fill="none"/><path d="M9 17.5 Q12 19.5 15 17.5"/><line x1="6" y1="12" x2="3" y2="14.5"/><line x1="18" y1="12" x2="21" y2="14.5"/></svg> Math Agent</div>
         <span class="agent-counter" id="agentCounter">0 / 5</span>
         <button class="agent-add-task" onclick="agentAddTask()">+ Aufgabe</button>
         <button class="agent-run-btn" id="agentRunBtn" onclick="agentRun()">▶ Agent starten</button>
@@ -2554,7 +2554,7 @@
       <!-- Task list -->
       <div class="agent-tasks-wrap" id="agentTasksWrap">
         <div class="agent-empty" id="agentEmpty">
-          <div style="font-size:32px;margin-bottom:8px">🤖</div>
+          <div style="margin-bottom:8px"><svg class="empty-state-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="3"/><line x1="12" y1="8" x2="12" y2="5"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="13" r="1.8" fill="none"/><circle cx="16" cy="13" r="1.8" fill="none"/><path d="M9 17.5 Q12 19.5 15 17.5"/><line x1="6" y1="12" x2="3" y2="14.5"/><line x1="18" y1="12" x2="21" y2="14.5"/></svg></div>
           <div>Noch keine Aufgaben.</div>
           <div style="font-size:12px;margin-top:4px;color:var(--dim)">Tippe auf „+ Aufgabe" um zu beginnen.</div>
         </div>
@@ -2570,46 +2570,46 @@
       <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0">
         <input class="hb-search" id="hbSearch" type="text" placeholder="🔍 Suche im Handbuch…" oninput="hbFilter()" autocorrect="off" autocapitalize="off">
         <div class="hb-toc">
-          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekRechner')">🧮 Rechner</button>
-          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekKoord')">📐 Koordinaten</button>
-          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekFormeln')">🎓 Formeln</button>
-          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekTimer')">⏱️ Timer</button>
-          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekGlossar')">📚 Glossar</button>
+          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekRechner')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg> Rechner</button>
+          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekKoord')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="17,9 20,12 17,15"/><line x1="12" y1="21" x2="12" y2="4"/><polyline points="9,7 12,4 15,7"/><path d="M5 17 Q8 13 12 11 Q16 9 19 10" stroke-width="1.8"/></svg> Koordinaten</button>
+          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekFormeln')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 4 5 4 13 4 8 12 13 20 5 20"/><line x1="17" y1="9" x2="17" y2="15"/><line x1="14" y1="12" x2="20" y2="12"/></svg> Formeln</button>
+          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekTimer')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><polyline points="12,9 12,13 15,15"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="9" y1="3" x2="15" y2="3"/></svg> Timer</button>
+          <button class="hb-toc-btn" onclick="hbScrollTo('hbSekGlossar')"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 12 15 2 8.5"/><path d="M6 11.5 L6 17.5 Q12 21 18 17.5 L18 11.5"/><line x1="22" y1="8.5" x2="22" y2="14.5"/></svg> Glossar</button>
         </div>
       </div>
       <div id="hbContent" style="flex:1;overflow-y:auto">
 
         <!-- Rechner -->
         <div class="hb-section" id="hbSekRechner">
-          <div class="hb-section-title">🧮 Rechner</div>
+          <div class="hb-section-title"><svg class="hbtoc-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg> Rechner</div>
           <div class="hb-section-sub">Der Rechner ermöglicht das Berechnen von mathematischen <span class="hw" data-term="Ausdruck">Ausdrücken</span>. Er unterstützt einfache Grundrechenarten bis hin zu <span class="hw" data-term="Trigonometrie">trigonometrischen</span> Funktionen.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔢 Grundrechner</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg> Grundrechner</div>
             <div class="hb-fn-desc">Der Grundrechner führt <span class="hw" data-term="Addition">Addition</span> (+), <span class="hw" data-term="Subtraktion">Subtraktion</span> (−), <span class="hw" data-term="Multiplikation">Multiplikation</span> (×) und <span class="hw" data-term="Division">Division</span> (÷) durch. Gib einen Ausdruck ein und tippe auf <strong>=</strong> für das Ergebnis. Mit <strong>AC</strong> wird alles gelöscht, <strong>⌫</strong> löscht das letzte Zeichen.</div>
             <div class="hb-fn-example">Beispiel: 12 × 3 + 5 = 41</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔬 Wissenschaftlicher Modus (SCI)</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg> Wissenschaftlicher Modus (SCI)</div>
             <div class="hb-fn-desc">Aktiviere den wissenschaftlichen Modus mit dem <strong>SCI</strong>-Knopf oben rechts im Rechner. Dann erscheinen zusätzliche Funktionen wie <span class="hw" data-term="Sinus">sin</span>, <span class="hw" data-term="Kosinus">cos</span>, <span class="hw" data-term="Tangens">tan</span>, <span class="hw" data-term="Logarithmus">log</span>, <span class="hw" data-term="Wurzel">√</span> und <span class="hw" data-term="Potenz">x²</span>. Mit <strong>DEG/RAD</strong> wechselst du zwischen <span class="hw" data-term="Grad">Grad</span> und <span class="hw" data-term="Bogenmass">Bogenmass</span>.</div>
             <div class="hb-fn-example">Beispiel: sin(30°) = 0.5</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">⚖️ Gleichungslöser</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><path d="M9 18 L12 21 L15 18" stroke-width="1.8"/></svg> Gleichungslöser</div>
             <div class="hb-fn-desc">Löst <span class="hw" data-term="LineareGleichung">lineare Gleichungen</span> (z.B. 2x+3=7 → x=2) und <span class="hw" data-term="QuadratischeGleichung">quadratische Gleichungen</span> (z.B. x²−5x+6=0 → x=2, x=3). Gib die Gleichung in der Form „ax+b=c" oder „ax²+bx+c=0" ein. Die Lösung wird schrittweise angezeigt.</div>
             <div class="hb-fn-example">Beispiel: 3x - 6 = 0 → x = 2</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">½ Bruchrechner</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg> Bruchrechner</div>
             <div class="hb-fn-desc">Rechnet mit <span class="hw" data-term="Bruch">Brüchen</span>. Gib <span class="hw" data-term="Zaehler">Zähler</span> und <span class="hw" data-term="Nenner">Nenner</span> zweier Brüche ein, wähle eine Rechenart (+, −, ×, ÷) und tippe auf <strong>Berechnen</strong>. Das Ergebnis wird <span class="hw" data-term="Kuerzen">gekürzt</span> angezeigt.</div>
             <div class="hb-fn-example">Beispiel: 1/2 + 1/3 = 5/6</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📏 Einheitenumrechner</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="11" x2="6" y2="14"/><line x1="10" y1="11" x2="10" y2="13"/><line x1="14" y1="11" x2="14" y2="14"/><line x1="18" y1="11" x2="18" y2="13"/></svg> Einheitenumrechner</div>
             <div class="hb-fn-desc">Rechnet Einheiten um, z.B. Längen, Gewichte, Temperaturen, Flächen, Volumen, Geschwindigkeit und Zeit. Wähle eine Kategorie, gib den Wert ein und wähle Quell- und Zieleinheit.</div>
             <div class="hb-fn-example">Beispiel: 100 km/h → 27,78 m/s</div>
           </div>
@@ -2617,82 +2617,82 @@
 
         <!-- Koordinaten -->
         <div class="hb-section" id="hbSekKoord">
-          <div class="hb-section-title">📐 Koordinatensystem</div>
+          <div class="hb-section-title"><svg class="hb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="17,9 20,12 17,15"/><line x1="12" y1="21" x2="12" y2="4"/><polyline points="9,7 12,4 15,7"/><path d="M5 17 Q8 13 12 11 Q16 9 19 10" stroke-width="1.8"/></svg> Koordinatensystem</div>
           <div class="hb-section-sub">Das Koordinatensystem zeigt ein <span class="hw" data-term="KartesischesKS">kartesisches Koordinatensystem</span>. Du kannst Funktionen zeichnen, Punkte setzen und das System verschieben/zoomen.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📈 Funktionen zeichnen</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="20" y2="12"/><line x1="12" y1="21" x2="12" y2="4"/><path d="M5 17 Q8 13 12 11 Q16 9 19 10" stroke-width="1.8"/></svg> Funktionen zeichnen</div>
             <div class="hb-fn-desc">Gib im linken Bereich eine Funktion ein (z.B. <code>x^2</code> oder <code>sin(x)</code>) und tippe auf <strong>+</strong>. Die Funktion wird sofort im Koordinatensystem gezeichnet. Du kannst mehrere Funktionen gleichzeitig anzeigen und jede einzeln löschen oder ausblenden.</div>
             <div class="hb-fn-example">Beispiel: x^2-2x+1 → Parabel</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📍 Punkte setzen</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="10" r="4"/><line x1="12" y1="14" x2="12" y2="20"/><line x1="9" y1="20" x2="15" y2="20"/></svg> Punkte setzen</div>
             <div class="hb-fn-desc">Im Tab <strong>Punkte</strong> kannst du benannte Punkte mit x- und y-Koordinaten setzen. Diese werden im Koordinatensystem mit ihrem Namen beschriftet. Du kannst Punkte auch direkt auf dem Bildschirm antippen, wenn der <span class="hw" data-term="Tippen">Tipp-Modus</span> aktiv ist.</div>
             <div class="hb-fn-example">Beispiel: Punkt A bei (3, 4)</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔍 Zoom und Navigation</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/><line x1="9" y1="11" x2="13" y2="11"/><line x1="11" y1="9" x2="11" y2="13"/></svg> Zoom und Navigation</div>
             <div class="hb-fn-desc">Mit zwei Fingern zoomen (Pinch-to-Zoom) oder mit den Zoom-Tasten (+/−) vergrößern/verkleinern. Mit einem Finger (oder Maus) verschieben, wenn der Panning-Modus aktiv ist. Mit dem 🏠-Knopf zu Standardansicht zurückkehren.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📏 Lineal</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="6" y2="18"/><line x1="7.5" y1="16.5" x2="9.5" y2="14.5"/><line x1="11" y1="13" x2="13" y2="11"/><line x1="14.5" y1="9.5" x2="16.5" y2="7.5"/><line x1="18" y1="6" x2="20" y2="4"/></svg> Lineal</div>
             <div class="hb-fn-desc">Das physische Lineal ermöglicht das Zeichnen gerader Linien. Aktiviere es mit dem 📐-Knopf, dann erscheint ein drehbares Lineal im Koordinatensystem. Zeichne entlang des Lineals für eine gerade Linie.</div>
           </div>
         </div>
 
         <!-- Formeln -->
         <div class="hb-section" id="hbSekFormeln">
-          <div class="hb-section-title">🎓 Formeln &amp; Klasse</div>
+          <div class="hb-section-title"><svg class="hb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 4 5 4 13 4 8 12 13 20 5 20"/><line x1="17" y1="9" x2="17" y2="15"/><line x1="14" y1="12" x2="20" y2="12"/></svg> Formeln &amp; Klasse</div>
           <div class="hb-section-sub">Der Bereich <strong>Formeln+</strong> enthält mathematische Formeln, Vorlagen, Geometrie- und Physikrechner.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📋 Formelsammlung</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> Formelsammlung</div>
             <div class="hb-fn-desc">Schnelle Übersicht über wichtige Formeln: <span class="hw" data-term="QuadratischeFormel">Quadratische Formel</span>, <span class="hw" data-term="BinomischeFormeln">Binomische Formeln</span>, <span class="hw" data-term="Steigung">Steigung</span>, <span class="hw" data-term="Statistik">Statistik</span> (Mittelwert, <span class="hw" data-term="Varianz">Varianz</span>, <span class="hw" data-term="Standardabweichung">Standardabweichung</span>) und <span class="hw" data-term="Zahlentheorie">Zahlentheorie</span>.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔧 Vorlagen-Rechner</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Vorlagen-Rechner</div>
             <div class="hb-fn-desc">Vorlagen für häufige Berechnungen: <span class="hw" data-term="Pythagoras">Pythagoras</span> (c = √(a²+b²)), <span class="hw" data-term="Prozentrechnung">Prozentrechnung</span>, <span class="hw" data-term="Zinsrechnung">Zinsrechnung</span>, <span class="hw" data-term="BMI">BMI</span>, <span class="hw" data-term="OhmschesGesetz">Ohmsches Gesetz</span>, Kreisberechnung und mehr.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📐 Geometrie</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,22 12,2 21,22"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Geometrie</div>
             <div class="hb-fn-desc">Berechne Flächen und Umfänge von Formen: Kreis, Rechteck, Dreieck, Trapez, Parallelogramm, Rhombus und mehr. Auch 3D-Körper: Zylinder, Kugel, Würfel, Quader, Kegel.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">⚡ Physik</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg> Physik</div>
             <div class="hb-fn-desc">Physikalische Berechnungen: <span class="hw" data-term="Kraft">Kraft</span> (F=m×a), <span class="hw" data-term="kinetischeEnergie">Kinetische Energie</span> (Ekin=½mv²), <span class="hw" data-term="potentielleEnergie">Potentielle Energie</span>, Leistung, <span class="hw" data-term="OhmschesGesetz">Ohmsches Gesetz</span>, Geschwindigkeit, Druck und Wärme.</div>
           </div>
         </div>
 
         <!-- Timer -->
         <div class="hb-section" id="hbSekTimer">
-          <div class="hb-section-title">⏱️ Klassentimer</div>
+          <div class="hb-section-title"><svg class="hb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><polyline points="12,9 12,13 15,15"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="9" y1="3" x2="15" y2="3"/></svg> Klassentimer</div>
           <div class="hb-section-sub">Der Klassentimer hilft beim Zeitmanagement im Unterricht. Er kann als <span class="hw" data-term="Countdown">Countdown</span> für Aufgaben, Pausen oder ganze Unterrichtsstunden verwendet werden.</div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">▶ Timer starten</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg> Timer starten</div>
             <div class="hb-fn-desc">Wähle eine voreingestellte Zeit (5, 10, 15, 20, 25, 45 oder 90 Minuten) oder gib eine eigene Zeit in Minuten und Sekunden ein. Tippe auf <strong>▶ Start</strong>, um den Countdown zu beginnen. Mit <strong>⏸ Pause</strong> anhaltbar, mit <strong>⟲ Reset</strong> zurücksetzen.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">🔔 Alarmsignal</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Alarmsignal</div>
             <div class="hb-fn-desc">Wenn der Timer abläuft, wird ein akustisches Signal ausgegeben (sofern der Ton nicht stummgeschaltet ist) und die Anzeige blinkt rot. Der Timer wechselt in den Zustand <strong>Zeit abgelaufen!</strong>.</div>
           </div>
 
           <div class="hb-fn">
-            <div class="hb-fn-name">📌 Schwebender Timer</div>
+            <div class="hb-fn-name"><svg class="hbfn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Schwebender Timer</div>
             <div class="hb-fn-desc">Öffne den Timer als schwebende, verschiebbare Karte über den Schnellmenü-Knopf oder das Schnellmenü. Das Fenster kann frei verschoben (Titelleiste ziehen) und in der Größe verändert (Ecke/Rand ziehen) werden.</div>
           </div>
         </div>
 
         <!-- Glossar -->
         <div class="hb-section" id="hbSekGlossar">
-          <div class="hb-section-title">📚 Glossar – Erklärung von Fachbegriffen</div>
+          <div class="hb-section-title"><svg class="hb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 12 15 2 8.5"/><path d="M6 11.5 L6 17.5 Q12 21 18 17.5 L18 11.5"/><line x1="22" y1="8.5" x2="22" y2="14.5"/></svg> Glossar – Erklärung von Fachbegriffen</div>
           <div class="hb-section-sub">Blaue unterstrichene Begriffe im Handbuch sind <span class="hw" data-term="Fachbegriff">Fachbegriffe</span>. Tippe darauf, um die Erklärung zu sehen. Hier findest du alle Begriffe auf einen Blick.</div>
           <div id="hbGlossarList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
         </div>
@@ -2901,31 +2901,31 @@
 
   <nav id="nav">
     <button class="nb active" id="nbRechner" onclick="switchTab('rechner')">
-      <span class="ni">🧮</span>Rechner
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="7" y="5" width="10" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"/><rect x="14" y="15.5" width="3.5" height="3" rx=".6" fill="currentColor" stroke="none"/></svg>Rechner
     </button>
     <button class="nb" id="nbKoord" onclick="switchTab('koordinaten')">
-      <span class="ni">📐</span>Koordinaten
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="17,9 20,12 17,15"/><line x1="12" y1="21" x2="12" y2="4"/><polyline points="9,7 12,4 15,7"/><path d="M5 17 Q8 13 12 11 Q16 9 19 10" stroke-width="1.8"/></svg>Koordinaten
     </button>
     <button class="nb" id="nbNotizen" onclick="switchTab('notizen')">
-      <span class="ni">📝</span>Notizen
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Notizen
     </button>
     <button class="nb" id="nbKlasse" onclick="switchTab('klasse')">
-      <span class="ni">🎓</span>Formeln +
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 4 5 4 13 4 8 12 13 20 5 20"/><line x1="17" y1="9" x2="17" y2="15"/><line x1="14" y1="12" x2="20" y2="12"/></svg>Formeln +
     </button>
     <button class="nb" id="nbBild" onclick="switchTab('bild')">
-      <span class="ni">📷</span>Bild
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>Bild
     </button>
     <button class="nb" id="nbAgent" onclick="switchTab('agent')">
-      <span class="ni">🤖</span>Agent
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="3"/><line x1="12" y1="8" x2="12" y2="5"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="13" r="1.8" fill="none"/><circle cx="16" cy="13" r="1.8" fill="none"/><path d="M9 17.5 Q12 19.5 15 17.5"/><line x1="6" y1="12" x2="3" y2="14.5"/><line x1="18" y1="12" x2="21" y2="14.5"/></svg>Agent
     </button>
     <button class="nb" id="nbLernen" onclick="switchTab('lernen')">
-      <span class="ni">📚</span>Lernen
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 12 15 2 8.5"/><path d="M6 11.5 L6 17.5 Q12 21 18 17.5 L18 11.5"/><line x1="22" y1="8.5" x2="22" y2="14.5"/></svg>Lernen
     </button>
     <button class="nb" id="nbHandbuch" onclick="switchTab('handbuch')">
-      <span class="ni">📖</span>Handbuch
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/></svg>Handbuch
     </button>
     <button class="nb" id="nbSettings" onclick="switchTab('settings')">
-      <span class="ni">⚙️</span>Einstellungen
+      <svg class="ni-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Einstellungen
     </button>
   </nav>
 </div><!-- app -->
