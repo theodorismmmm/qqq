@@ -885,6 +885,23 @@
     .act-back-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
       color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
+    /* ─── Basic Task Hint Modal ─── */
+    #basicTaskOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 12100;
+      display: none; align-items: center; justify-content: center; padding: 20px; }
+    #basicTaskOverlay.open { display: flex; }
+    #basicTaskModal { background: var(--bg); border-radius: 0; padding: 24px 20px;
+      width: 100%; max-width: 430px; animation: suUp .3s ease; text-align: center; }
+    .bt-icon { font-size: 40px; margin-bottom: 10px; }
+    .bt-title { font-size: 20px; font-weight: 800; color: var(--txt); margin-bottom: 8px; }
+    .bt-sub { font-size: 13px; color: var(--dim); line-height: 1.55; margin-bottom: 14px; }
+    .bt-task { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 0; padding: 10px 12px;
+      font-size: 15px; font-family: 'Courier New', monospace; color: var(--txt); margin-bottom: 14px;
+      word-break: break-word; text-align: left; }
+    .bt-open-btn { width: 100%; padding: 13px; background: var(--acc); border: none; border-radius: 0;
+      color: white; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 8px; }
+    .bt-ai-btn { width: 100%; padding: 12px; background: var(--btn); border: none; border-radius: 0;
+      color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
     /* ─── 3D Model Overlay ─── */
     #model3dOverlay { position: fixed; inset: 0; background: #0a0a1a; z-index: 10500;
       display: none; flex-direction: column; }
@@ -6295,8 +6312,12 @@ function agentTotalItems() {
 
 function agentAddTask() {
   const max = agentGetMax();
+  if (aiGetDailyRemaining() <= 0) {
+    showPremiumModal('Deine täglichen KI-Tokens sind aufgebraucht. Free: ' + AI_TOKEN_LIMIT_FREE + ' · Pro: ' + AI_TOKEN_LIMIT_PRO + ' · Ultra: ' + AI_TOKEN_LIMIT_ULTRA + ' pro Tag.');
+    return;
+  }
   if (agentTasks.length >= max) {
-    showPremiumModal('Als Free-Nutzer kannst du maximal 5 Aufgaben erstellen. Pro: 100 täglich, Ultra: 1.000.000!');
+    showPremiumModal('Maximale Aufgabenanzahl erreicht.');
     return;
   }
   const n = agentTasks.length + 1;
@@ -6337,7 +6358,7 @@ function agentRenderTasks() {
   const empty = document.getElementById('agentEmpty');
   const total = agentTotalItems();
   const max = agentGetMax();
-  document.getElementById('agentCounter').textContent = total + ' / ' + max;
+  document.getElementById('agentCounter').textContent = total + ' / ' + max + ' · KI-Tokens heute: ' + aiGetDailyRemaining() + '/' + aiGetDailyLimit();
 
   if (agentTasks.length === 0) {
     empty.style.display = '';
@@ -6413,19 +6434,31 @@ async function agentRun() {
     await new Promise(r => setTimeout(r, 0)); // yield to UI
 
     let steps = null, error = null;
-    try {
-      // Try equation solver first
-      steps = parseAndSolve(eq);
-    } catch (e1) {
-      // Fall back to direct numeric evaluation
+    const safeEq = sanitizeAiInput(eq);
+    const cacheKey = 'agent:' + safeEq.toLowerCase();
+    const ai = await geminiAsk(GEMINI_AGENT_PROMPT_PREFIX + safeEq, cacheKey);
+    if (ai && ai.error === 'limit') {
+      error = 'KI-Token-Limit erreicht (heute).';
+    } else if (ai && ai.text) {
+      const answer = ai.text.length > AGENT_ANSWER_MAX_LENGTH ? ai.text.slice(0, AGENT_ANSWER_MAX_LENGTH) + '…' : ai.text;
+      steps = [
+        { desc: 'Aufgabe', math: eq },
+        { desc: ai.cached ? '✅ Ergebnis (Cache)' : '✅ Ergebnis (Gemini)', math: answer, result: true }
+      ];
+    } else {
       try {
-        const val = evalSafe(eq);
-        steps = [
-          { desc: 'Aufgabe', math: eq },
-          { desc: '✅ Ergebnis', math: String(round(val)), result: true }
-        ];
-      } catch (e2) {
-        error = e1.message || 'Unbekannter Fehler';
+        // Fallback: local solver
+        steps = parseAndSolve(eq);
+      } catch (e1) {
+        try {
+          const val = evalSafe(eq);
+          steps = [
+            { desc: 'Aufgabe', math: eq },
+            { desc: '✅ Ergebnis', math: String(round(val)), result: true }
+          ];
+        } catch (e2) {
+          error = e1.message || 'Unbekannter Fehler';
+        }
       }
     }
     agentResultData.push({ taskIdx, itemIdx, eq, steps, error });
@@ -6436,6 +6469,7 @@ async function agentRun() {
   runBtn.disabled = false;
 
   agentRenderResults();
+  agentRenderTasks();
 }
 
 function agentRenderResults() {
@@ -6505,6 +6539,73 @@ function agentSendToCoord(rIdx) {
   coord.functions.push({ expr, color, id, raw: r.eq });
   switchTab('koordinaten');
   setTimeout(() => { renderFnList(); resizeCanvas(); drawCoord(); }, 120);
+}
+
+const QA_KB = [
+  { p: /sin\s*\(\s*30\s*°?\s*\)/i, a: 'sin(30°) = 0,5' },
+  { p: /cos\s*\(\s*60\s*°?\s*\)/i, a: 'cos(60°) = 0,5' },
+  { p: /pythagoras|satz.*pythagoras/i, a: 'Satz des Pythagoras: a² + b² = c²' },
+  { p: /quadratische formel|abc-formel|pq-formel/i, a: 'abc-Formel: x = (−b ± √(b²−4ac)) / (2a)' }
+];
+
+async function agentQAAsk() {
+  const inp = document.getElementById('agentQAInput');
+  if (!inp) return;
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+
+  let answer = null;
+  let forceAi = false;
+  for (const rule of QA_KB) {
+    if (rule.p.test(q)) { answer = rule.a; break; }
+  }
+
+  if (!answer && isBasicMathTask(q)) {
+    const action = await showBasicTaskHint(q);
+    if (action === 'solver') {
+      openBasicTaskInSolver(q);
+      return;
+    }
+    forceAi = action === 'ai';
+  }
+
+  if (!answer && !forceAi && q.length <= 60 && /^[\d(]/.test(q)) {
+    try {
+      const result = typeof evalExpr === 'function' ? evalExpr(q) : null;
+      if (result !== null && result !== undefined && isFinite(result)) {
+        answer = `${q} = ${typeof round === 'function' ? round(result) : parseFloat(result.toFixed(10))}`;
+      }
+    } catch {}
+  }
+
+  if (!answer) {
+    const safeQ = sanitizeAiInput(q);
+    const qaKey = 'qa:' + safeQ.toLowerCase().trim();
+    const ai = await geminiAsk(GEMINI_QA_PROMPT_PREFIX + safeQ, qaKey);
+    if (ai && ai.error === 'limit') {
+      answer = 'KI-Token-Limit erreicht (heute).';
+    } else if (ai && ai.text) {
+      answer = ai.text.length > QA_ANSWER_MAX_LENGTH ? ai.text.slice(0, QA_ANSWER_MAX_LENGTH) + '…' : ai.text;
+    }
+  }
+
+  if (!answer) {
+    answer = `Ich konnte „${q}" nicht sicher beantworten.`;
+  }
+
+  const hist = document.getElementById('agentQAHistory');
+  if (!hist) return;
+  const qDiv = document.createElement('div');
+  qDiv.className = 'agent-qa-msg';
+  qDiv.textContent = q;
+  const aDiv = document.createElement('div');
+  aDiv.className = 'agent-qa-answer';
+  aDiv.textContent = answer;
+  hist.appendChild(qDiv);
+  hist.appendChild(aDiv);
+  hist.scrollTop = hist.scrollHeight;
+  agentRenderTasks();
 }
 
 /* ─ Statistics calculator ─ */
@@ -7644,6 +7745,23 @@ const PRO_KEY  = 'mathspaces_pro';
 const AGENT_MAX_FREE  = 5;
 const AGENT_MAX_PRO   = 100;
 const AGENT_MAX_ULTRA_DAILY = 1000000;
+const GEMINI_API_URLS = [
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+];
+const GEMINI_MAX_OUTPUT_TOKENS = 220; // keep responses concise to minimize token usage
+const AI_TOKEN_LIMIT_FREE = 2;
+const AI_TOKEN_LIMIT_PRO = 5;
+const AI_TOKEN_LIMIT_ULTRA = 10;
+const AI_TOKEN_DAILY_KEY = 'ms_ai_tokens_daily';
+const AI_CACHE_KEY = 'ms_ai_cache_v2';
+const GEMINI_API_KEY_STORE = 'ms_gemini_api_key';
+const AI_CACHE_MAX_SIZE = 180;
+const AI_INPUT_MAX_LENGTH = 240;
+const AGENT_ANSWER_MAX_LENGTH = 1200;
+const QA_ANSWER_MAX_LENGTH = 700;
+const GEMINI_AGENT_PROMPT_PREFIX = 'Löse kurz und korrekt diese Mathe-Aufgabe. Gib maximal 4 Schritte und am Ende das Ergebnis.\nAufgabe: ';
+const GEMINI_QA_PROMPT_PREFIX = 'Beantworte die Mathefrage kurz und korrekt in maximal 3 Sätzen:\n';
 
 function isPremium() {
   try { return localStorage.getItem(PRO_KEY) === '1'; } catch(e) { return false; }
@@ -7659,13 +7777,145 @@ function agentGetMax() {
   return isPremium() ? AGENT_MAX_PRO : AGENT_MAX_FREE;
 }
 
+function aiGetDailyLimit() {
+  const lic = getLicenseData ? getLicenseData() : null;
+  if (lic && (lic.type === 'teacher' || lic.type === 'student')) return AI_TOKEN_LIMIT_ULTRA;
+  if ((lic && lic.type === 'pro') || isPremium()) return AI_TOKEN_LIMIT_PRO;
+  return AI_TOKEN_LIMIT_FREE;
+}
+
+function _getAiDailyUsed() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(AI_TOKEN_DAILY_KEY) || 'null');
+    const today = _getLocalDayKey();
+    if (raw && raw.date === today) return Math.max(0, Number(raw.used) || 0);
+    return 0;
+  } catch { return 0; }
+}
+
+function _getLocalDayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function _setAiDailyUsed(used) {
+  try {
+    const today = _getLocalDayKey();
+    localStorage.setItem(AI_TOKEN_DAILY_KEY, JSON.stringify({ date: today, used: Math.max(0, Math.floor(Number(used) || 0)) }));
+  } catch {}
+}
+
+function aiGetDailyRemaining() {
+  return Math.max(0, aiGetDailyLimit() - _getAiDailyUsed());
+}
+
+function aiConsumeToken() {
+  const remaining = aiGetDailyRemaining();
+  if (remaining <= 0) return false;
+  _setAiDailyUsed(_getAiDailyUsed() + 1);
+  return true;
+}
+
+function aiRefundToken() {
+  _setAiDailyUsed(Math.max(0, _getAiDailyUsed() - 1));
+}
+
+function _getAiCache() {
+  try { return JSON.parse(localStorage.getItem(AI_CACHE_KEY) || '{}') || {}; } catch { return {}; }
+}
+
+function _setAiCache(cache) {
+  try { localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache)); } catch {}
+}
+
+function _aiCacheGet(key) {
+  if (!key) return null;
+  const cache = _getAiCache();
+  return typeof cache[key] === 'string' ? cache[key] : null;
+}
+
+function _aiCacheSet(key, value) {
+  if (!key || !value) return;
+  const cache = _getAiCache();
+  cache[key] = value;
+  const keys = Object.keys(cache);
+  if (keys.length > AI_CACHE_MAX_SIZE) {
+    const keep = keys.slice(-AI_CACHE_MAX_SIZE);
+    const trimmed = {};
+    keep.forEach(k => { trimmed[k] = cache[k]; });
+    _setAiCache(trimmed);
+    return;
+  }
+  _setAiCache(cache);
+}
+
+function getGeminiApiKey() {
+  try {
+    const fromStore = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
+    if (fromStore) return fromStore;
+  } catch {}
+  return '';
+}
+
+function sanitizeAiInput(raw) {
+  return String(raw || '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, AI_INPUT_MAX_LENGTH);
+}
+
+async function geminiAsk(prompt, cacheKey) {
+  const apiKey = getGeminiApiKey();
+  if (!prompt || !apiKey) return null;
+  const cached = _aiCacheGet(cacheKey);
+  if (cached) return { text: cached, cached: true };
+  if (!aiConsumeToken()) return { error: 'limit' };
+
+  try {
+    const body = JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, topP: 0.8, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS }
+    });
+
+    for (const apiUrl of GEMINI_API_URLS) {
+      const res = await fetch(apiUrl + '?key=' + encodeURIComponent(apiKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+      if (!res.ok) {
+        console.warn('Gemini request failed:', res.status, apiUrl);
+        continue;
+      }
+      const data = await res.json();
+      const out = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      if (!out) {
+        console.warn('Gemini request returned empty content:', apiUrl);
+        continue;
+      }
+      _aiCacheSet(cacheKey, out);
+      return { text: out, cached: false };
+    }
+
+    aiRefundToken();
+    return null;
+  } catch {
+    aiRefundToken();
+    return null;
+  }
+}
+
 // ── Premium modal ──────────────────────────────
 function showPremiumModal(reason) {
   if (reason) document.getElementById('premiumSubText').textContent = reason;
   else document.getElementById('premiumSubText').textContent = 'Schalte alle Pro-Features frei';
   // Update benefit description with actual pro limit
   const desc = document.getElementById('premBenefitAgentDesc');
-  if (desc) desc.textContent = 'Löse beliebig viele Aufgaben auf einmal (bis zu ' + AGENT_MAX_PRO + ' täglich – Ultra: 1.000.000)';
+  if (desc) desc.textContent = 'KI-Tokens pro Tag: Free ' + AI_TOKEN_LIMIT_FREE + ' · Pro ' + AI_TOKEN_LIMIT_PRO + ' · Ultra ' + AI_TOKEN_LIMIT_ULTRA;
   document.getElementById('premiumOverlay').classList.add('open');
 }
 
@@ -7690,6 +7940,7 @@ function hideActivateModal() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (document.getElementById('licenseGate').classList.contains('open')) { closeLicenseGate(); }
+    else if (document.getElementById('basicTaskOverlay').classList.contains('open')) { hideBasicTaskHint('ai'); }
     else if (document.getElementById('activateOverlay').classList.contains('open')) { hideActivateModal(); }
     else if (document.getElementById('premiumOverlay').classList.contains('open')) { hidePremiumModal(); }
     else if (document.getElementById('model3dOverlay').classList.contains('open')) { close3DModel(); }
@@ -7712,6 +7963,47 @@ function activatePro() {
 
 function showProWelcome() {
   showActivationFlow('pro');
+}
+
+let _basicTaskResolve = null;
+function isBasicMathTask(raw) {
+  const q = String(raw || '').trim();
+  if (!q || q.length > 80) return false;
+  if (!/[0-9]/.test(q)) return false;
+  if (!/[+\-*/^=]/.test(q)) return false;
+  if (!/^[0-9xXyYzZ+\-*/^=().,\s]+$/.test(q)) return false;
+  return true;
+}
+
+function showBasicTaskHint(taskText) {
+  const overlay = document.getElementById('basicTaskOverlay');
+  const task = document.getElementById('basicTaskText');
+  if (!overlay || !task) return Promise.resolve('ai');
+  task.textContent = taskText;
+  overlay.classList.add('open');
+  openOverlay('basicTaskOverlay');
+  return new Promise(resolve => { _basicTaskResolve = resolve; });
+}
+
+function hideBasicTaskHint(choice) {
+  const overlay = document.getElementById('basicTaskOverlay');
+  if (overlay) overlay.classList.remove('open');
+  closeOverlay('basicTaskOverlay');
+  if (_basicTaskResolve) {
+    const resolve = _basicTaskResolve;
+    _basicTaskResolve = null;
+    resolve(choice || 'ai');
+  }
+}
+
+function openBasicTaskInSolver(taskText) {
+  switchTab('rechner');
+  switchSub('gleichungen');
+  const eqInput = document.getElementById('eqInput');
+  if (eqInput) {
+    eqInput.value = taskText;
+    try { eqInput.focus(); } catch {}
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -7889,6 +8181,7 @@ window._openOverlays = new Set();
 const _overlayClosers = {
   'warnOverlay': () => { document.getElementById('warnOverlay').style.display='none'; },
   'fsMenu': () => { closeFsMenu(); },
+  'basicTaskOverlay': () => { hideBasicTaskHint('ai'); },
   'premiumOverlay': () => { hidePremiumModal(); },
   'activateOverlay': () => { hideActivateModal(); },
   'model3dOverlay': () => { close3DModel(); },
@@ -8316,7 +8609,7 @@ const _LAC_FEATURES = [
   { icon: '📝', name: 'Notizen',      desc: 'Notizen, Aufgaben & persönliche Formelblätter – überall dabei' },
   { icon: '🎓', name: 'Formeln+',     desc: 'Vollständige Formelsammlung & Checklisten für alle Klassen' },
   { icon: '📷', name: 'Bild / OCR',   desc: 'Foto-Upload & Texterkennung für Aufgaben direkt aus der Kamera' },
-  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent – bis zu 100 Anfragen täglich' }
+  { icon: '🤖', name: 'KI-Agent',     desc: 'KI-gestützter Mathe-Assistent – tägliche KI-Tokens je nach Lizenz' }
 ];
 const _LAC_CARD_DELAY_STEP = 0.09; // seconds per card stagger
 
@@ -8331,7 +8624,7 @@ function showActivationFlow(licType) {
   const subs = {
     pro:     'Willkommen bei MathSpaces Pro 🎉 Genieße alle Pro-Features!',
     teacher: 'Willkommen im Ultra+-Bereich! Alle Features + Klassen-Management ⚡',
-    student: 'Willkommen im Ultra-Bereich! Lerne mit 1.000.000 KI-Anfragen ⚡'
+    student: 'Willkommen im Ultra-Bereich! Lerne mit 10 KI-Tokens pro Tag ⚡'
   };
   document.getElementById('lacConfirmTitle').textContent = titles[licType] || 'Lizenz aktiviert!';
   document.getElementById('lacConfirmSub').textContent   = subs[licType]   || 'Viel Spaß beim Lernen! 🚀';
@@ -8441,9 +8734,9 @@ function renderLicenseSettings() {
   const badgeTxt = { free:'FREE', pro:'PRO', teacher:'⚡ Ultra +', student:'⚡ Ultra' };
   const subs = {
     free: 'Nur Grundrechner verfügbar – Lizenz eingeben um alle Features freizuschalten',
-    pro: 'Alle Features freigeschaltet · 100 Agent-Anfragen täglich',
-    teacher: 'Ultra+: Alle Features + Klassen-Management · 1.000.000 Agent-Anfragen ⚡',
-    student: 'Ultra: Features gemäß Klassen-Einstellungen · 1.000.000 Agent-Anfragen ⚡'
+    pro: 'Alle Features freigeschaltet · 5 KI-Tokens pro Tag',
+    teacher: 'Ultra+: Alle Features + Klassen-Management · 10 KI-Tokens pro Tag ⚡',
+    student: 'Ultra: Features gemäß Klassen-Einstellungen · 10 KI-Tokens pro Tag ⚡'
   };
 
   statusBox.innerHTML = `
@@ -9118,6 +9411,20 @@ function obSkip() {
     <div class="act-error" id="activateError"></div>
     <button class="act-confirm-btn" onclick="activatePro()">✅ Aktivieren</button>
     <button class="act-back-btn" onclick="hideActivateModal()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     BASIC TASK HINT MODAL
+══════════════════════════════════════════ -->
+<div id="basicTaskOverlay" onclick="if(event.target===this)hideBasicTaskHint('ai')">
+  <div id="basicTaskModal">
+    <div class="bt-icon">🧮</div>
+    <div class="bt-title">Hinweis</div>
+    <div class="bt-sub">Diese Aufgabe können wir auch ohne KI direkt im Solver lösen.</div>
+    <div class="bt-task" id="basicTaskText"></div>
+    <button class="bt-open-btn" onclick="hideBasicTaskHint('solver')">Solver öffnen</button>
+    <button class="bt-ai-btn" onclick="hideBasicTaskHint('ai')">Trotzdem mit KI fortfahren</button>
   </div>
 </div>
 
