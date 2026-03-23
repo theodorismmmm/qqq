@@ -7226,6 +7226,11 @@ const LERN_FUNCTION_CATALOG = [
 
 let lernInited = false;
 let lernCourses = null;
+let lernProgress = {};
+let lernCurrentCourse = null;
+let lernCurrentLesson = null;
+let lernCurrentStep = 0;
+let lernAnswered = false;
 
 function lernSlug(text) {
   return String(text || '')
@@ -7244,7 +7249,28 @@ function buildLernCourses() {
     id: 'fn-' + lernSlug(f.title),
     title: 'Funktion: ' + f.title,
     sub: f.sub,
-    intro: f.intro
+    lessons: [
+      {
+        id: 'fn-' + lernSlug(f.title) + '-1',
+        title: f.title + ' verstehen',
+        intro: f.intro,
+        steps: [
+          {
+            type: 'choice',
+            title: 'Check',
+            question: 'Worum geht es in dieser Funktion am ehesten?',
+            choices: [
+              f.sub,
+              'Nur Zufallsergebnisse ohne Mathebezug',
+              'Nur Farbauswahl ohne Berechnung',
+              'Nur Texte ohne mathematische Aufgabe'
+            ],
+            correct: 0,
+            explanation: 'Richtig: ' + f.sub
+          }
+        ]
+      }
+    ]
   }));
 
   const glossaryCourses = Object.entries(GLOSSAR)
@@ -7253,7 +7279,28 @@ function buildLernCourses() {
       id: 'term-' + lernSlug(term),
       title: 'Begriff: ' + term,
       sub: 'Glossar-Begriff einzeln lernen',
-      intro: def
+      lessons: [
+        {
+          id: 'term-' + lernSlug(term) + '-1',
+          title: term + ' erklärt',
+          intro: def,
+          steps: [
+            {
+              type: 'choice',
+              title: 'Merksatz',
+              question: `Welche Aussage beschreibt "${term}" richtig?`,
+              choices: [
+                def,
+                'Der Begriff hat keine mathematische Bedeutung',
+                'Der Begriff gilt nur außerhalb von Mathematik',
+                'Der Begriff beschreibt nur Farben'
+              ],
+              correct: 0,
+              explanation: 'Richtig: ' + def
+            }
+          ]
+        }
+      ]
     }));
 
   lernCourses = [...functionCourses, ...glossaryCourses];
@@ -7263,7 +7310,17 @@ function buildLernCourses() {
 function initLernen() {
   if (lernInited) { renderLernCourseList(); return; }
   lernInited = true;
+  const raw = localStorage.getItem('ms_lern_progress');
+  if (raw) try { lernProgress = JSON.parse(raw); } catch (e) {}
   renderLernCourseList();
+}
+
+function saveLernProgress() {
+  localStorage.setItem('ms_lern_progress', JSON.stringify(lernProgress));
+}
+
+function lernGetXP() {
+  return Object.values(lernProgress).reduce((sum, p) => sum + (p.xp || 0), 0);
 }
 
 function renderLernCourseList() {
@@ -7274,30 +7331,152 @@ function renderLernCourseList() {
   list.style.display = '';
   lessonView.style.display = 'none';
   const streak = document.getElementById('lernStreak');
-  if (streak) streak.textContent = `${courses.length} Kurse`;
+  const xp = lernGetXP();
+  if (streak) streak.textContent = xp ? `⭐ ${xp} XP` : `${courses.length} Kurse`;
 
-  list.innerHTML = courses.map((course) => `
-    <div onclick="lernOpenCourse('${course.id}')" style="background:var(--btn);border:1px solid var(--bdr);padding:12px;margin-bottom:10px;cursor:pointer">
+  list.innerHTML = courses.map((course) => {
+    const prog = lernProgress[course.id] || { done: [], xp: 0 };
+    const doneLessons = (prog.done || []).length;
+    const totalLessons = course.lessons.length;
+    return `
+    <div class="lern-course-card ${doneLessons === totalLessons ? 'done' : ''}" onclick="lernOpenCourse('${course.id}')">
       <div style="font-size:14px;font-weight:700">${course.title}</div>
       <div style="font-size:12px;color:var(--dim);margin-top:3px">${course.sub}</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:8px">${doneLessons}/${totalLessons} Lektionen · ${prog.xp || 0} XP</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function lernOpenCourse(courseId) {
   const list = document.getElementById('lernCourseList');
   const lessonView = document.getElementById('lernLessonView');
   if (!list || !lessonView) return;
-  const course = buildLernCourses().find(c => c.id === courseId);
-  if (!course) return;
+  lernCurrentCourse = buildLernCourses().find(c => c.id === courseId);
+  if (!lernCurrentCourse) return;
+  const prog = lernProgress[courseId] || { done: [], xp: 0 };
   list.style.display = 'none';
   lessonView.style.display = '';
   lessonView.innerHTML = `
-    <button class="sbtn" onclick="renderLernCourseList()" style="margin-bottom:10px">← Zurück zu allen Kursen</button>
-    <div style="background:var(--btn);border:1px solid var(--bdr);padding:14px">
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px">${course.title}</div>
-      <div style="font-size:13px;color:var(--dim);line-height:1.6">${course.intro}</div>
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernBackToCourses()">← Zurück</button>
+      <div class="lern-lesson-title">${lernCurrentCourse.title}</div>
     </div>
+    <div id="lernLessonList">
+      ${lernCurrentCourse.lessons.map((lesson, i) => {
+        const done = (prog.done || []).includes(lesson.id);
+        return `<div class="lern-lesson-step" onclick="lernStartLesson('${lesson.id}')" style="cursor:pointer;${done ? 'border-left:4px solid #27ae60' : ''}">
+          <div style="font-weight:600">${done ? '✓ ' : ''}${i + 1}. ${lesson.title}</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:4px">${lesson.steps.length} Quiz-Schritt${lesson.steps.length > 1 ? 'e' : ''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function lernBackToCourses() {
+  lernCurrentCourse = null;
+  lernCurrentLesson = null;
+  renderLernCourseList();
+}
+
+function lernStartLesson(lessonId) {
+  if (!lernCurrentCourse) return;
+  lernCurrentLesson = lernCurrentCourse.lessons.find(l => l.id === lessonId) || null;
+  if (!lernCurrentLesson) return;
+  lernCurrentStep = -1;
+  lernAnswered = false;
+  renderLernIntro();
+}
+
+function renderLernIntro() {
+  const lessonView = document.getElementById('lernLessonView');
+  if (!lessonView || !lernCurrentLesson) return;
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+      <div class="lern-lesson-title">${lernCurrentLesson.title}</div>
+    </div>
+    <div class="lern-step-intro">${lernCurrentLesson.intro}</div>
+    <button class="lern-next-btn" onclick="lernNextStep()">Quiz starten →</button>
+  `;
+}
+
+function lernNextStep() {
+  if (!lernCurrentLesson) return;
+  lernCurrentStep += 1;
+  lernAnswered = false;
+  if (lernCurrentStep >= lernCurrentLesson.steps.length) {
+    lernCompleteLesson();
+    return;
+  }
+  renderLernStep(lernCurrentStep);
+}
+
+function renderLernStep(stepIdx) {
+  const lessonView = document.getElementById('lernLessonView');
+  const step = lernCurrentLesson && lernCurrentLesson.steps[stepIdx];
+  if (!lessonView || !step) return;
+  lessonView.innerHTML = `
+    <div class="lern-lesson-hdr">
+      <button class="lern-back-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">← Lektionen</button>
+      <div class="lern-lesson-title">${lernCurrentLesson.title}</div>
+      <div style="font-size:12px;color:var(--dim)">${stepIdx + 1}/${lernCurrentLesson.steps.length}</div>
+    </div>
+    <div class="lern-lesson-step">
+      <div class="lern-step-title">${step.title}</div>
+      <div style="font-size:15px;font-weight:600;margin:10px 0 14px">${step.question}</div>
+      ${step.choices.map((choice, ci) => `<button class="lern-choice-btn" id="lernChoice${ci}" onclick="lernChoose(${ci}, ${step.correct}, ${stepIdx})">${choice}</button>`).join('')}
+      <div class="lern-feedback" id="lernFeedback${stepIdx}"></div>
+      <button class="lern-next-btn" id="lernNextBtn${stepIdx}" style="display:none" onclick="lernNextStep()">Weiter →</button>
+    </div>
+  `;
+}
+
+function lernChoose(chosenIdx, correctIdx, stepIdx) {
+  if (lernAnswered) return;
+  lernAnswered = true;
+  const step = lernCurrentLesson.steps[stepIdx];
+  step.choices.forEach((_, i) => {
+    const btn = document.getElementById('lernChoice' + i);
+    if (!btn) return;
+    if (i === correctIdx) btn.classList.add('correct');
+    if (i === chosenIdx && i !== correctIdx) btn.classList.add('wrong');
+    btn.disabled = true;
+  });
+  const fb = document.getElementById('lernFeedback' + stepIdx);
+  const nextBtn = document.getElementById('lernNextBtn' + stepIdx);
+  if (fb) {
+    if (chosenIdx === correctIdx) {
+      fb.className = 'lern-feedback ok';
+      fb.textContent = '✅ Richtig! ' + step.explanation;
+    } else {
+      fb.className = 'lern-feedback err';
+      fb.textContent = '❌ Nicht ganz. ' + step.explanation;
+    }
+  }
+  if (nextBtn) nextBtn.style.display = '';
+}
+
+function lernCompleteLesson() {
+  if (!lernCurrentCourse || !lernCurrentLesson) return;
+  const prog = lernProgress[lernCurrentCourse.id] || { done: [], xp: 0 };
+  if (!prog.done.includes(lernCurrentLesson.id)) {
+    prog.done.push(lernCurrentLesson.id);
+    prog.xp += lernCurrentLesson.steps.length * 10;
+    lernProgress[lernCurrentCourse.id] = prog;
+    saveLernProgress();
+  }
+  const lessonView = document.getElementById('lernLessonView');
+  if (!lessonView) return;
+  lessonView.innerHTML = `
+    <div class="lern-done">
+      <div style="font-size:42px;margin-bottom:10px">🎉</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">Lektion geschafft!</div>
+      <div style="font-size:14px;color:var(--dim)">+${lernCurrentLesson.steps.length * 10} XP erhalten</div>
+    </div>
+    <button class="lern-next-btn" onclick="lernOpenCourse('${lernCurrentCourse.id}')">Weitere Lektionen</button>
+    <button class="lern-back-btn" onclick="lernBackToCourses()" style="margin-top:10px">Zur Kursübersicht</button>
   `;
 }
 
