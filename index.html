@@ -7756,6 +7756,7 @@ const AI_TOKEN_LIMIT_ULTRA = 10;
 const AI_TOKEN_DAILY_KEY = 'ms_ai_tokens_daily';
 const AI_CACHE_KEY = 'ms_ai_cache_v2';
 const GEMINI_API_KEY_STORE = 'ms_gemini_api_key';
+const GEMINI_API_KEY_SHA256 = 'd30b303c6f2c75324df6266cbe03721ebcfee5c16fdc47af78ab5bf6fc2ad8e9';
 const AI_CACHE_MAX_SIZE = 180;
 const AI_INPUT_MAX_LENGTH = 240;
 const AGENT_ANSWER_MAX_LENGTH = 1200;
@@ -7852,10 +7853,20 @@ function _aiCacheSet(key, value) {
   _setAiCache(cache);
 }
 
-function getGeminiApiKey() {
+async function sha256Hex(value) {
+  if (!window.crypto || !window.crypto.subtle) return '';
+  const bytes = new TextEncoder().encode(String(value || ''));
+  const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getGeminiApiKey() {
   try {
     const fromStore = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
-    if (fromStore) return fromStore;
+    if (!fromStore) return '';
+    const hashed = await sha256Hex(fromStore);
+    if (hashed && hashed !== GEMINI_API_KEY_SHA256) return '';
+    return fromStore;
   } catch {}
   return '';
 }
@@ -7869,7 +7880,7 @@ function sanitizeAiInput(raw) {
 }
 
 async function geminiAsk(prompt, cacheKey) {
-  const apiKey = getGeminiApiKey();
+  const apiKey = await getGeminiApiKey();
   if (!prompt || !apiKey) return null;
   const cached = _aiCacheGet(cacheKey);
   if (cached) return { text: cached, cached: true };
