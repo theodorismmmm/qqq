@@ -7792,6 +7792,7 @@ const AGENT_ANSWER_MAX_LENGTH = 1200;
 const QA_ANSWER_MAX_LENGTH = 700;
 const GEMINI_AGENT_PROMPT_PREFIX = 'Löse kurz und korrekt diese Mathe-Aufgabe. Gib maximal 4 Schritte und am Ende das Ergebnis.\nAufgabe: ';
 const GEMINI_QA_PROMPT_PREFIX = 'Beantworte die Mathefrage kurz und korrekt in maximal 3 Sätzen:\n';
+const GEMINI_KEY_FORMAT_HINT = 'Format: beginnt meist mit „AIza“ und hat meist etwa 39 Zeichen.';
 let _geminiKeyModalResolve = null;
 
 function isPremium() {
@@ -7885,7 +7886,9 @@ function _aiCacheSet(key, value) {
 
 function isLikelyGeminiApiKey(key) {
   const v = String(key || '').trim();
-  return /^AIza[0-9A-Za-z_\-]{20,}$/.test(v) && v.length <= 100;
+  // Gemini API keys commonly start with "AIza" and are around 39 chars.
+  // Require at least 26 chars after prefix (~30 total) and cap at 60 to reject obvious junk.
+  return /^AIza[0-9A-Za-z_-]{26,}$/.test(v) && v.length <= 60;
 }
 
 function _resolveGeminiKeyModal(saved) {
@@ -7905,7 +7908,7 @@ function onGeminiKeyInput(raw) {
   const val = String(raw || '').trim();
   if (!val) {
     input.classList.remove('gk-input-ok');
-    hint.textContent = 'Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.';
+    hint.textContent = GEMINI_KEY_FORMAT_HINT;
     return;
   }
   if (isLikelyGeminiApiKey(val)) {
@@ -7923,11 +7926,14 @@ function showGeminiKeyModal() {
   const err = document.getElementById('geminiKeyError');
   const hint = document.getElementById('geminiKeyHint');
   const modal = document.getElementById('geminiKeyModal');
-  if (!overlay || !input || !err || !hint || !modal) return Promise.resolve(false);
+  if (!overlay || !input || !err || !hint || !modal) {
+    console.warn('Gemini key modal elements missing; cannot prompt for API key.');
+    return Promise.resolve(false);
+  }
   input.value = '';
   input.classList.remove('gk-input-ok');
   err.textContent = '';
-  hint.textContent = 'Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.';
+  hint.textContent = GEMINI_KEY_FORMAT_HINT;
   modal.classList.remove('gk-shake');
   overlay.classList.add('open');
   openOverlay('geminiKeyOverlay');
@@ -7946,7 +7952,7 @@ function _shakeGeminiKeyModal() {
   const modal = document.getElementById('geminiKeyModal');
   if (!modal) return;
   modal.classList.remove('gk-shake');
-  // force restart animation
+  // Force reflow to restart CSS animation by reading offsetWidth.
   void modal.offsetWidth;
   modal.classList.add('gk-shake');
 }
@@ -7972,7 +7978,7 @@ function saveGeminiApiKeyFromModal() {
   }
 }
 
-async function getGeminiApiKey(promptIfMissing) {
+async function getGeminiApiKey(promptIfMissing = false) {
   try {
     const fromStore = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
     if (fromStore && isLikelyGeminiApiKey(fromStore)) return fromStore;
@@ -7981,10 +7987,6 @@ async function getGeminiApiKey(promptIfMissing) {
     if (!saved) return '';
     const after = (localStorage.getItem(GEMINI_API_KEY_STORE) || '').trim();
     if (after && isLikelyGeminiApiKey(after)) return after;
-    if (after) {
-      localStorage.removeItem(GEMINI_API_KEY_STORE);
-      return '';
-    }
   } catch (err) {
     console.warn('Failed to load/store Gemini API key:', err);
   }
@@ -9555,9 +9557,9 @@ function obSkip() {
     <div class="gk-icon">🤖🔑</div>
     <div class="gk-title">Gemini API-Key</div>
     <div class="gk-sub">Einmal eingeben, dann lokal auf deinem Gerät speichern (ideal für iPadOS/Safari).</div>
-    <input class="gk-input" id="geminiKeyInput" type="password" placeholder="AIza..." autocorrect="off" autocapitalize="off" spellcheck="false"
+    <input class="gk-input" id="geminiKeyInput" type="password" placeholder="AIza..." aria-label="Gemini API Key" autocorrect="off" autocapitalize="off" spellcheck="false"
       oninput="onGeminiKeyInput(this.value)" onkeydown="if(event.key==='Enter')saveGeminiApiKeyFromModal()">
-    <div class="gk-hint" id="geminiKeyHint">Format: beginnt meist mit „AIza“ und ist länger als 30 Zeichen.</div>
+    <div class="gk-hint" id="geminiKeyHint"></div>
     <div class="gk-err" id="geminiKeyError"></div>
     <button class="gk-save-btn" onclick="saveGeminiApiKeyFromModal()">💾 Key speichern</button>
     <button class="gk-cancel-btn" onclick="hideGeminiKeyModal()">Abbrechen</button>
