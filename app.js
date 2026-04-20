@@ -5020,23 +5020,23 @@ function closeOverlay(id) {
 
 function applyTheme(theme) {
   if (theme === 'dark') {
-    document.documentElement.style.setProperty('--bg', '#111111');
-    document.documentElement.style.setProperty('--bg2', '#1a1a1a');
-    document.documentElement.style.setProperty('--card', '#222222');
-    document.documentElement.style.setProperty('--btn', '#333333');
-    document.documentElement.style.setProperty('--btn2', '#444444');
-    document.documentElement.style.setProperty('--txt', '#eeeeee');
-    document.documentElement.style.setProperty('--dim', '#aaaaaa');
-    document.documentElement.style.setProperty('--bdr', '#444444');
+    document.documentElement.style.setProperty('--bg', '#0f0f17');
+    document.documentElement.style.setProperty('--bg2', '#161624');
+    document.documentElement.style.setProperty('--card', '#1e1e2e');
+    document.documentElement.style.setProperty('--btn', '#2a2a3e');
+    document.documentElement.style.setProperty('--btn2', '#353553');
+    document.documentElement.style.setProperty('--txt', '#e2e8f0');
+    document.documentElement.style.setProperty('--dim', '#94a3b8');
+    document.documentElement.style.setProperty('--bdr', '#2d2d46');
   } else {
-    document.documentElement.style.setProperty('--bg', '#ffffff');
-    document.documentElement.style.setProperty('--bg2', '#f5f5f5');
-    document.documentElement.style.setProperty('--card', '#eeeeee');
-    document.documentElement.style.setProperty('--btn', '#e0e0e0');
-    document.documentElement.style.setProperty('--btn2', '#d0d0d0');
-    document.documentElement.style.setProperty('--txt', '#111111');
-    document.documentElement.style.setProperty('--dim', '#555555');
-    document.documentElement.style.setProperty('--bdr', '#cccccc');
+    document.documentElement.style.setProperty('--bg', '#f8f9ff');
+    document.documentElement.style.setProperty('--bg2', '#f0f0fb');
+    document.documentElement.style.setProperty('--card', '#e6e6f8');
+    document.documentElement.style.setProperty('--btn', '#d8d8f2');
+    document.documentElement.style.setProperty('--btn2', '#c8c8ea');
+    document.documentElement.style.setProperty('--txt', '#1e293b');
+    document.documentElement.style.setProperty('--dim', '#64748b');
+    document.documentElement.style.setProperty('--bdr', '#c7c7e8');
   }
   localStorage.setItem('theme', theme);
 }
